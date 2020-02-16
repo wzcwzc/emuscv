@@ -3,6 +3,13 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ===========================================================
 
 ***********************************************************
+* Libretro-EmuSCV v0.01 2020/02/14
+***********************************************************
+- Add libretro core
+- Add eSCV code (with all code specific to Windows commented -> to rewrite with crossplatform code)
+- Tested on Windows and Linux (to test on Raspberry Pi)
+
+***********************************************************
 * Libretro-EmuSCV v0.00 2019/12/05
 ***********************************************************
 - Tests with eSCV on windows
