@@ -1,0 +1,225 @@
+==========
+2013-08-17
+==========
+Fujitsu FM Towns
+- switched to FM Towns II UX system roms and cleaned up installation
+
+Fujitsu FM-7
+- updated official XM7 to v3.4L60, v2.9L60, v2.9L60-V2, and v1.1L60
+- updated XM7dash to V3.4L52aR130423, V2.9L52aR130423, and V1.2L16
+- XM7 v1 (official and dash) are now configured to emulate the FM-8
+- XM7 v2 (official and dash) are now configured to emulate the FM77AV
+- XM7 v3 (official and dash) are now configured to emulate the FM77AV40EX/SX
+- added English dlls by Ben.JP and Anna Wu
+- added external graphics filters and FM synth modules to XM7dash
+- removed mamefm build (out of date)
+
+Fujitsu FM-11
+- included some disk images provided by the emulator author
+
+Hitachi BASIC Master
+- updated bm2 to 20121103
+- updated bml3mk5 to 0.99 and added SDL version
+
+MSX
+- updated OpenMSX to 0.9.1
+- 64-bit binaries are now the default in OpenMSX
+
+PC-88VA
+- added vaegx4
+
+NEC PC-6001
+- updated PC6001V to 1.19
+- 64-bit binaries are now the default in PC6001V
+- removed PC6001VX (redundant)
+
+NEC PC-8001
+- updated j80 to r6b38
+- completely overhauled the system roms, should be out-of-the-box compatible
+  with future j80 releases
+
+NEC PC-8801
+- updated M88kai to 2013-06-23
+- updated Quasi88 to 0.6.4
+- updated X88000 to x88x21
+- added the latest collection of FM synth dlls
+
+NEC PC-9801
+- updated np2fmgen to 2013-08-02
+- added np2x7
+- added the latest collection of FM synth dlls
+
+Sharp X68000
+- updated XM6 Type G to 20121116 and added MAME core version
+- updated XM6 Pro-68k to 130511
+
+Toshiya Takeda
+- updated binaries to 2013-08-16
+
+
+==========
+2012-05-03
+==========
+MSX
+- updated OpenMSX to 0.8.2-12495
+- added new OpenMSX machines and extensions (thanks Anna Wu)
+
+NEC PC-8801
+- updated X88000 to x88x13
+- added some rpi filter plugins for x88x (see readme)
+
+Sharp X68000
+- updated XM6 Pro-68k to 120425
+
+Toshiya Takeda
+- added executable with multi-block load patch by madogiwaha for the MZ-80K 
+(thanks Anna Wu)
+
+
+==========
+2012-04-16
+==========
+Hitachi BASIC Master
+- replaced bml3mk5 builds with combined version 0.7.0
+
+MSX
+- updated OpenMSX to 0.8.2-12472
+
+NEC PC-8801
+- updated X88000 to x88x11
+
+NEC PC-9801
+- updated SPB+ plugin for T98-Next (thanks akarin)
+
+Sharp X68000
+- updated XM6 2.05 TypeG to 2012-04-15
+
+Toshiya Takeda
+- added app.rom for the Canon X-07 (thanks Anna Wu)
+
+
+==========
+2012-04-02
+==========
+- added Sanyo PHC-25 emulator (thanks Anna Wu)
+
+Hitachi BASIC Master
+- updated bml3mk5 to 0.5.2
+
+MSX
+- updated OpenMSX to 0.8.2-12460
+
+NEC PC-6001
+- added PC6001V 1.15
+- added PC6001VX 1.0b2 (thanks Anna Wu)
+
+NEC PC-8801
+- updated X88000 to x88x9
+
+NEC PC-9801
+- updated np2fmgen to 2012-03-25
+- added CD-ROM module to T98-Next
+
+Sharp X68000
+- merged WinX68k Highspeed and Kousoku into one directory
+
+
+==========
+2012-03-24
+==========
+MSX
+- updated OpenMSX to 0.8.2-12438
+
+NEC PC-8001
+- updated j80 to 6b29
+
+Sharp X68000
+- added XM6 Pro-68k Build 120321
+
+Toshiya Takeda
+- updated binaries to 2012-03-20
+- added basic.rom and Tutor ipl.com for the Tomy Pyuta (thanks Anna Wu)
+
+
+==========
+2012-03-14
+==========
+- moved all archives to separate Archives & Utilities collection
+- reduced file size as much as possible
+
+Fujitsu FM-11
+- added FM11 emulator (thanks Anna Wu)
+
+Hitachi BASIC Master
+- updated bml3mk5 to 0.5.1/0.3.9/0.1.14
+
+MSX
+- added OpenMSX 0.8.2-12434 and BlueMSX 2.8.2 (thanks Anna Wu)
+
+NEC PC-6001
+- removed PC6001V and Virtual NEC Trek (available in archives)
+
+NEC PC-9801
+- updated np2fmgen to 2012-03-10
+- removed T98 Next rb131 and 20100525 (available in archives)
+- removed Policenauts setup (unnecessary because of update)
+
+NEC PC-8001
+- updated j80 to 6b28
+- removed N80DX170 (available in archives)
+
+NEC PC-8801
+- updated X88000 to x88x7
+
+Panasonic JR-100&200
+- added BASIC rom to jr100v2
+
+Sharp MZ-80B&2000
+- updated EmuZ2000TF to 0.92.0
+- removed EmuZ2000 0.470 (available in archives)
+
+Sharp MZ-80K&700&1500
+- updated MZ700WIN to 0.53
+- added working MZ700j monitor rom (1Z009)
+
+Toshiya Takeda
+- updated binaries to 2012-03-06
+- added 03-14 binaries for PC-8801MA and PC88DO (tape support+fixes)
+- added many system roms (thanks Anna Wu)
+- general cleanup
+
+
+==========
+2012-03-06
+==========
+- added _history.txt (this file)
+
+Fujitsu FM-7
+- added XM7 3.4 L40 English, translation courtesy of Anna Wu
+
+NEC PC-6001
+- added PC6001V emulator
+- added real wavs of voice synth set phrases 
+- general cleanup
+
+NEC PC-8001/PC-8801
+- updated j80 to 6b27
+- added PC-8801 configs+roms to j80
+- updated X88000 to x88x4
+- general cleanup
+
+NEC PC-9801
+- updated np2fmgen to 2012-03-03
+- added MIDI to PC-9801RS setup
+- created Policenauts setup
+- general cleanup
+
+Toshiya Takeda
+- updated binaries to 2012-02-22 versions
+- general cleanup
+
+
+==========
+2012-02-20
+==========
+- first release
