@@ -1,9 +1,10 @@
-CORE_DIR			:= ./src
-LIBRETRO_COMM_DIR	:= $(CORE_DIR)/libretro-common
+CORE_DIR		:= ./src
+RESOURCE_DIR	:= $(CORE_DIR)/res
+LIBRETRO_DIR	:= $(CORE_DIR)/libretro-common
 
 CORE_DEFINES = -D_LIBRETRO -D_SCV
 
-INCFLAGS := -I./ -I$(CORE_DIR) -I$(LIBRETRO_COMM_DIR) -I$(LIBRETRO_COMM_DIR)/include
+INCFLAGS := -I./ -I$(CORE_DIR) -I$(LIBRETRO_DIR) -I$(LIBRETRO_DIR)/include
 
 SOURCES_C   := 
 SOURCES_CXX :=	$(CORE_DIR)/libretro.cpp \
@@ -28,12 +29,16 @@ SOURCES_CXX :=	$(CORE_DIR)/libretro.cpp \
 				$(CORE_DIR)/osd/libretro/osd_socket.cpp \
 				$(CORE_DIR)/osd/libretro/osd_sound.cpp \
 				$(CORE_DIR)/osd/libretro/osd_video.cpp
+#SOURCES_BIN	:=	$(RESOURCE_DIR)/image10x10xrgb888.bin
+SOURCES_BIN	:=	$(RESOURCE_DIR)/emuscv64x64xrgba8888.data
 
 ifeq ($(STATIC_LINKING),1)
 else
-SOURCES_C += $(LIBRETRO_COMM_DIR)/streams/file_stream.c \
-			 $(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c \
-			 $(LIBRETRO_COMM_DIR)/compat/fopen_utf8.c \
-			 $(LIBRETRO_COMM_DIR)/compat/compat_strl.c \
-			 $(LIBRETRO_COMM_DIR)/encodings/encoding_utf.c
+SOURCES_C += $(LIBRETRO_DIR)/streams/file_stream.c \
+			 $(LIBRETRO_DIR)/vfs/vfs_implementation.c \
+			 $(LIBRETRO_DIR)/compat/fopen_utf8.c \
+			 $(LIBRETRO_DIR)/compat/compat_strl.c \
+			 $(LIBRETRO_DIR)/encodings/encoding_utf.c \
+			 $(LIBRETRO_DIR)/file/file_path.c \
+			 $(LIBRETRO_DIR)/compat/compat_strcasestr.c
 endif

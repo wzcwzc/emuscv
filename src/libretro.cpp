@@ -8,6 +8,7 @@
 
 // EmuSCV includes
 #include "emuscv.h"
+#include "res/binary.emuscv64x64xrgba8888.data.h"
 
 
 #define CONTROLLER_BUTTON_SELECT    "BUTTON SELECT"
@@ -502,10 +503,22 @@ void retro_run(void)
 			memcpy(frame_buf + (posx + x + (posy + y) * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));
 
     // Draw a lonely pixel
-	color = palette_pc[15];  // White
+	color = palette_pc[8];  // Red
 	posx = 10;
 	posy = 10;
 	memcpy(frame_buf + (posx + posy * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));
+
+	// Draw an embedded binary image (64x97 pixels in ARGB8888 format)
+	posx = 10;
+	posy = 20;
+	sizx = 64;
+	sizy = 64;
+	for (uint32_t y = 0; y < sizy; y++)
+		for (uint32_t x = 0; x < sizx; x++)
+		{
+			color = RGB_COLOR(src_res_emuscv64x64xrgba8888_data[4*(x+y*sizx)], src_res_emuscv64x64xrgba8888_data[4*(x+y*sizx)+1], src_res_emuscv64x64xrgba8888_data[4*(x+y*sizx)+2]);
+			memcpy(frame_buf + (posx + x + (posy + y) * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));
+		}
 
 	// FIRST CONTROLLER (LEFT SIDE, ORANGE)
 	button_pressed = FALSE;
@@ -815,7 +828,8 @@ void retro_run(void)
 	for (uint32_t x = 0; x < 2 * sizx + 1; x++)
 		memcpy(frame_buf + (posx - sizx + x + posy * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));
 	for (uint32_t y = 0; y < 2 * sizy + 1; y++)
-		memcpy(frame_buf + (posx + (posy - sizy + y) * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));	// Analog stick position
+		memcpy(frame_buf + (posx + (posy - sizy + y) * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));
+	// Analog stick position
 	if (analogleftx0 <= -32 || analogleftx0 >= 32 || analoglefty0 <= -32 || analoglefty0 >= 32)
 	{
 		button_pressed = TRUE;
@@ -859,7 +873,8 @@ void retro_run(void)
 	for (uint32_t x = 0; x < 2 * sizx + 1; x++)
 		memcpy(frame_buf + (posx - sizx + x + posy * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));
 	for (uint32_t y = 0; y < 2 * sizy + 1; y++)
-		memcpy(frame_buf + (posx + (posy - sizy + y) * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));	// Analog stick position
+		memcpy(frame_buf + (posx + (posy - sizy + y) * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));
+	// Analog stick position
 	if (analogrightx0 <= -32 || analogrightx0 >= 32 || analogrighty0 <= -32 || analogrighty0 >= 32)
 	{
 		button_pressed = TRUE;
@@ -1186,7 +1201,8 @@ void retro_run(void)
 	for (uint32_t x = 0; x < 2 * sizx + 1; x++)
 		memcpy(frame_buf + (posx - sizx + x + posy * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));
 	for (uint32_t y = 0; y < 2 * sizy + 1; y++)
-		memcpy(frame_buf + (posx + (posy - sizy + y) * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));	// Analog stick position
+		memcpy(frame_buf + (posx + (posy - sizy + y) * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));
+	// Analog stick position
 	if (analogleftx1 <= -32 || analogleftx1 >= 32 || analoglefty1 <= -32 || analoglefty1 >= 32)
 	{
 		button_pressed = TRUE;
@@ -1230,7 +1246,8 @@ void retro_run(void)
 	for (uint32_t x = 0; x < 2 * sizx + 1; x++)
 		memcpy(frame_buf + (posx - sizx + x + posy * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));
 	for (uint32_t y = 0; y < 2 * sizy + 1; y++)
-		memcpy(frame_buf + (posx + (posy - sizy + y) * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));	// Analog stick position
+		memcpy(frame_buf + (posx + (posy - sizy + y) * SCREEN_WIDTH) * sizeof(uint32_t), &color, sizeof(color));
+	// Analog stick position
 	if (analogrightx1 <= -32 || analogrightx1 >= 32 || analogrighty1 <= -32 || analogrighty1 >= 32)
 	{
 		button_pressed = TRUE;
@@ -1613,8 +1630,12 @@ bool retro_load_game(const struct retro_game_info *info)
         return oEmuSCV->LoadCartridge((const uint8_t*)info->data, info->size);
     }
 */
+
     return true;
 }
+
+
+
 
 void retro_unload_game(void)
 {

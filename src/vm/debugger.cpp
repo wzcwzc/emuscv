@@ -8,8 +8,10 @@
 */
 
 #include <stdlib.h>
-#ifdef _WIN32
+#if defined(_WIN32)
     #include <io.h>
+#elif defined(_OSX)
+    #include <sys/uio.h>
 #else
     #include <sys/io.h>
 #endif

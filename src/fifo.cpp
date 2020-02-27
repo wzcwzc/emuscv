@@ -8,7 +8,9 @@
 */
 
 #include <stdlib.h>
-#include <malloc.h>
+#ifndef _OSX 
+	#include <malloc.h>
+#endif
 #include "fifo.h"
 #include "fileio.h"
 

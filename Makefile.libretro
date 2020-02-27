@@ -1,8 +1,9 @@
 TARGET_NAME := emuscv
 
 APP_VERSION_MAJOR = 0
-APP_VERSION_MINOR = 01
-APP_VERSION_DATETIME = $(shell date -u +'%Y%m%d%H%M%S')
+APP_VERSION_MINOR = 02
+#APP_VERSION_DATETIME = $(shell date -u +'%Y%m%d%H%M%S')
+APP_VERSION_DATETIME = '20200226000000'
 APP_VERSION = $(APP_VERSION_MAJOR).$(APP_VERSION_MINOR).$(APP_VERSION_DATETIME)
 
 DEBUG = 0
@@ -19,8 +20,7 @@ unixcygpath = /$(subst :,,$(call unixpath,$1))
 
 version_script = link.T
 
-DESTDIR := 
-core_installdir := $(prefix)/lib
+INSTALL_DIR := 
 
 # system platform
 ifeq ($(platform),)
@@ -58,6 +58,7 @@ else ifneq ($(findstring Darwin,$(shell uname -a)),)
 		arch = ppc
 	endif
 else ifneq ($(findstring MINGW,$(shell uname -a)),)
+	EXE_EXT = .exe
 	system_platform = win
 endif
 
@@ -66,7 +67,9 @@ endif
 
 # Unix
 ifneq (,$(findstring unix,$(platform)))
+	PLATFORM_DEFINES := -D_UNIX
 	TARGET := $(TARGET_NAME)_libretro.so
+	INSTALL_DIR := /usr/lib/x86_64-linux-gnu/libretro
 	fpic := -fPIC
 	SHARED := -shared -Wl,-version-script=$(version_script)
 	HAVE_NETWORK = 1
@@ -115,31 +118,36 @@ ifneq (,$(findstring unix,$(platform)))
 #		endif
 #	endif
 
-## OS X
-# --- UNTESTED ---
-#else ifeq ($(platform),osx)
-#	TARGET := $(TARGET_NAME)_libretro.dylib
-#	fpic := -fPIC
-#	SHARED := -dynamiclib
-#	OSXVER = $(shell sw_vers -productVersion | cut -d. -f 2)
+# OS X
+else ifeq ($(platform),osx)
+	PLATFORM_DEFINES := -D_OSX -D__APPLE__
+	TARGET := $(TARGET_NAME)_libretro.dylib
+	INSTALL_DIR := /Applications/RetroArch.app/Contents/Resources/cores
+	CC = clang
+	CXX = c++
+	fpic := -fPIC
+	SHARED := -dynamiclib
+#	OSXVER = $(shell sw_vers -productVersion | cut -d . -f 2)
 #	OSX_GT_MOJAVE = $(shell (( $(OSXVER) >= 14)) && echo "YES")
 #	ifneq ($(OSX_GT_MOJAVE),YES)
-#		fpic += -mmacosx-version-min=10.1
+# Minimum OS X version required for Retroarch
+		fpic += -mmacosx-version-min=10.6
 #	endif
-#	ifndef ($(NOUNIVERSAL))
-#		CFLAGS += $(ARCHFLAGS)
-#		CXXFLAGS += $(ARCHFLAGS)
-#		LDFLAGS += $(ARCHFLAGS)
-#	endif
-#	HAVE_NETWORK=1
-#	ifeq ($(arch),ppc)
-#		CFLAGS += -DHAVE_NO_LANGEXTRA
-#		CXXFLAGS += -DHAVE_NO_LANGEXTRA
-#	endif
+	ifndef ($(NOUNIVERSAL))
+		CFLAGS += $(ARCHFLAGS)
+		CXXFLAGS += $(ARCHFLAGS)
+		LDFLAGS += $(ARCHFLAGS)
+	endif
+	HAVE_NETWORK=1
+	ifeq ($(arch),ppc)
+		CFLAGS += -DHAVE_NO_LANGEXTRA
+		CXXFLAGS += -DHAVE_NO_LANGEXTRA
+	endif
 
 ## iOS
 # --- UNTESTED ---
 #else ifneq (,$(findstring ios,$(platform)))
+#	PLATFORM_DEFINES := -D_IOS
 #	TARGET := $(TARGET_NAME)_libretro_ios.dylib
 #	fpic := -fPIC
 #	SHARED := -dynamiclib
@@ -167,6 +175,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## Theos
 # --- UNTESTED ---
 #else ifeq ($(platform),theos_ios)
+#	PLATFORM_DEFINES := -D_IOS -D_THEOS
 #	DEPLOYMENT_IOSVERSION = 5.0
 #	TARGET = iphone:latest:$(DEPLOYMENT_IOSVERSION)
 #	ARCHS = armv7 armv7s
@@ -179,6 +188,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## QNX
 # --- UNTESTED ---
 #else ifeq ($(platform),qnx)
+#	PLATFORM_DEFINES := -D_QNX
 #	TARGET := $(TARGET_NAME)_libretro_qnx.so
 #	fpic := -fPIC
 #	SHARED := -lcpp -lm -shared -Wl,-version-script=$(version_script)
@@ -190,6 +200,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## PS3
 # --- UNTESTED ---
 #else ifneq (,$(filter $(platform), ps3 sncps3 psl1ght))
+#	PLATFORM_DEFINES := -D_PS3
 #	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 #	PLATFORM_DEFINES := -D__CELLOS_LV2__
 #	STATIC_LINKING = 1
@@ -197,6 +208,7 @@ ifneq (,$(findstring unix,$(platform)))
 #	# sncps3
 # --- UNTESTED ---
 #	ifneq (,$(findstring sncps3,$(platform)))
+#		PLATFORM_DEFINES += -D_SNCPS3
 #		TARGET := $(TARGET_NAME)_libretro_ps3.a
 #		CC = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
 #		CXX = $(CC)
@@ -212,6 +224,7 @@ ifneq (,$(findstring unix,$(platform)))
 #	# Lightweight PS3 Homebrew SDK
 # --- UNTESTED ---
 #	else ifneq (,$(findstring psl1ght,$(platform)))
+#		PLATFORM_DEFINES += -D_PSL1GHT
 #		CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
 #		CXX = $(PS3DEV)/ppu/bin/ppu-g++$(EXE_EXT)
 #		AR = $(PS3DEV)/ppu/bin/ppu-ar$(EXE_EXT)
@@ -220,6 +233,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## PSP
 # --- UNTESTED ---
 #else ifeq ($(platform),psp1)
+#	PLATFORM_DEFINES := -D_PSP
 #	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 #	CC = psp-gcc$(EXE_EXT)
 #	CXX = psp-g++$(EXE_EXT)
@@ -232,6 +246,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## Vita
 # --- UNTESTED ---
 #else ifeq ($(platform),vita)
+#	PLATFORM_DEFINES := -D_VITA
 #	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 #	CC = arm-vita-eabi-gcc$(EXE_EXT)
 #	CXX = arm-vita-eabi-g++$(EXE_EXT)
@@ -244,6 +259,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## CTR(3DS)
 # --- UNTESTED ---
 #else ifeq ($(platform),ctr)
+#	PLATFORM_DEFINES := -D_3DS
 #	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 #	CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
 #	CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
@@ -258,6 +274,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## DOS
 # --- UNTESTED ---
 #else ifeq ($(platform),dos)
+#	PLATFORM_DEFINES := -D_DOS
 #	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 #	CC = i686-pc-msdosdjgpp-gcc
 #	CXX = i686-pc-msdosdjgpp-g++
@@ -271,6 +288,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## Xbox 360
 # --- UNTESTED ---
 #else ifeq ($(platform),xenon)
+#	PLATFORM_DEFINES := -D_XBOX
 #	TARGET := $(TARGET_NAME)_libretro_xenon360.a
 #	CC = xenon-gcc$(EXE_EXT)
 #	CXX = xenon-g++$(EXE_EXT)
@@ -292,23 +310,24 @@ ifneq (,$(findstring unix,$(platform)))
 #	# Nintendo WiiU
 # --- UNTESTED ---
 #	ifneq (,$(findstring wiiu,$(platform)))
-#		PLATFORM_DEFINES += -DWIIU -DHW_RVL
+#		PLATFORM_DEFINES += -D_WIIU -DWIIU -DHW_RVL
 	
 #	# Nintendo Wii
 # --- UNTESTED ---
 #	else ifneq (,$(findstring wii,$(platform)))
-#		PLATFORM_DEFINES += -DHW_RVL -mrvl
+#		PLATFORM_DEFINES += -D_WII -DHW_RVL -mrvl
 	
 #	# Nintendo Game Cube
 # --- UNTESTED ---
 #	else ifneq (,$(findstring ngc,$(platform)))
-#		PLATFORM_DEFINES += -DHW_DOL -mrvl
+#		PLATFORM_DEFINES += -D_NGC -DHW_DOL -mrvl
 #	endif
 
 ## Nintendo Switch (libtransistor)
 # --- UNTESTED ---
 #else ifeq ($(platform),switch)
 #	EXT=a
+#	PLATFORM_DEFINES := -D_SWITCH
 #	TARGET := $(TARGET_NAME)_libretro_$(platform).$(EXT)
 #	include $(LIBTRANSISTOR_HOME)/libtransistor.mk
 #	STATIC_LINKING = 1
@@ -316,6 +335,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## Nintendo Switch (libnx)
 # --- UNTESTED ---
 #else ifeq ($(platform),libnx)
+#	PLATFORM_DEFINES := -D_SWITCH -D_LIBNX
 #	include $(DEVKITPRO)/libnx/switch_rules
 #	EXT = a
 #	TARGET := $(TARGET_NAME)_libretro_$(platform).$(EXT)
@@ -330,12 +350,14 @@ ifneq (,$(findstring unix,$(platform)))
 # emscripten
 # --- UNTESTED ---
 #else ifeq ($(platform),emscripten)
+#	PLATFORM_DEFINES := -D_EMSCRIPTEN
 #	TARGET := $(TARGET_NAME)_libretro_$(platform).bc
 #	STATIC_LINKING = 1
 
 ## GCW0
 # --- UNTESTED ---
 #else ifeq ($(platform),gcw0)
+#	PLATFORM_DEFINES := -D_GCW0
 #	TARGET := $(TARGET_NAME)_libretro.so
 #	CC = /opt/gcw0-toolchain/usr/bin/mipsel-linux-gcc
 #	CXX = /opt/gcw0-toolchain/usr/bin/mipsel-linux-g++
@@ -349,6 +371,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## Windows MSVC 2003 Xbox 1
 # --- UNTESTED ---
 #else ifeq ($(platform),xbox1_msvc2003)
+#	PLATFORM_DEFINES := -D_XBOX1 -D_MSVC
 #	TARGET := $(TARGET_NAME)_libretro_xdk1.lib
 #	CC = CL.exe
 #	CXX = CL.exe
@@ -366,6 +389,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## Windows MSVC 2010 Xbox 360
 # --- UNTESTED ---
 #else ifeq ($(platform),xbox360_msvc2010)
+#	PLATFORM_DEFINES := -D_XBOX360 -D_MSVC
 #	TARGET := $(TARGET_NAME)_libretro_xdk360.lib
 #	MSVCBINDIRPREFIX = $(XEDK)/bin/win32
 #	CC = "$(MSVCBINDIRPREFIX)/cl.exe"
@@ -383,6 +407,7 @@ ifneq (,$(findstring unix,$(platform)))
 ## Windows MSVC 2017 all architectures
 # --- UNTESTED ---
 #else ifneq (,$(findstring windows_msvc2017,$(platform)))
+#	PLATFORM_DEFINES := -D_WIN32 -D_MSVC
 #	PlatformSuffix = $(subst windows_msvc2017_,,$(platform))
 #	ifneq (,$(findstring desktop,$(PlatformSuffix)))
 #		WinPartition = desktop
@@ -455,11 +480,11 @@ ifneq (,$(findstring unix,$(platform)))
 #	TARGET := $(TARGET_NAME)_libretro.dll
 #	PSS_STYLE :=2
 #	LDFLAGS += -DLL
-#	PLATFORM_DEFINES := -D_WIN32
 
 ## Windows MSVC 2010 x64
 # --- UNTESTED ---
 #else ifeq ($(platform),windows_msvc2010_x64)
+#	PLATFORM_DEFINES := -D_WIN32 -D_MSVC
 #	CC  = cl.exe
 #	CXX = cl.exe
 #	PATH := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/bin/amd64"):$(PATH)
@@ -476,11 +501,11 @@ ifneq (,$(findstring unix,$(platform)))
 #	TARGET := $(TARGET_NAME)_libretro.dll
 #	PSS_STYLE :=2
 #	LDFLAGS += -DLL
-#	PLATFORM_DEFINES := -D_WIN32
 
 ## Windows MSVC 2010 x86
 # --- UNTESTED ---
 #else ifeq ($(platform),Windows_msvc2010_x86)
+#	PLATFORM_DEFINES := -D_WIN32 -D_MSVC
 #	CC = cl.exe
 #	CXX = cl.exe
 #	PATH := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/bin"):$(PATH)
@@ -497,11 +522,11 @@ ifneq (,$(findstring unix,$(platform)))
 #	TARGET := $(TARGET_NAME)_libretro.dll
 #	PSS_STYLE :=2
 #	LDFLAGS += -DLL
-#	PLATFORM_DEFINES := -D_WIN32
 
 ## Windows MSVC 2005 x86
 # --- UNTESTED ---
 #else ifeq ($(platform),windows_msvc2005_x86)
+#	PLATFORM_DEFINES := -D_WIN32 -D_MSVC
 #	CC = cl.exe
 #	CXX = cl.exe
 #	PATH := $(shell IFS=$$'\n'; cygpath "$(VS80COMNTOOLS)../../VC/bin"):$(PATH)
@@ -517,11 +542,11 @@ ifneq (,$(findstring unix,$(platform)))
 #	LDFLAGS += -DLL
 #	CFLAGS += -D_CRT_SECURE_NO_DEPRECATE
 #	LIBS = 
-#	PLATFORM_DEFINES := -D_WIN32
 
 ## Windows MSVC 2003 x86
 # --- UNTESTED ---
 #else ifeq ($(platform),windows_msvc2003_x86)
+#	PLATFORM_DEFINES := -D_WIN32 -D_MSVC
 #	CC = cl.exe
 #	CXX = cl.exe
 #	PATH := $(shell IFS=$$'\n'; cygpath "$(VS71COMNTOOLS)../../Vc7/bin"):$(PATH)
@@ -537,17 +562,17 @@ ifneq (,$(findstring unix,$(platform)))
 #	LDFLAGS += -DLL
 #	CFLAGS += -D_CRT_SECURE_NO_DEPRECATE
 #	LIBS = 
-#	PLATFORM_DEFINES := -D_WIN32
 
 # Windows
 else
+	PLATFORM_DEFINES := -D_WIN32
 	TARGET := $(TARGET_NAME)_libretro.dll
+	INSTALL_DIR := C:/RetroArch/cores
 	HAVE_NETWORK = 1
 	CC ?= gcc
 	CXX ?= g++
 	SHARED := -shared -static-libgcc -static-libstdc++ -Wl,-no-undefined -Wl,-version-script=$(version_script)
 	LDFLAGS := -lws2_32
-	PLATFORM_DEFINES := -D_WIN32
 endif
 
 ifeq ($(DEBUG),1)
@@ -625,7 +650,8 @@ else
 	CORE_DEFINES += -DPSS_STYLE=1
 endif
 
-OBJS := $(SOURCES_CXX:.cpp=.o) $(SOURCES_C:.c=.o)
+OBJS := $(SOURCES_CXX:.cpp=.o) $(SOURCES_C:.c=.o) $(foreach i,$(SOURCES_BIN),$(dir $(i))binary.$(notdir $(i)).o)
+BINOBJS := $(foreach i,$(SOURCES_BIN),$(dir $(i))binary.$(notdir $(i)).c)
 
 DEFINES := $(CORE_DEFINES) $(PLATFORM_DEFINES) -DHAVE_STDINT_H -DHAVE_INTTYPES_H -DVIDEO_RGB888 -DAPP_VERSION_MAJOR=\"$(APP_VERSION_MAJOR)\" -DAPP_VERSION_MINOR=\"$(APP_VERSION_MINOR)\" -DAPP_VERSION_DATETIME=\"$(APP_VERSION_DATETIME)\" -DAPP_VERSION=\"$(APP_VERSION)\"
 
@@ -662,56 +688,127 @@ ifeq ($(platform),theos_ios)
 	include $(THEOS_MAKE_PATH)/library.mk
 else
 
+	ifeq ($(platform),osx)
+		ifndef ($(NOUNIVERSAL))
+			CFLAGS += $(ARCHFLAGS)
+			CXXFLAGS += $(ARCHFLAGS)
+			LFLAGS += $(ARCHFLAGS)
+		endif
+	endif
+
+
 build: all
 
 rebuild: clean all
 
 all: $(TARGET)
 
-ifeq ($(platform),osx)
-	ifndef ($(NOUNIVERSAL))
-		CFLAGS += $(ARCHFLAGS)
-		CXXFLAGS += $(ARCHFLAGS)
-		LFLAGS += $(ARCHFLAGS)
-	endif
-endif
+#ifeq ($(platform),osx)
+#ifndef ($(NOUNIVERSAL))
+#	CFLAGS += $(ARCHFLAGS)
+#	CXXFLAGS += $(ARCHFLAGS)
+#	LFLAGS += $(ARCHFLAGS)
+#endif
+#endif
+
+$(TARGET): binaries $(OBJS)
 	@echo ''
-	@echo 'Target: $(TARGET)'
-
-$(TARGET): $(OBJS)
-
+	@echo '- Link target : $(TARGET)'
 ifeq ($(STATIC_LINKING),1)
 	ifneq(,$(findstring msvc,$(platform)))
-		$(LD) $(LINKOUT)$@ $(OBJECTS)
+		$(LD) $(LINKOUT)$@ $(OBJS)
 	else
 		$(AR) rcs $@ $(OBJS)
 	endif
 else
 	$(LD) $(fpic) $(SHARED) $(LINKOUT) $@ $(OBJS) $(LDFLAGS) $(LIBS)
 endif
+	@echo ''
+	@echo '->Target: $(TARGET) v$(APP_VERSION)'
+
+binaries: tools $(BINOBJS)
+
+tools:
+	@echo ''
+	@echo '- Build tool : bin2c$(EXE_EXT)'
+	@rm -f bin2c/bin2c bin2c/bin2c.exe
+	$(CC) $(OBJOUT) bin2c/bin2c$(EXE_EXT) bin2c/bin2c.c
+
+binary.%.c: %
+	@echo ''
+	@echo '- Import binary file : $<'
+	rm -f $(patsubst %.c,%.h,$@) $@
+	./bin2c/bin2c$(EXE_EXT) -d $(patsubst %.c,%.h,$@) -o $@ $<
 
 %.o: %.cpp
+	@echo ''
+	@echo '- Build C++ file : $<'
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(INCFLAGS) -c $(OBJOUT)$@ $<
 
 %.o: %.c
+	@echo ''
+	@echo '- Build C file : $<'
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(OBJOUT) $@ $<
 
+clean: clean-tools clean-binobjs clean-objs clean-target
+
+clean-tools:
+	@echo ''
+	@echo '- Clean tools :'
+	rm -f bin2c/bin2c bin2c/bin2c.exe
+
+clean-binobjs:
+	@echo ''
+	@echo '- Clean imported binary files :'
+ifneq ($(BINOBJS),)
+	rm -f $(BINOBJS:.c=.h)
+	rm -f $(BINOBJS)
+else
+	@echo 'No imported binary file to delete'
+endif
+
 clean-objs:
+	@echo ''
+	@echo '- Clean O files :'
+ifneq ($(OBJS),)
 	rm -f $(OBJS)
+else
+	@echo 'No O files to delete'
+endif
 
-clean:
-	rm -f $(OBJS)
+clean-target:
+	@echo ''
+	@echo '- Clean target :'
+ifneq ($(TARGET),)
 	rm -f $(TARGET)
+else
+	@echo 'No target to delete'
+endif
 
-.PHONY: clean clean-objs
+.PHONY: clean
 
 endif
 
 print-%:
+	@echo ''
+	@echo '- Print :'
 	@echo '$*=$($*)'
 
-#install: $(TARGET)
-#	install -D -m 755 $(TARGET) $(DESTDIR)$(core_installdir)/$(TARGET)
+install: $(TARGET)
+	@echo ''
+	@echo '- Install :'
+ifneq ($(INSTALL_DIR),)
+	@rm -f $(INSTALL_DIR)/$(notdir $(TARGET))
+	cp $(TARGET) $(INSTALL_DIR)
+else
+	@echo ‘Frontend install directory not set’
+endif
 
-#uninstall:
-#	rm $(DESTDIR)$(core_installdir)/$(TARGET)
+uninstall:
+	@echo ''
+	@echo '- Uninstall :'
+ifneq ($(INSTALL_DIR),)
+	rm -f $(INSTALL_DIR)/$(notdir $(TARGET))
+else
+	@echo ‘Frontend install directory not set’
+endif

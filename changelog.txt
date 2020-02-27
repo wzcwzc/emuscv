@@ -2,15 +2,23 @@
 Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ===========================================================
 
+
 ***********************************************************
-* Libretro-EmuSCV v0.01 2020/02/14
+* Libretro-EmuSCV v0.02.20200226000000
+***********************************************************
+- Tools bin2c added
+- Makefile modified to permit embedding binary files with bin2c tool
+- Tested on OS X (10.9) (to test on Raspberry Pi)
+
+***********************************************************
+* Libretro-EmuSCV v0.01.20200214000000
 ***********************************************************
 - Add libretro core
 - Add eSCV code (with all code specific to Windows commented -> to rewrite with crossplatform code)
-- Tested on Windows and Linux (to test on Raspberry Pi)
+- Tested on Windows 10 and Linux Mint 19
 
 ***********************************************************
-* Libretro-EmuSCV v0.00 2019/12/05
+* Libretro-EmuSCV v0.00.20191205000000
 ***********************************************************
 - Tests with eSCV on windows
 - Project creation

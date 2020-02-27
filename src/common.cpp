@@ -30,6 +30,10 @@
 #else
 	#include <time.h>
 #endif
+#if !defined(_WIN32)
+	#include <wchar.h>
+#endif
+
 #include <math.h>
 #include "common.h"
 #include "fileio.h"
@@ -360,17 +364,20 @@ int DLL_PREFIX my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *forma
 	va_end(ap);
 	return result;
 }
-/*
-// TODO_MM
+
 int DLL_PREFIX my_swprintf_s(wchar_t *buffer, size_t sizeOfBuffer, const wchar_t *format, ...)
 {
 	va_list ap;
 	va_start(ap, format);
+#if defined(_WIN32)
 	int result = vswprintf(buffer, format, ap);
+#else
+	int result = vswprintf(buffer, sizeOfBuffer, format, ap);
+#endif
 	va_end(ap);
 	return result;
 }
-*/
+
 int DLL_PREFIX my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
 {
 	va_list ap;
