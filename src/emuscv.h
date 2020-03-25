@@ -36,9 +36,6 @@
 
 // device informations for virtual machine
 #define CYCLES_PER_FRAME			CPU_CLOCKS / FRAMES_PER_SEC
-#define SCREEN_PIXELS				SCREEN_WIDTH * SCREEN_HEIGHT
-#define SCREEN_COLORS				16
-#define SCREEN_ASPECT_RATIO			WINDOW_WIDTH_ASPECT / SCREEN_HEIGHT
 
 static const scrntype_t palette_pc[16] =
 {

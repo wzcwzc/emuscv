@@ -2,13 +2,42 @@
 Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ===========================================================
 
+***********************************************************
+* To do list
+***********************************************************
+- Test setting resolution and refresh rate on the go
+- rewrite Windows specific functions in crossplatform code
+- To test on Raspberry Pi
+
+
+
+***********************************************************
+* Libretro-EmuSCV v0.04.AAAAMMJJhhmmss
+***********************************************************
+- 
+- 
+- 
+***********************************************************
+* Libretro-EmuSCV v0.03.20200325000000
+***********************************************************
+- Tool bin2c moved to tools/bin2c/
+- Libretro-common Library moved to /src/deps/libretro-common/
+- Add support of SDL2 library as external dependency
+- Add support of SDL2_gfx library as internal library (no external dependency)
+- Add support of lpng (libPNG) library as internal library (no external dependency)
+- Add support of unzip101e/minizip library as internal library (no external dependency)
+- Add support of zlib library as internal library (no external dependency)
+- Resolution changed to 864x648 RGBA888 for the core
+- Resolution changed to 192x216 16 colors for the emulator
+- Makefile modified
+- Tested on Windows 10 and Linux Mint 19
 
 ***********************************************************
 * Libretro-EmuSCV v0.02.20200226000000
 ***********************************************************
-- Tools bin2c added
+- Tool bin2c added
 - Makefile modified to permit embedding binary files with bin2c tool
-- Tested on OS X (10.9) (to test on Raspberry Pi)
+- Tested on Windows 10 and Linux Mint 19 and OS X 10.9
 
 ***********************************************************
 * Libretro-EmuSCV v0.01.20200214000000

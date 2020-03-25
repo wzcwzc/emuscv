@@ -1,0 +1,1 @@
+libretro is released under the MIT license. RetroArch is released under the GNU GPLv3. The cores are usually released with the same license as the originating projects.

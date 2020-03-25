@@ -10,16 +10,32 @@
 #ifndef _SCV_H_
 #define _SCV_H_
 
-#define DEVICE_NAME			"EPOCH SCV"
-#define CONFIG_NAME			"scv"
+#define DEVICE_NAME		"EPOCH SCV"
+#define CONFIG_NAME 	"scv"
 
-// device informations for virtual machine
-#define FRAMES_PER_SEC		60
-#define LINES_PER_FRAME		262
-#define CPU_CLOCKS			4000000
-#define SCREEN_WIDTH		192
-#define SCREEN_HEIGHT		222
-#define WINDOW_WIDTH_ASPECT	288
+// Device informations for virtual machine
+#define FRAMES_PER_SEC			60.0
+#define LINES_PER_FRAME			262.0
+#define CPU_CLOCKS				4000000.0
+#define SCREEN_WIDTH			192.0
+#define SCREEN_HEIGHT			216.0
+// EPOCH console:	198x224
+// YENO Console:	186x248 (including a black band of 3 pixels on right side and a black band of 8 pixels on the bottom)
+// eSCV:			192x222	(-> 288x222)
+// emuSCV:			192x216 (-> 864x648)
+#define SCREEN_PIXELS			SCREEN_WIDTH * SCREEN_HEIGHT
+#define SCREEN_COLORS			16	// Palette of 16 colors
+#define SCREEN_ASPECT_WIDTH		SCREEN_WIDTH * 1.5	// 288
+#define SCREEN_ASPECT_HEIGHT	SCREEN_HEIGHT		// 216
+#define SCREEN_ASPECT_RATIO		SCREEN_ASPECT_WIDTH / SCREEN_ASPECT_HEIGHT	// Ratio 4/3
+#define WINDOW_ZOOM_MAX			4.0
+#define WINDOW_WIDTH			864.0
+#define WINDOW_HEIGHT			648.0
+#define WINDOW_PIXELS			WINDOW_WIDTH * WINDOW_HEIGHT
+#define WINDOW_COLORS			256*256*256	// 16 Millions of colors
+#define WINDOW_ASPECT_WIDTH		WINDOW_WIDTH
+#define WINDOW_ASPECT_HEIGHT	WINDOW_HEIGHT
+#define WINDOW_ASPECT_RATIO		WINDOW_ASPECT_WIDTH / WINDOW_ASPECT_HEIGHT	// Ratio 4/3
 
 // memory wait
 //#define UPD7801_MEMORY_WAIT

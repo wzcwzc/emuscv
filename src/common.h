@@ -1166,34 +1166,4 @@ const _TCHAR *DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr);
 const _TCHAR *DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
 const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
 
-// cross-platform macro to embed binary files
-/*
-#if defined(_OSX)
-    #include <mach-o/getsect.h>
-    #define BINARY_FILE(NAME) \
-		extern unint8_t section$__DATA__##NAME[];
-    #define BINARY_DATA(NAME) section$__DATA__##NAME
-    #define BINARY_SIZE(NAME) (getsectbyname("__DATA", "__"#NAME)->size)
-#elif defined(_WIN32) && defined(_MSVC)
-	#define BINARY_FILE(NAME) \
-		extern uint8_t bin_##NAME##_start[]	asm("binary_" #NAME \
-														"_start"); \
-		extern uint8_t bin_##NAME##_end[]	asm("binary_" #NAME \
-														"_end")
-	#define BINARY_DATA(NAME) \
-		bin_##NAME##_start
-	#define BINARY_SIZE(NAME) \
-		((bin_##NAME##_end) - (bin_##NAME##_start))
-#else
-	#define BINARY_FILE(NAME) \
-		extern uint8_t bin_##NAME##_start[]	asm("_binary_" #NAME \
-														"_start"); \
-		extern uint8_t bin_##NAME##_end[]	asm("_binary_" #NAME \
-														"_end")
-	#define BINARY_DATA(NAME) \
-		bin_##NAME##_start
-	#define BINARY_SIZE(NAME) \
-		((bin_##NAME##_end) - (bin_##NAME##_start))
-#endif
-*/
 #endif

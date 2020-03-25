@@ -1,10 +1,10 @@
 TARGET_NAME := emuscv
 
-APP_VERSION_MAJOR = 0
-APP_VERSION_MINOR = 02
-APP_VERSION_DATETIME = $(shell date -u +'%Y%m%d%H%M%S')
-#APP_VERSION_DATETIME = '20200226000000'
-APP_VERSION = $(APP_VERSION_MAJOR).$(APP_VERSION_MINOR).$(APP_VERSION_DATETIME)
+APP_VERSION_MAJOR := 0
+APP_VERSION_MINOR := 03
+#APP_VERSION_DATETIME := $(shell date -u +'%Y%m%d%H%M%S')
+APP_VERSION_DATETIME := '20200325000000'
+APP_VERSION := $(APP_VERSION_MAJOR).$(APP_VERSION_MINOR).$(APP_VERSION_DATETIME)
 
 DEBUG = 0
 HAVE_NETWORK = 0
@@ -76,6 +76,9 @@ ifneq (,$(findstring unix,$(platform)))
 	ifneq (,$(findstring Haiku,$(shell uname -s)))
 		LDFLAGS += -lnetwork -lroot
 	endif
+	LDFLAGS += -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2main
+	CFLAGS +=  `sdl2-config --cflags`
+	CXXFLAGS += `sdl2-config --cflags`
 
 	# Raspberry Pi
 # ---FOR TEST ---
@@ -143,6 +146,9 @@ else ifeq ($(platform),osx)
 		CFLAGS += -DHAVE_NO_LANGEXTRA
 		CXXFLAGS += -DHAVE_NO_LANGEXTRA
 	endif
+	LDFLAGS += -framework SDL2 -framework Cocoa
+	CFLAGS += -I/Library/Frameworks/SDL2.framework/Headers
+	CXXFLAGS += -I/Library/Frameworks/SDL2.framework/Headers
 
 ## iOS
 # --- UNTESTED ---
@@ -573,6 +579,9 @@ else
 	CXX ?= g++
 	SHARED := -shared -static-libgcc -static-libstdc++ -Wl,-no-undefined -Wl,-version-script=$(version_script)
 	LDFLAGS := -lws2_32
+	LDFLAGS += -IC:\msys64\mingw64\include\SDL2 -LC:\msys64\mingw64\lib -lSDL2 -lSDL2main
+	CFLAGS +=  `sdl2-config --cflags`
+	CXXFLAGS += `sdl2-config --cflags`
 endif
 
 ifeq ($(DEBUG),1)
@@ -728,17 +737,19 @@ endif
 
 binaries: tools $(BINOBJS)
 
-tools:
+tools:tools/bin2c/bin2c$(EXE_EXT)
+
+tools/bin2c/bin2c$(EXE_EXT):
 	@echo ''
 	@echo '- Build tool : bin2c$(EXE_EXT)'
-	@rm -f bin2c/bin2c bin2c/bin2c.exe
-	$(CC) $(OBJOUT) bin2c/bin2c$(EXE_EXT) bin2c/bin2c.c
+	@rm -f tools/bin2c/bin2c$(EXE_EXT)
+	$(CC) $(OBJOUT) tools/bin2c/bin2c$(EXE_EXT) tools/bin2c/bin2c.c
 
 binary.%.c: %
 	@echo ''
 	@echo '- Import binary file : $<'
 	rm -f $(patsubst %.c,%.h,$@) $@
-	./bin2c/bin2c$(EXE_EXT) -d $(patsubst %.c,%.h,$@) -o $@ $<
+	tools/bin2c/bin2c$(EXE_EXT) -d $(patsubst %.c,%.h,$@) -o $@ $<
 
 %.o: %.cpp
 	@echo ''
@@ -755,7 +766,7 @@ clean: clean-tools clean-binobjs clean-objs clean-target
 clean-tools:
 	@echo ''
 	@echo '- Clean tools :'
-	rm -f bin2c/bin2c bin2c/bin2c.exe
+	rm -f tools/bin2c/bin2c$(EXE_EXT)
 
 clean-binobjs:
 	@echo ''
