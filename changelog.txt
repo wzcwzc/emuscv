@@ -5,18 +5,23 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ***********************************************************
 * To do list
 ***********************************************************
-- Test setting resolution and refresh rate on the go
 - rewrite Windows specific functions in crossplatform code
 - To test on Raspberry Pi
 
 
+***********************************************************
+* Libretro-EmuSCV v0.05.AAAAMMJJhhmmss
+***********************************************************
+- 
+- 
+- 
 
 ***********************************************************
 * Libretro-EmuSCV v0.04.AAAAMMJJhhmmss
 ***********************************************************
-- 
-- 
-- 
+- Addded support of changing resolution and changing fps
+- Added support of power off  
+
 ***********************************************************
 * Libretro-EmuSCV v0.03.20200325000000
 ***********************************************************
