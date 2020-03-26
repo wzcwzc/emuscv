@@ -10,7 +10,7 @@
 #ifndef _SCV_H_
 #define _SCV_H_
 
-#define DEVICE_NAME		"EPOCH SCV"
+#define DEVICE_NAME		"EPOCH/YENO Super Cassette Vision"
 #define CONFIG_NAME 	"scv"
 
 // Device informations for virtual machine

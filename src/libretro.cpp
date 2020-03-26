@@ -48,32 +48,36 @@ static retro_audio_sample_t audio_cb;
 static retro_audio_sample_batch_t audio_batch_cb;
 static retro_input_poll_t input_poll_cb;
 static retro_input_state_t input_state_cb;
-//static struct retro_rumble_interface rumble_interface;
 
 static bool retro_support_no_game = true;
 static bool retro_use_audio_cb = false;
 static unsigned retro_performance_level = 4;
 
-unsigned long cycles_per_frame = CYCLES_PER_FRAME;
+static unsigned long cycles_per_frame = CYCLES_PER_FRAME;
 
-//static uint8_t *frame_surface;
+static double fps				= FRAMES_PER_SEC;
+static unsigned base_width		= WINDOW_WIDTH;
+static unsigned base_height		= WINDOW_HEIGHT;
+static float aspect_ratio		= WINDOW_ASPECT_RATIO;
+
 static SDL_Surface *frame_surface;
 static SDL_Renderer *frame_renderer;
 
-float frame_time = 0;
+static float frame_time = 0;
 
-uint8_t framecounter = 0;
-uint8_t colorIndex = 0;
+static uint8_t framecounter = 0;
+static uint8_t colorIndex = 0;
 
-char retro_base_directory[4096];
-char retro_save_directory[4096];
-char retro_game_path[4096];
+static char retro_base_directory[4096];
+static char retro_save_directory[4096];
+static char retro_game_path[4096];
 
 static uint16_t phase = 0;
 
 static bool libretro_supports_bitmasks = false;
 
 static bool button_pressed = false;
+static bool button_power = true;
 
 static bool game_loaded = false;
 
@@ -125,10 +129,6 @@ void retro_init(void)
 
 	log_printf_cb(RETRO_LOG_INFO, "[%s] retro_init()\n", APP_NAME);
 
-/*
-    environ_cb(RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE, &rumble_interface);
-*/
-
 	retro_base_directory[0] = 0;
 	if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
 	{
@@ -142,7 +142,6 @@ void retro_init(void)
 		snprintf(retro_save_directory, sizeof(retro_save_directory), "%s", dir);
 		log_printf_cb(RETRO_LOG_INFO, "[%s] Save directory: %s\n", APP_NAME, retro_save_directory);
 	}
-
 /*
     if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir) && dir)
     {
@@ -180,7 +179,6 @@ void retro_deinit(void)
 {
 	log_printf_cb(RETRO_LOG_INFO, "[%s] retro_deinit()\n", APP_NAME);
 
-
 /*
    char *savedir = NULL;
    environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &savedir);
@@ -217,7 +215,8 @@ void retro_deinit(void)
 
    game_deinit();
 
-   libretro_supports_bitmasks = false;*/
+   libretro_supports_bitmasks = false;
+*/
 }
 
 unsigned retro_api_version(void)
@@ -242,13 +241,13 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-	info->timing.fps            = FRAMES_PER_SEC;
+	info->timing.fps            = fps;
 	info->timing.sample_rate    = AUDIO_SAMPLING_RATE;
-	info->geometry.base_width   = WINDOW_WIDTH;
+	info->geometry.base_width   = base_width;
 	info->geometry.base_height  = WINDOW_HEIGHT;
-	info->geometry.max_width    = WINDOW_WIDTH * WINDOW_ZOOM_MAX;
+	info->geometry.max_width    = base_width * WINDOW_ZOOM_MAX;
 	info->geometry.max_height   = WINDOW_HEIGHT * WINDOW_ZOOM_MAX;
-	info->geometry.aspect_ratio = WINDOW_ASPECT_RATIO;
+	info->geometry.aspect_ratio = aspect_ratio;
 }
 /*
 static void check_variables(void)
@@ -415,6 +414,7 @@ void retro_run(void)
 	int16_t key9			= 0;
 	int16_t keyEnter		= 0;
 	int16_t keyClear		= 0;
+	int16_t keyPower		= 0;
 	int16_t keyReset		= 0;
 	int16_t keyPause		= 0;
 	int16_t analogleftx0	= 0;
@@ -485,12 +485,13 @@ void retro_run(void)
 	key0 = input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_0)
 		|| input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP0);
 	keyEnter = input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RETURN)
-		|| input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP_ENTER);
+            || input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP_ENTER);
 	keyClear = input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_BACKSPACE)
-		|| input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_DELETE);
+            || input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_DELETE);
+	keyPower = input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_o);
 	keyReset = input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_r);
 	keyPause = input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_SPACE)
-		|| input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_p);
+            || input_state_cb(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_p);
 
 /*
 	// Check updated variables
@@ -498,14 +499,8 @@ void retro_run(void)
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
 		check_variables();
 */
-/*
-	// Test SDL2_gfx
-    roundedBoxRGBA(frame_renderer, 0,0,100,100,10,255,0,127,255);
-    roundedBoxRGBA(frame_renderer, 50,50,150,150,5,0,255,127,127);
-    lineRGBA(frame_renderer, 0,160,200,10,0,0,0,255);
-    aalineRGBA(frame_renderer, 0,150,200,0,0,0,0,255);
-*/
 	// Clear background
+	// changing color every 60 frames
 	framecounter++;
 	if (framecounter > FRAMES_PER_SEC)
 	{
@@ -519,6 +514,7 @@ void retro_run(void)
 	SDL_RenderClear(frame_renderer);
 
     // Draw a lonely pixel (using an other color than background)
+    // with an ellipse around
 	color = palette_pc[colorIndex < 12 ? colorIndex + 4 : colorIndex - 12 ];  // Different color of background color
 	posx = 10;
 	posy = 10;
@@ -579,8 +575,8 @@ void retro_run(void)
 	color = palette_pc[1];	// Black
 	lineRGBA(frame_renderer, posx+44-15, posy+216, posx+44+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// LEFT STICK
 	lineRGBA(frame_renderer, posx+44, posy+216-15, posx+44, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// LEFT STICK
-	lineRGBA(frame_renderer, posx+198-15, posy+216, posx+198+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// RIGHT STICK
-	lineRGBA(frame_renderer, posx+198, posy+216-15, posx+198, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// RIGHT STICK
+	lineRGBA(frame_renderer, posx+198-15, posy+216, posx+198+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// RIGHT STICK
+	lineRGBA(frame_renderer, posx+198, posy+216-15, posx+198, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// RIGHT STICK
 	// Button L3
 	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L3))
 	{
@@ -668,8 +664,6 @@ void retro_run(void)
 	{
 		color = palette_pc[15];	// White
 	}
-//	log_printf_cb(RETRO_LOG_INFO, "[%s] controller 0 analog left x %d\n", APP_NAME, analogleftx0);
-//	log_printf_cb(RETRO_LOG_INFO, "[%s] controller 0 analog left y %d\n", APP_NAME, analoglefty0);
     boxRGBA(frame_renderer, posx+44-3+26*analogleftx0/INT16_MAX, posy+216-3+26*analoglefty0/INT16_MAX, posx+44+3+26*analogleftx0/INT16_MAX, posy+216+3+26*analoglefty0/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
 	// Button SELECT
 	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
@@ -725,8 +719,6 @@ void retro_run(void)
 	{
 		color = palette_pc[15];	// White
 	}
-//	log_printf_cb(RETRO_LOG_INFO, "[%s] controller 0 analog right x %d\n", APP_NAME, analogrightx0);
-//	log_printf_cb(RETRO_LOG_INFO, "[%s] controller 0 analog right y %d\n", APP_NAME, analogrighty0);
     boxRGBA(frame_renderer, posx+198-3+26*analogrightx0/INT16_MAX, posy+216-3+26*analogrighty0/INT16_MAX, posx+198+3+26*analogrightx0/INT16_MAX, posy+216+3+26*analogrighty0/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
 	// Button 2
 	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B))
@@ -814,8 +806,8 @@ void retro_run(void)
 	color = palette_pc[1];	// Black
 	lineRGBA(frame_renderer, posx+44-15, posy+216, posx+44+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// LEFT STICK
 	lineRGBA(frame_renderer, posx+44, posy+216-15, posx+44, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// LEFT STICK
-	lineRGBA(frame_renderer, posx+198-15, posy+216, posx+198+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// RIGHT STICK
-	lineRGBA(frame_renderer, posx+198, posy+216-15, posx+198, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// RIGHT STICK
+	lineRGBA(frame_renderer, posx+198-15, posy+216, posx+198+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// RIGHT STICK
+	lineRGBA(frame_renderer, posx+198, posy+216-15, posx+198, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// RIGHT STICK
 	// Button L3
 	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L3))
 	{
@@ -903,8 +895,6 @@ void retro_run(void)
 	{
 		color = palette_pc[15];	// White
 	}
-//	log_printf_cb(RETRO_LOG_INFO, "[%s] controller 0 analog left x %d\n", APP_NAME, analogleftx0);
-//	log_printf_cb(RETRO_LOG_INFO, "[%s] controller 0 analog left y %d\n", APP_NAME, analoglefty0);
     boxRGBA(frame_renderer, posx+44-3+26*analogleftx1/INT16_MAX, posy+216-3+26*analoglefty1/INT16_MAX, posx+44+3+26*analogleftx1/INT16_MAX, posy+216+3+26*analoglefty1/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
 	// Button SELECT
 	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
@@ -960,8 +950,6 @@ void retro_run(void)
 	{
 		color = palette_pc[15];	// White
 	}
-//	log_printf_cb(RETRO_LOG_INFO, "[%s] controller 0 analog right x %d\n", APP_NAME, analogrightx0);
-//	log_printf_cb(RETRO_LOG_INFO, "[%s] controller 0 analog right y %d\n", APP_NAME, analogrighty0);
     boxRGBA(frame_renderer, posx+198-3+26*analogrightx1/INT16_MAX, posy+216-3+26*analogrighty1/INT16_MAX, posx+198+3+26*analogrightx1/INT16_MAX, posy+216+3+26*analogrighty1/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
 	// Button 2
 	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B))
@@ -1024,8 +1012,9 @@ void retro_run(void)
 	posy = 100;
 	// Contour
 	color = palette_pc[1];	// Black
-    rectangleRGBA(frame_renderer, posx, posy+64, posx+73, posy+64+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
-    rectangleRGBA(frame_renderer, posx, posy+96, posx+73, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx, posy, posx+73, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);                      // POWER ON/OFF BUTTON
+    rectangleRGBA(frame_renderer, posx, posy+48, posx+73, posy+48+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);                // RESET BUTTON
+    rectangleRGBA(frame_renderer, posx, posy+96, posx+73, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);                // PAUSE BUTTON
     rectangleRGBA(frame_renderer, posx+74, posy, posx+74+31, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
     rectangleRGBA(frame_renderer, posx+74+32, posy, posx+74+32+31, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
     rectangleRGBA(frame_renderer, posx+74+64, posy, posx+74+64+31, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
@@ -1038,6 +1027,32 @@ void retro_run(void)
     rectangleRGBA(frame_renderer, posx+74, posy+96, posx+74+31, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
     rectangleRGBA(frame_renderer, posx+74+32, posy+96, posx+74+32+31, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
     rectangleRGBA(frame_renderer, posx+74+64, posy+96, posx+74+64+31, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key POWER ON/OFF
+	if (keyPower != 0)
+	{
+        button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+        button_power = !button_power;
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+	boxRGBA(frame_renderer, posx+1, posy+1, posx+1+70, posy+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	color = palette_pc[1];	// Black
+	if (button_power == true)
+	{
+        rectangleRGBA(frame_renderer, posx+43, posy+1, posx+72, posy+30, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+//		if (keyPower != 0)
+//			log_printf_cb(RETRO_LOG_INFO, "[%s] Key POWER set to ON.\n", APP_NAME);
+	}
+	else
+	{
+        rectangleRGBA(frame_renderer, posx+1, posy+1, posx+30, posy+30, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+//		if (keyPower != 0)
+//			log_printf_cb(RETRO_LOG_INFO, "[%s] Key POWER set to OFF.\n", APP_NAME);
+		environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+	}
     // Key RESET
 	if (keyReset != 0)
 	{
@@ -1049,7 +1064,7 @@ void retro_run(void)
 	{
 		color = palette_pc[14];	// Gray
 	}
-    boxRGBA(frame_renderer, posx+1, posy+64+1, posx+1+70, posy+64+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    boxRGBA(frame_renderer, posx+1, posy+48+1, posx+1+70, posy+48+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
     // Key PAUSE
 	if (keyPause != 0)
 	{
@@ -1104,6 +1119,14 @@ void retro_run(void)
         button_pressed = TRUE;
 		color = palette_pc[4];	// Green light
 //		log_printf_cb(RETRO_LOG_INFO, "[%s] Key 4 pressed.\n", APP_NAME);
+		if (fps != FRAMES_PER_SEC)
+		{
+			fps = FRAMES_PER_SEC;
+			struct retro_system_av_info av_info;
+			retro_get_system_av_info(&av_info);
+			environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &av_info);
+			framecounter = FRAMES_PER_SEC;
+		}
 	}
 	else
 	{
@@ -1116,6 +1139,14 @@ void retro_run(void)
         button_pressed = TRUE;
 		color = palette_pc[4];	// Green light
 //		log_printf_cb(RETRO_LOG_INFO, "[%s] Key 5 pressed.\n", APP_NAME);
+		if (fps != 50)
+		{
+			fps = 50;
+			struct retro_system_av_info av_info;
+			retro_get_system_av_info(&av_info);
+			environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &av_info);
+			framecounter = FRAMES_PER_SEC;
+		}
 	}
 	else
 	{
@@ -1134,24 +1165,42 @@ void retro_run(void)
 		color = palette_pc[14];	// Gray
 	}
     boxRGBA(frame_renderer, posx+74+65, posy+33, posx+74+65+28, posy+33+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
-    // Key 1
+	// Key 1
 	if (key1 != 0)
 	{
-        button_pressed = TRUE;
+		button_pressed = TRUE;
 		color = palette_pc[4];	// Green light
 //		log_printf_cb(RETRO_LOG_INFO, "[%s] Key 1 pressed.\n", APP_NAME);
+		if (base_width != WINDOW_WIDTH || base_height != WINDOW_HEIGHT || aspect_ratio != WINDOW_ASPECT_RATIO)
+		{
+			base_width   = WINDOW_WIDTH;
+			base_height  = WINDOW_HEIGHT;
+			aspect_ratio = WINDOW_ASPECT_RATIO;
+			struct retro_system_av_info av_info;
+			retro_get_system_av_info(&av_info);
+			environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
+		}
 	}
 	else
 	{
 		color = palette_pc[14];	// Gray
 	}
-    boxRGBA(frame_renderer, posx+74+1, posy+65, posx+74+1+28, posy+65+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	boxRGBA(frame_renderer, posx+74+1, posy+65, posx+74+1+28, posy+65+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
     // Key 2
 	if (key2 != 0)
 	{
         button_pressed = TRUE;
 		color = palette_pc[4];	// Green light
 //		log_printf_cb(RETRO_LOG_INFO, "[%s] Key 2 pressed.\n", APP_NAME);
+		if (base_width != 1280  || base_height != 720 || aspect_ratio != 16.0/9.0)
+		{
+			base_width   = 1280;
+			base_height  = 720;
+			aspect_ratio = 16.0/9.0;
+			struct retro_system_av_info av_info;
+			retro_get_system_av_info(&av_info);
+			environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
+		}
 	}
 	else
 	{
@@ -1219,9 +1268,9 @@ static void audio_set_state(bool enable)
 }
 
 #ifdef _WIN32
-	#define dir_delimter '\\'
+	#define dir_delimiter '\\'
 #else
-	#define dir_delimter '/'
+	#define dir_delimiter '/'
 #endif
 #define MAX_FILENAME 512
 #define PNGSIGBYTES 8
@@ -1442,7 +1491,7 @@ bool retro_load_game(const struct retro_game_info *info)
 			// Check if this entry is a directory or file.
 /*
 			const size_t filename_length = strlen( filename );
-			if ( filename[filename_length-1] == dir_delimter )
+			if ( filename[filename_length-1] == dir_delimiter )
 			{
 				// Entry is a directory, so create it.
 				log_printf_cb(RETRO_LOG_INFO, "[%s] dir: %s\n", APP_NAME, filename);
