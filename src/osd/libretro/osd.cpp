@@ -4,7 +4,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2015.11.20-
 
-	[ win32 dependent ]
+	[ libretro dependent ]
 */
 
 #include "osd.h"
@@ -20,9 +20,11 @@ void OSD::initialize(int rate, int samples)
 	vista_or_later = (os_info.dwPlatformId == 2 && (os_info.dwMajorVersion > 6 || (os_info.dwMajorVersion == 6 && os_info.dwMinorVersion >= 0)));
 
 	GdiplusStartup(&gdiToken, &gdiSI, NULL);
+*/
 	initialize_input();
 	initialize_screen();
 	initialize_sound(rate, samples);
+/*
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	CoInitialize(NULL);
 	initialize_video();
@@ -35,11 +37,10 @@ void OSD::initialize(int rate, int samples)
 
 void OSD::release()
 {
-/*
-// TODO_MM
 	release_input();
 	release_screen();
 	release_sound();
+/*
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	release_video();
 	CoUninitialize();
@@ -54,15 +55,13 @@ void OSD::release()
 void OSD::power_off()
 {
 /*
-// TODO_MM
+	// TODO_MM
 	PostMessage(main_window_handle, WM_CLOSE, 0, 0L);
 */
 }
 
 void OSD::suspend()
 {
-/*
-// TODO_MM
 #ifdef USE_MOVIE_PLAYER
 	if(now_movie_play && !now_movie_pause) {
 		pause_movie();
@@ -70,13 +69,11 @@ void OSD::suspend()
 	}
 #endif
 	mute_sound();
-*/
 }
 
 void OSD::restore()
 {
 /*
-// TODO_MM
 #ifdef USE_MOVIE_PLAYER
 	if(now_movie_play && !now_movie_pause) {
 		play_movie();
@@ -104,18 +101,14 @@ void OSD::force_unlock_vm()
 
 void OSD::sleep(uint32_t ms)
 {
-/*
-// TODO_MM
-	Sleep(ms);
-*/
+	sleep(ms);
 }
 
 #ifdef USE_DEBUGGER
+OSD *my_osd = NULL;
 /*
-// TODO_MM
 FARPROC hWndProc = NULL;
 
-OSD *my_osd = NULL;
 
 LRESULT CALLBACK MyWndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -137,11 +130,9 @@ LRESULT CALLBACK MyWndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, iMsg, wParam, lParam);
 }
 */
-
 void OSD::start_waiting_in_debugger()
 {
 /*
-// TODO_MM
 	HMENU hMenu = GetMenu(main_window_handle);
 
 	if(hMenu != NULL) {
@@ -153,14 +144,13 @@ void OSD::start_waiting_in_debugger()
 	}
 	hWndProc = (FARPROC)GetWindowLong(main_window_handle, GWL_WNDPROC);
 	SetWindowLong(main_window_handle, GWL_WNDPROC, (LONG)MyWndProc);
-	my_osd = this;
 */
+	my_osd = this;
 }
 
 void OSD::finish_waiting_in_debugger()
 {
 /*
-// TODO_MM
 	HMENU hMenu = GetMenu(main_window_handle);
 
 	if(hMenu != NULL) {
@@ -171,14 +161,13 @@ void OSD::finish_waiting_in_debugger()
 		}
 	}
 	SetWindowLong(main_window_handle, GWL_WNDPROC, (LONG)hWndProc);
-	my_osd = NULL;
 */
+	my_osd = NULL;
 }
 
 void OSD::process_waiting_in_debugger()
 {
 /*
-// TODO_MM
 	MSG msg;
 
 	while(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
@@ -189,4 +178,4 @@ void OSD::process_waiting_in_debugger()
 	}
 */
 }
-#endif
+#endif	// USE_DEBUGGER

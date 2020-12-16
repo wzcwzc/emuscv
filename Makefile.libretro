@@ -1,12 +1,12 @@
 TARGET_NAME := emuscv
 
-APP_VERSION_MAJOR := 0
-APP_VERSION_MINOR := 04
-#APP_VERSION_DATETIME := $(shell date -u +'%Y%m%d%H%M%S')
-APP_VERSION_DATETIME := '20200327000000'
-APP_VERSION := $(APP_VERSION_MAJOR).$(APP_VERSION_MINOR).$(APP_VERSION_DATETIME)
+EMUSCV_VERSION_MAJOR := 0
+EMUSCV_VERSION_MINOR := 05
+#EMUSCV_VERSION_DATETIME := $(shell date -u +'%Y%m%d%H%M%S')
+EMUSCV_VERSION_DATETIME := '20201216000000'
+EMUSCV_VERSION := $(EMUSCV_VERSION_MAJOR).$(EMUSCV_VERSION_MINOR).$(EMUSCV_VERSION_DATETIME)
 
-DEBUG = 0
+DEBUG = 1
 HAVE_NETWORK = 0
 
 SPACE := 
@@ -19,8 +19,6 @@ unixpath = $(subst \,/,$1)
 unixcygpath = /$(subst :,,$(call unixpath,$1))
 
 version_script = link.T
-
-INSTALL_DIR := 
 
 # system platform
 ifeq ($(platform),)
@@ -69,16 +67,17 @@ endif
 ifneq (,$(findstring unix,$(platform)))
 	PLATFORM_DEFINES := -D_UNIX
 	TARGET := $(TARGET_NAME)_libretro.so
-	INSTALL_DIR := /usr/lib/x86_64-linux-gnu/libretro
 	fpic := -fPIC
 	SHARED := -shared -Wl,-version-script=$(version_script)
 	HAVE_NETWORK = 1
 	ifneq (,$(findstring Haiku,$(shell uname -s)))
 		LDFLAGS += -lnetwork -lroot
 	endif
-	LDFLAGS += -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2main
-	CFLAGS +=  `sdl2-config --cflags`
-	CXXFLAGS += `sdl2-config --cflags`
+	CC = clang
+	CXX = gcc
+	LDFLAGS += -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu -lSDL2
+	CFLAGS += -I/usr/include/SDL2 `sdl2-config --cflags`
+	CXXFLAGS += -I/usr/include/SDL2 `sdl2-config --cflags`
 
 	# Raspberry Pi
 # ---FOR TEST ---
@@ -125,7 +124,6 @@ ifneq (,$(findstring unix,$(platform)))
 else ifeq ($(platform),osx)
 	PLATFORM_DEFINES := -D_OSX -D__APPLE__
 	TARGET := $(TARGET_NAME)_libretro.dylib
-	INSTALL_DIR := /Applications/RetroArch.app/Contents/Resources/cores
 	CC = clang
 	CXX = c++
 	fpic := -fPIC
@@ -573,15 +571,14 @@ else ifeq ($(platform),osx)
 else
 	PLATFORM_DEFINES := -D_WIN32
 	TARGET := $(TARGET_NAME)_libretro.dll
-	INSTALL_DIR := C:/RetroArch/cores
 	HAVE_NETWORK = 1
-	CC ?= gcc
-	CXX ?= g++
+	CC = gcc
+	CXX = g++
 	SHARED := -shared -static-libgcc -static-libstdc++ -Wl,-no-undefined -Wl,-version-script=$(version_script)
 	LDFLAGS := -lws2_32
-	LDFLAGS += -IC:\msys64\mingw64\include\SDL2 -LC:\msys64\mingw64\lib -lSDL2 -lSDL2main
-	CFLAGS +=  `sdl2-config --cflags`
-	CXXFLAGS += `sdl2-config --cflags`
+	LDFLAGS += -IC:\msys64\mingw64\include\SDL2 -LC:\msys64\mingw64\lib -lSDL2
+	CFLAGS += -IC:\msys64\mingw64\include\SDL2 `sdl2-config --cflags`
+	CXXFLAGS += -IC:\msys64\mingw64\include\SDL2 `sdl2-config --cflags`
 endif
 
 ifeq ($(DEBUG),1)
@@ -662,7 +659,7 @@ endif
 OBJS := $(SOURCES_CXX:.cpp=.o) $(SOURCES_C:.c=.o) $(foreach i,$(SOURCES_BIN),$(dir $(i))binary.$(notdir $(i)).o)
 BINOBJS := $(foreach i,$(SOURCES_BIN),$(dir $(i))binary.$(notdir $(i)).c)
 
-DEFINES := $(CORE_DEFINES) $(PLATFORM_DEFINES) -DHAVE_STDINT_H -DHAVE_INTTYPES_H -DVIDEO_RGB888 -DAPP_VERSION_MAJOR=\"$(APP_VERSION_MAJOR)\" -DAPP_VERSION_MINOR=\"$(APP_VERSION_MINOR)\" -DAPP_VERSION_DATETIME=\"$(APP_VERSION_DATETIME)\" -DAPP_VERSION=\"$(APP_VERSION)\"
+DEFINES := $(CORE_DEFINES) $(PLATFORM_DEFINES) -DHAVE_STDINT_H -DHAVE_INTTYPES_H -DVIDEO_RGB888 -DEMUSCV_VERSION_MAJOR=\"$(EMUSCV_VERSION_MAJOR)\" -DEMUSCV_VERSION_MINOR=\"$(EMUSCV_VERSION_MINOR)\" -DEMUSCV_VERSION_DATETIME=\"$(EMUSCV_VERSION_DATETIME)\" -DEMUSCV_VERSION=\"$(EMUSCV_VERSION)\"
 
 ifeq ($(HAVE_NETWORK),1)
 	DEFINES += -DHAVE_NETWORK
@@ -706,11 +703,16 @@ else
 	endif
 
 
-build: all
+build: cls build-all
 
-rebuild: clean all
+clean: cls clean-all
 
-all: $(TARGET)
+rebuild: cls clean-all build-all
+
+cls:
+	@clear
+
+build-all: $(TARGET)
 
 #ifeq ($(platform),osx)
 #ifndef ($(NOUNIVERSAL))
@@ -720,7 +722,7 @@ all: $(TARGET)
 #endif
 #endif
 
-$(TARGET): binaries $(OBJS)
+$(TARGET): build-binaries $(OBJS)
 	@echo ''
 	@echo '- Link target : $(TARGET)'
 ifeq ($(STATIC_LINKING),1)
@@ -733,17 +735,23 @@ else
 	$(LD) $(fpic) $(SHARED) $(LINKOUT) $@ $(OBJS) $(LDFLAGS) $(LIBS)
 endif
 	@echo ''
-	@echo '->Target: $(TARGET) v$(APP_VERSION)'
+	@echo '->Target: $(TARGET) v$(EMUSCV_VERSION)'
 
-binaries: tools $(BINOBJS)
+build-binaries: build-tools $(BINOBJS)
 
-tools:tools/bin2c/bin2c$(EXE_EXT)
+build-tools: tools/bin2c/bin2c$(EXE_EXT) tools/dasm7801/dasm7801$(EXE_EXT)
 
 tools/bin2c/bin2c$(EXE_EXT):
 	@echo ''
 	@echo '- Build tool : bin2c$(EXE_EXT)'
 	@rm -f tools/bin2c/bin2c$(EXE_EXT)
 	$(CC) $(OBJOUT) tools/bin2c/bin2c$(EXE_EXT) tools/bin2c/bin2c.c
+
+tools/dasm7801/dasm7801$(EXE_EXT):
+	@echo ''
+	@echo '- Build tool : dasm7801$(EXE_EXT)'
+	@rm -f tools/dasm7801/dasm7801$(EXE_EXT)
+	$(CXX) $(OBJOUT) tools/dasm7801/dasm7801$(EXE_EXT) tools/dasm7801/dasm7801.cpp
 
 binary.%.c: %
 	@echo ''
@@ -761,12 +769,14 @@ binary.%.c: %
 	@echo '- Build C file : $<'
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $(OBJOUT) $@ $<
 
-clean: clean-tools clean-binobjs clean-objs clean-target
+clean-all: clean-tools clean-binobjs clean-objs clean-target
 
 clean-tools:
 	@echo ''
 	@echo '- Clean tools :'
 	rm -f tools/bin2c/bin2c$(EXE_EXT)
+	rm -f tools/dasm7801/dasm7801$(EXE_EXT)
+
 
 clean-binobjs:
 	@echo ''
@@ -804,22 +814,3 @@ print-%:
 	@echo ''
 	@echo '- Print :'
 	@echo '$*=$($*)'
-
-install: $(TARGET)
-	@echo ''
-	@echo '- Install :'
-ifneq ($(INSTALL_DIR),)
-	@rm -f $(INSTALL_DIR)/$(notdir $(TARGET))
-	cp $(TARGET) $(INSTALL_DIR)
-else
-	@echo ‘Frontend install directory not set’
-endif
-
-uninstall:
-	@echo ''
-	@echo '- Uninstall :'
-ifneq ($(INSTALL_DIR),)
-	rm -f $(INSTALL_DIR)/$(notdir $(TARGET))
-else
-	@echo ‘Frontend install directory not set’
-endif

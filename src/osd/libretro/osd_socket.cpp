@@ -6,9 +6,9 @@
 
 	[ win32 socket ]
 */
+#include "osd.h"
 /*
 // TODO_MM: no network for Super Casette Vision
-#include "osd.h"
 
 void OSD::initialize_socket()
 {

@@ -7,8 +7,8 @@
 	[ file i/o ]
 */
 
-#ifndef _FILEIO_H_
-#define _FILEIO_H_
+#ifndef _EMUSCV_INC_FILEIO_H_
+#define _EMUSCV_INC_FILEIO_H_
 
 #include <stdio.h>
 #include "common.h"
@@ -186,4 +186,4 @@ public:
 	void StateBuffer(void *buffer, size_t size, size_t count);
 };
 
-#endif
+#endif	// _EMUSCV_INC_FILEIO_H_

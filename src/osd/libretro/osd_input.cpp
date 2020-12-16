@@ -35,124 +35,134 @@ static const uint8_t vk_dik[256] = {
 //	0x3a, 0x00, 0x70, 0x00, 0x94, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	// caps, kana, kanji
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
-
+*/
 #define get_joy_range(min_value, max_value, lo_value, hi_value) \
 { \
 	uint64_t center = ((uint64_t)min_value + (uint64_t)max_value) / 2; \
 	lo_value = (DWORD)((center + (uint64_t)min_value) / 2); \
 	hi_value = (DWORD)((center + (uint64_t)max_value) / 2); \
 }
-*/
+
 void OSD::initialize_input()
 {
-/*
-// TODO_MM
 	// initialize status
 	memset(key_status, 0, sizeof(key_status));
 #ifdef USE_JOYSTICK
 	memset(joy_status, 0, sizeof(joy_status));
+	memset(joy_status_current, 0, sizeof(joy_status_current));
 	memset(joy_to_key_status, 0, sizeof(joy_to_key_status));
 #endif
+/*
 #ifdef USE_MOUSE
 	memset(mouse_status, 0, sizeof(mouse_status));
 #endif
-
+	
 	// initialize direct input
 	dinput_key_available = false;
 	lpdi = NULL;
 	lpdikey = NULL;
 
-	if(config.use_dinput) {
+	if(config.use_dinput)
 #if DIRECTINPUT_VERSION >= 0x0800
-		if(SUCCEEDED(DirectInput8Create(instance_handle, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&lpdi, NULL))) {
+		if(SUCCEEDED(DirectInput8Create(instance_handle, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&lpdi, NULL)))
 #else
-		if(SUCCEEDED(DirectInputCreate(instance_handle, DIRECTINPUT_VERSION, &lpdi, NULL))) {
+		if(SUCCEEDED(DirectInputCreate(instance_handle, DIRECTINPUT_VERSION, &lpdi, NULL)))
 #endif
-			if(SUCCEEDED(lpdi->CreateDevice(GUID_SysKeyboard, &lpdikey, NULL))) {
-				if(SUCCEEDED(lpdikey->SetDataFormat(&c_dfDIKeyboard))) {
-					if(SUCCEEDED(lpdikey->SetCooperativeLevel(main_window_handle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE))) {
+			if(SUCCEEDED(lpdi->CreateDevice(GUID_SysKeyboard, &lpdikey, NULL)))
+				if(SUCCEEDED(lpdikey->SetDataFormat(&c_dfDIKeyboard)))
+					if(SUCCEEDED(lpdikey->SetCooperativeLevel(main_window_handle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE)))
+					{
 						lpdikey->Acquire();
 						dinput_key_available = true;
 						memset(key_dik_prev, 0, sizeof(key_dik_prev));
 					}
-				}
-			}
-		}
-	}
+*/
 
 #ifdef USE_JOYSTICK
 	// initialize joysticks
-	joy_num = joyGetNumDevs();
-	for(int i = 0; i < joy_num && i < 4; i++) {
+	//joy_num = 0;
+	joy_num = NUM_JOYSTICK;//joyGetNumDevs();
+	for(int i = 0; i < joy_num && i < 4; i++)
+	{
+/*
 		JOYCAPS joycaps;
-		if(joyGetDevCaps(i, &joycaps, sizeof(joycaps)) == JOYERR_NOERROR) {
+		if(joyGetDevCaps(i, &joycaps, sizeof(joycaps)) == JOYERR_NOERROR)
+		{
 			joy_caps[i].wNumAxes = joycaps.wNumAxes;
-			if(joycaps.wNumAxes >= 1) {
+			if(joycaps.wNumAxes >= 1)
 				get_joy_range(joycaps.wXmin, joycaps.wXmax, joy_caps[i].dwXposLo, joy_caps[i].dwXposHi);
-			}
-			if(joycaps.wNumAxes >= 1) {
+			if(joycaps.wNumAxes >= 1)
 				get_joy_range(joycaps.wYmin, joycaps.wYmax, joy_caps[i].dwYposLo, joy_caps[i].dwYposHi);
-			}
-			if(joycaps.wNumAxes >= 1) {
+			if(joycaps.wNumAxes >= 1)
 				get_joy_range(joycaps.wZmin, joycaps.wZmax, joy_caps[i].dwZposLo, joy_caps[i].dwZposHi);
-			}
-			if(joycaps.wNumAxes >= 1) {
+			if(joycaps.wNumAxes >= 1)
 				get_joy_range(joycaps.wRmin, joycaps.wRmax, joy_caps[i].dwRposLo, joy_caps[i].dwRposHi);
-			}
-			if(joycaps.wNumAxes >= 1) {
+			if(joycaps.wNumAxes >= 1)
 				get_joy_range(joycaps.wUmin, joycaps.wUmax, joy_caps[i].dwUposLo, joy_caps[i].dwUposHi);
-			}
-			if(joycaps.wNumAxes >= 1) {
+			if(joycaps.wNumAxes >= 1)
 				get_joy_range(joycaps.wVmin, joycaps.wVmax, joy_caps[i].dwVposLo, joy_caps[i].dwVposHi);
-			}
 			joy_caps[i].dwButtonsMask = (1 << min(16, joycaps.wNumButtons)) - 1;
-		} else {
-			joy_caps[i].wNumAxes = 2; // 2axes
-			joy_caps[i].dwXposLo = joy_caps[i].dwYposLo = 0x3fff;
-			joy_caps[i].dwXposHi = joy_caps[i].dwYposHi = 0xbfff;
-			joy_caps[i].dwButtonsMask = 0x0f; // 4buttons
 		}
+		else
+		{
+*/
+			//joy_caps[i].wNumAxes = 2; // 2axes
+			joy_caps[i].wNumAxes = NUM_JOYSTICK_AXE; // axes
+			if(joy_caps[i].wNumAxes >= 1)
+			{
+				joy_caps[i].dwXposLo = joy_caps[i].dwYposLo = 0x3fff;
+				joy_caps[i].dwXposHi = joy_caps[i].dwYposHi = 0xbfff;
+			}
+			//joy_caps[i].dwButtonsMask = 0x0f; // 4buttons
+			joy_caps[i].dwButtonsMask = (1 << min(16, NUM_JOYSTICK_BUTTON)) - 1; // buttons
+/*
+		}
+*/
 	}
 #endif
 
+/*
 #ifdef USE_MOUSE
 	// mouse emulation is disabled
 	mouse_enabled = false;
 #endif
-
+*/
+/*
 	// initialize keycode convert table
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(create_local_path(_T("keycode.cfg")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("keycode.cfg")), FILEIO_READ_BINARY))
+	{
 		fio->Fread(keycode_conv, sizeof(keycode_conv), 1);
 		fio->Fclose();
-	} else {
-		for(int i = 0; i < 256; i++) {
-			keycode_conv[i] = i;
-		}
 	}
-	delete fio;
-
-	key_shift_pressed = key_shift_released = false;
-	key_caps_locked = ((GetAsyncKeyState(VK_CAPITAL) & 0x0001) != 0);
-
-	lost_focus = false;
+	else
 */
+		for(int i = 0; i < 256; i++)
+			keycode_conv[i] = i;
+/*
+	delete fio;
+	key_shift_pressed = key_shift_released = false;
+	key_caps_locked = false;
+	key_caps_locked = ((GetAsyncKeyState(VK_CAPITAL) & 0x0001) != 0);
+*/
+	lost_focus = false;
 }
 
 void OSD::release_input()
 {
 /*
-// TODO_MM
 #ifdef USE_MOUSE
 	// release mouse
-	if(mouse_enabled) {
+	if(mouse_enabled)
 		disable_mouse();
-	}
 #endif
-
+*/
+/*
 	// release direct input
-	if(lpdi) {
-		if(lpdikey) {
+	if(lpdi)
+	{
+		if(lpdikey)
+		{
 			lpdikey->Unacquire();
 			lpdikey->Release();
 			lpdikey = NULL;
@@ -166,23 +176,24 @@ void OSD::release_input()
 void OSD::update_input()
 {
 /*
-// TODO_MM
 #ifdef USE_AUTO_KEY
-	if(!now_auto_key && !config.romaji_to_kana) {
+	if(!now_auto_key && !config.romaji_to_kana)
+	{
 #endif
-		if(dinput_key_available) {
+		if(dinput_key_available)
+		{
 			// direct input
 			memset(key_dik, 0, sizeof(key_dik));
 //			lpdikey->Acquire();
-			if(FAILED(lpdikey->GetDeviceState(256, key_dik))) {
+			if(FAILED(lpdikey->GetDeviceState(256, key_dik)))
+			{
 				lpdikey->Acquire();
 				lpdikey->GetDeviceState(256, key_dik);
 			}
 #if DIRECTINPUT_VERSION < 0x0800
 			// DIK_RSHIFT is not detected on Vista or later
-			if(vista_or_later) {
+			if(vista_or_later)
 				key_dik[DIK_RSHIFT] = (GetAsyncKeyState(VK_RSHIFT) & 0x8000) ? 0x80 : 0;
-			}
 #endif
 			// XXX: don't release shift key while numpad key is pressed
 			uint8_t numpad_keys;
@@ -196,7 +207,8 @@ void OSD::update_input()
 			numpad_keys |= key_dik[DIK_NUMPAD7];
 			numpad_keys |= key_dik[DIK_NUMPAD8];
 			numpad_keys |= key_dik[DIK_NUMPAD9];
-			if(numpad_keys & 0x80) {
+			if(numpad_keys & 0x80)
+			{
 				key_dik[DIK_LSHIFT] |= key_dik_prev[DIK_LSHIFT];
 				key_dik[DIK_RSHIFT] |= key_dik_prev[DIK_RSHIFT];
 			}
@@ -207,14 +219,18 @@ void OSD::update_input()
 			key_dik[DIK_RETURN    ] |= key_dik[DIK_NUMPADENTER];
 #endif
 
-			for(int vk = 0; vk < 256; vk++) {
+			for(int vk = 0; vk < 256; vk++)
+			{
 				int dik = vk_dik[vk];
-				if(dik) {
-					if(key_dik[dik] & 0x80) {
-						if(!(key_dik_prev[dik] & 0x80)) {
+				if(dik)
+				{
+					if(key_dik[dik] & 0x80)
+					{
+						if(!(key_dik_prev[dik] & 0x80))
 							key_down_native(vk, false);
-						}
-					} else {
+					}
+					else
+					{
 //						if(key_dik_prev[dik] & 0x80) {
 #ifdef USE_JOYSTICK
 						if(!joy_to_key_status[vk])
@@ -225,24 +241,29 @@ void OSD::update_input()
 				}
 			}
 			memcpy(key_dik_prev, key_dik, sizeof(key_dik_prev));
-		} else {
+		}
+		else
+		{
 			// update numpad key status
-			if(key_shift_pressed && !key_shift_released) {
-				if(key_status[VK_LSHIFT] == 0) {
+			if(key_shift_pressed && !key_shift_released)
+			{
+				if(key_status[VK_LSHIFT] == 0)
+				{
 					// shift key is newly pressed
-					if(!key_status[VK_RSHIFT]) {
+					if(!key_status[VK_RSHIFT])
 						vm->key_down(VK_SHIFT, false);
-					}
 					vm->key_down(VK_LSHIFT, false);
 					key_status[VK_LSHIFT] = key_status[VK_SHIFT] = 0x80;
 				}
-			} else if(!key_shift_pressed && key_shift_released) {
-				if(key_status[VK_LSHIFT] != 0) {
+			}
+			else if(!key_shift_pressed && key_shift_released)
+			{
+				if(key_status[VK_LSHIFT] != 0)
+				{
 					// shift key is newly released
 					vm->key_up(VK_LSHIFT);
-					if(!key_status[VK_RSHIFT]) {
+					if(!key_status[VK_RSHIFT])
 						vm->key_up(VK_SHIFT);
-					}
 					key_status[VK_LSHIFT] = key_status[VK_SHIFT] = 0;
 				}
 			}
@@ -251,38 +272,41 @@ void OSD::update_input()
 
 		// update shift + caps lock
 		bool caps_locked = ((GetAsyncKeyState(VK_CAPITAL) & 0x0001) != 0);
-		if(key_caps_locked != caps_locked) {
+		if(key_caps_locked != caps_locked)
+		{
 			key_down_native(0xf0, false);
 			key_caps_locked = caps_locked;
 		}
 #ifdef USE_AUTO_KEY
 	}
 #endif
-
+*/
 	// release keys
 #ifdef USE_AUTO_KEY
-	if(lost_focus && !now_auto_key) {
+	if(lost_focus && !now_auto_key)
+	{
 #else
-	if(lost_focus) {
+	if(lost_focus)
+	{
 #endif
 		// we lost key focus so release all pressed keys
-		for(int i = 0; i < 256; i++) {
-			if(key_status[i] & 0x80) {
+		for(int i = 0; i < 256; i++)
+			if(key_status[i] & 0x80)
+			{
 				key_status[i] &= 0x7f;
-				if(!key_status[i]) {
+				if(!key_status[i])
 					vm->key_up(i);
-				}
 			}
-		}
-	} else {
-		for(int i = 0; i < 256; i++) {
-			if(key_status[i] & 0x7f) {
+	}
+	else
+	{
+		for(int i = 0; i < 256; i++)
+			if(key_status[i] & 0x7f)
+			{
 				key_status[i] = (key_status[i] & 0x80) | ((key_status[i] & 0x7f) - 1);
-				if(!key_status[i]) {
+				if(!key_status[i])
 					vm->key_up(i);
-				}
 			}
-		}
 	}
 	lost_focus = false;
 
@@ -291,51 +315,63 @@ void OSD::update_input()
 
 #ifdef USE_JOYSTICK
 	// update joystick status
-	memset(joy_status, 0, sizeof(joy_status));
 
-	for(int i = 0; i < joy_num && i < 4; i++) {
+	memset(joy_status, 0, sizeof(joy_status));
+	for(int i = 0; i < joy_num && i < 4; i++)
+	{
+		joy_status[i] = joy_status_current[i];
+/*
 		JOYINFOEX joyinfo;
 		joyinfo.dwSize = sizeof(JOYINFOEX);
 		joyinfo.dwFlags = JOY_RETURNALL;
 		joy_status[i] = 0;
-		if(joyGetPosEx(i, &joyinfo) == JOYERR_NOERROR) {
-			if(joy_caps[i].wNumAxes >= 2) {
+		if(joyGetPosEx(i, &joyinfo) == JOYERR_NOERROR)
+		{
+			if(joy_caps[i].wNumAxes >= 2)
+			{
 				if(joyinfo.dwYpos < joy_caps[i].dwYposLo) joy_status[i] |= 0x00000001;	// up
 				if(joyinfo.dwYpos > joy_caps[i].dwYposHi) joy_status[i] |= 0x00000002;	// down
 			}
-			if(joy_caps[i].wNumAxes >= 1) {
+			if(joy_caps[i].wNumAxes >= 1)
+			{
 				if(joyinfo.dwXpos < joy_caps[i].dwXposLo) joy_status[i] |= 0x00000004;	// left
 				if(joyinfo.dwXpos > joy_caps[i].dwXposHi) joy_status[i] |= 0x00000008;	// right
 			}
-			if(joy_caps[i].wNumAxes >= 3) {
+			if(joy_caps[i].wNumAxes >= 3)
+			{
 				if(joyinfo.dwZpos < joy_caps[i].dwZposLo) joy_status[i] |= 0x00100000;
 				if(joyinfo.dwZpos > joy_caps[i].dwZposHi) joy_status[i] |= 0x00200000;
 			}
-			if(joy_caps[i].wNumAxes >= 4) {
+			if(joy_caps[i].wNumAxes >= 4)
+			{
 				if(joyinfo.dwRpos < joy_caps[i].dwRposLo) joy_status[i] |= 0x00400000;
 				if(joyinfo.dwRpos > joy_caps[i].dwRposHi) joy_status[i] |= 0x00800000;
 			}
-			if(joy_caps[i].wNumAxes >= 5) {
+			if(joy_caps[i].wNumAxes >= 5)
+			{
 				if(joyinfo.dwUpos < joy_caps[i].dwUposLo) joy_status[i] |= 0x01000000;
 				if(joyinfo.dwUpos > joy_caps[i].dwUposHi) joy_status[i] |= 0x02000000;
 			}
-			if(joy_caps[i].wNumAxes >= 6) {
+			if(joy_caps[i].wNumAxes >= 6)
+			{
 				if(joyinfo.dwVpos < joy_caps[i].dwVposLo) joy_status[i] |= 0x04000000;
 				if(joyinfo.dwVpos > joy_caps[i].dwVposHi) joy_status[i] |= 0x08000000;
 			}
-			if(joyinfo.dwPOV != 0xffff) {
-				static const uint32_t dir[8] = {
-					0x10000000 + 0x00000000,
-					0x10000000 + 0x20000000,
-					0x00000000 + 0x20000000,
-					0x40000000 + 0x20000000,
-					0x40000000 + 0x00000000,
-					0x40000000 + 0x80000000,
-					0x00000000 + 0x80000000,
-					0x10000000 + 0x80000000,
-				};
-				for(int j = 0; j < 9; j++) {
-					if(joyinfo.dwPOV < (DWORD)(2250 + 4500 * j)) {
+			if(joyinfo.dwPOV != 0xffff)
+			{
+				static const uint32_t dir[8] = {	0x10000000 + 0x00000000,
+													0x10000000 + 0x20000000,
+													0x00000000 + 0x20000000,
+													0x40000000 + 0x20000000,
+													0x40000000 + 0x00000000,
+													0x40000000 + 0x80000000,
+													0x00000000 + 0x80000000,
+													0x10000000 + 0x80000000,
+												};
+				for(int j = 0; j < 9; j++)
+				{
+					if(joyinfo.dwPOV < (DWORD)(2250 + 4500 * j))
+					{
 						joy_status[i] |= dir[j & 7];
 						break;
 					}
@@ -343,69 +379,75 @@ void OSD::update_input()
 			}
 			joy_status[i] |= ((joyinfo.dwButtons & joy_caps[i].dwButtonsMask) << 4);
 		}
+*/
 	}
-	if(config.use_joy_to_key) {
+	if(config.use_joy_to_key)
+	{
 		int status[256] = {0};
-		if(config.joy_to_key_type == 0) {
+		if(config.joy_to_key_type == 0)
+		{
 			// cursor key
 			static const int vk[] = {VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT};
-			for(int i = 0; i < 4; i++) {
-				if(joy_status[0] & (1 << i)) {
+			for(int i = 0; i < 4; i++)
+				if(joy_status[0] & (1 << i))
 					status[vk[i]] = 1;
-				}
-			}
-		} else if(config.joy_to_key_type == 1) {
+		}
+		else if(config.joy_to_key_type == 1)
+		{
 			// numpad key (4-directions)
 			static const int vk[] = {VK_NUMPAD8, VK_NUMPAD2, VK_NUMPAD4, VK_NUMPAD6};
-			for(int i = 0; i < 4; i++) {
-				if(joy_status[0] & (1 << i)) {
+			for(int i = 0; i < 4; i++)
+				if(joy_status[0] & (1 << i))
 					status[vk[i]] = 1;
-				}
-			}
-		} else if(config.joy_to_key_type == 2) {
+		}
+		else if(config.joy_to_key_type == 2)
+		{
 			// numpad key (8-directions)
-			switch(joy_status[0] & 0x0f) {
-			case 0x02 + 0x04: status[VK_NUMPAD1] = 1; break; // down-left
-			case 0x02       : status[VK_NUMPAD2] = 1; break; // down
-			case 0x02 + 0x08: status[VK_NUMPAD3] = 1; break; // down-right
-			case 0x00 + 0x04: status[VK_NUMPAD4] = 1; break; // left
-//			case 0x00       : status[VK_NUMPAD5] = 1; break;
-			case 0x00 + 0x08: status[VK_NUMPAD6] = 1; break; // right
-			case 0x01 + 0x04: status[VK_NUMPAD7] = 1; break; // up-left
-			case 0x01       : status[VK_NUMPAD8] = 1; break; // up
-			case 0x01 + 0x08: status[VK_NUMPAD9] = 1; break; // up-right
+			switch(joy_status[0] & 0x0f)
+			{
+				case 0x02 + 0x04: status[VK_NUMPAD1] = 1; break; // down-left
+				case 0x02       : status[VK_NUMPAD2] = 1; break; // down
+				case 0x02 + 0x08: status[VK_NUMPAD3] = 1; break; // down-right
+				case 0x00 + 0x04: status[VK_NUMPAD4] = 1; break; // left
+//				case 0x00       : status[VK_NUMPAD5] = 1; break;
+				case 0x00 + 0x08: status[VK_NUMPAD6] = 1; break; // right
+				case 0x01 + 0x04: status[VK_NUMPAD7] = 1; break; // up-left
+				case 0x01       : status[VK_NUMPAD8] = 1; break; // up
+				case 0x01 + 0x08: status[VK_NUMPAD9] = 1; break; // up-right
 			}
 		}
-		if(config.joy_to_key_type == 1 || config.joy_to_key_type == 2) {
+		if(config.joy_to_key_type == 1 || config.joy_to_key_type == 2)
+		{
 			// numpad key
-			if(config.joy_to_key_numpad5 && !(joy_status[0] & 0x0f)) {
+			if(config.joy_to_key_numpad5 && !(joy_status[0] & 0x0f))
 				status[VK_NUMPAD5] = 1;
-			}
 		}
-		for(int i = 0; i < 16; i++) {
-			if(joy_status[0] & (1 << (i + 4))) {
-				if(config.joy_to_key_buttons[i] < 0 && -config.joy_to_key_buttons[i] < 256) {
+		for(int i = 0; i < 16; i++) 
+			if(joy_status[0] & (1 << (i + 4))) 
+				if(config.joy_to_key_buttons[i] < 0 && -config.joy_to_key_buttons[i] < 256) 
 					status[-config.joy_to_key_buttons[i]] = 1;
-				}
-			}
-		}
-		for(int i = 0; i < 256; i++) {
-			if(status[i]) {
-				if(!joy_to_key_status[i]) {
-					if(!(key_status[i] & 0x80)) {
+		for(int i = 0; i < 256; i++)
+		{
+			if(status[i])
+			{
+				if(!joy_to_key_status[i])
+				{
+					if(!(key_status[i] & 0x80))
+					{
 						key_down_native(i, false);
 						// do not keep key pressed
-						if(config.joy_to_key_numpad5 && (i >= VK_NUMPAD1 && i <= VK_NUMPAD9)) {
+						if(config.joy_to_key_numpad5 && (i >= VK_NUMPAD1 && i <= VK_NUMPAD9))
 							key_status[i] = KEY_KEEP_FRAMES;
-						}
 					}
 					joy_to_key_status[i] = true;
 				}
-			} else {
-				if(joy_to_key_status[i]) {
-					if(key_status[i]) {
+			}
+			else
+			{
+				if(joy_to_key_status[i])
+				{
+					if(key_status[i])
 						key_up_native(i);
-					}
 					joy_to_key_status[i] = false;
 				}
 			}
@@ -413,6 +455,7 @@ void OSD::update_input()
 	}
 #endif
 
+/*
 #ifdef USE_MOUSE
 	// update mouse status
 	memset(mouse_status, 0, sizeof(mouse_status));
@@ -442,11 +485,12 @@ void OSD::update_input()
 void OSD::key_down(int code, bool extended, bool repeat)
 {
 /*
-// TODO_MM
 #ifdef USE_AUTO_KEY
-	if(!now_auto_key && !config.romaji_to_kana) {
+	if(!now_auto_key && !config.romaji_to_kana)
+	{
 #endif
-		if(!dinput_key_available) {
+		if(!dinput_key_available)
+		{
 			if(code == VK_SHIFT) {
 				if(!(key_status[VK_RSHIFT] & 0x80) && (GetAsyncKeyState(VK_RSHIFT) & 0x8000)) {
 					key_down_native(VK_RSHIFT, repeat);
@@ -545,21 +589,20 @@ void OSD::key_down(int code, bool extended, bool repeat)
 				}
 			}
 			key_down_native(code, repeat);
-		} else {
-			if(repeat || code == 0xf0 || code == 0xf1 || code == 0xf2 || code == 0xf3 || code == 0xf4) {
-				key_down_native(code, repeat);
-			}
 		}
+		else
+			if(repeat || code == 0xf0 || code == 0xf1 || code == 0xf2 || code == 0xf3 || code == 0xf4)
+				key_down_native(code, repeat);
 #ifdef USE_AUTO_KEY
 	}
 #endif
 */
+	key_down_native(code, repeat);
 }
 
 void OSD::key_up(int code, bool extended)
 {
 /*
-// TODO_MM
 #ifdef USE_AUTO_KEY
 	if(!now_auto_key && !config.romaji_to_kana) {
 #endif
@@ -648,34 +691,36 @@ void OSD::key_up(int code, bool extended)
 	}
 #endif
 */
+	key_up_native(code);
 }
 
 void OSD::key_down_native(int code, bool repeat)
 {
-/*
-// TODO_MM
 	bool keep_frames = false;
 
-	if(code == 0xf0) {
+	if(code == 0xf0)
+	{
 		code = VK_CAPITAL;
 		keep_frames = true;
-	} else if(code == 0xf1 || code == 0xf2) {
+	}
+	else if(code == 0xf1 || code == 0xf2)
+	{
 		code = VK_KANA;
 		keep_frames = true;
-	} else if(code == 0xf3 || code == 0xf4) {
+	}
+	else if(code == 0xf3 || code == 0xf4)
+	{
 		code = VK_KANJI;
 		keep_frames = true;
 	}
-	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU))
 		code = keycode_conv[code];
-	}
-	if(key_status[code] == 0 || keep_frames) {
+	if(key_status[code] == 0 || keep_frames)
 		repeat = false;
-	}
 #ifdef DONT_KEEEP_KEY_PRESSED
-	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU))
 		key_status[code] = KEY_KEEP_FRAMES;
-	} else
+	else
 #endif
 	key_status[code] = keep_frames ? KEY_KEEP_FRAMES : 0x80;
 
@@ -687,36 +732,32 @@ void OSD::key_down_native(int code, bool repeat)
 	key_status[VK_CONTROL] = key_status[VK_LCONTROL] | key_status[VK_RCONTROL];
 	key_status[VK_MENU] = key_status[VK_LMENU] | key_status[VK_RMENU];
 
-	if(code == VK_LSHIFT || code == VK_RSHIFT) {
-		if(prev_shift == 0 && key_status[VK_SHIFT] != 0) {
+	if(code == VK_LSHIFT || code == VK_RSHIFT)
+	{
+		if(prev_shift == 0 && key_status[VK_SHIFT] != 0)
 			vm->key_down(VK_SHIFT, repeat);
-		}
-	} else if(code == VK_LCONTROL|| code == VK_RCONTROL) {
-		if(prev_control == 0 && key_status[VK_CONTROL] != 0) {
+	}
+	else if(code == VK_LCONTROL|| code == VK_RCONTROL)
+	{
+		if(prev_control == 0 && key_status[VK_CONTROL] != 0)
 			vm->key_down(VK_CONTROL, repeat);
-		}
-	} else if(code == VK_LMENU|| code == VK_RMENU) {
-		if(prev_menu == 0 && key_status[VK_MENU] != 0) {
+	}
+	else if(code == VK_LMENU|| code == VK_RMENU)
+	{
+		if(prev_menu == 0 && key_status[VK_MENU] != 0)
 			vm->key_down(VK_MENU, repeat);
-		}
 	}
 	vm->key_down(code, repeat);
-*/
 }
 
 void OSD::key_up_native(int code)
 {
-/*
-// TODO_MM
-	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU))
 		code = keycode_conv[code];
-	}
-	if(key_status[code] == 0) {
+	if(key_status[code] == 0)
 		return;
-	}
-	if((key_status[code] &= 0x7f) != 0) {
+	if((key_status[code] &= 0x7f) != 0)
 		return;
-	}
 	vm->key_up(code);
 
 	uint8_t prev_shift = key_status[VK_SHIFT];
@@ -727,27 +768,106 @@ void OSD::key_up_native(int code)
 	key_status[VK_CONTROL] = key_status[VK_LCONTROL] | key_status[VK_RCONTROL];
 	key_status[VK_MENU] = key_status[VK_LMENU] | key_status[VK_RMENU];
 
-	if(code == VK_LSHIFT || code == VK_RSHIFT) {
-		if(prev_shift != 0 && key_status[VK_SHIFT] == 0) {
+	if(code == VK_LSHIFT || code == VK_RSHIFT)
+	{
+		if(prev_shift != 0 && key_status[VK_SHIFT] == 0)
 			vm->key_up(VK_SHIFT);
-		}
-	} else if(code == VK_LCONTROL|| code == VK_RCONTROL) {
-		if(prev_control != 0 && key_status[VK_CONTROL] == 0) {
+	} else if(code == VK_LCONTROL|| code == VK_RCONTROL)
+	{
+		if(prev_control != 0 && key_status[VK_CONTROL] == 0)
 			vm->key_up(VK_CONTROL);
-		}
-	} else if(code == VK_LMENU || code == VK_RMENU) {
-		if(prev_menu != 0 && key_status[VK_MENU] == 0) {
-			vm->key_up(VK_MENU);
-		}
 	}
-*/
+	else if(code == VK_LMENU || code == VK_RMENU)
+	{
+		if(prev_menu != 0 && key_status[VK_MENU] == 0)
+			vm->key_up(VK_MENU);
+	}
 }
 
+#ifdef USE_JOYSTICK
+void OSD::set_joy_status(	int joy_index,
+							bool up, bool down, bool left, bool right,
+							bool button1, bool button2, bool button3, bool button4, bool button5, bool button6, bool button7, bool button8,
+							bool button9, bool button10, bool button11, bool button12, bool button13, bool button14, bool button15, bool button16,
+							uint16_t zaxis, uint16_t raxis, uint16_t uaxis, uint16_t vaxis,
+							uint32_t pov)
+{
+	if(joy_num < 1 || joy_index < 0 || joy_index >= joy_num)
+		return;
+	
+	joy_status_current[joy_index] = 0;
+	// bit0-3	up,down,left,right
+	// bit4-19	button #1-#16
+	// bit20-21	z-axis pos
+	// bit22-23	r-axis pos
+	// bit24-25	u-axis pos
+	// bit26-27	v-axis pos
+	// bit28-31	pov pos
+	if(up)
+		joy_status_current[joy_index] |= 0x00000001;	// up
+	if(down)
+		joy_status_current[joy_index] |= 0x00000002;	// down
+	if(left)
+		joy_status_current[joy_index] |= 0x00000004;	// left
+	if(right)
+		joy_status_current[joy_index] |= 0x00000008;	// right
+	if(button1)
+		joy_status_current[joy_index] |= 0x00000010 & (joy_caps[joy_index].dwButtonsMask << 4);	// button1
+	if(button2)
+		joy_status_current[joy_index] |= 0x00000020 & (joy_caps[joy_index].dwButtonsMask << 4);	// button2
+/*
+	// TODO_MM: other buttons, axes and POV
+			if(joy_caps[i].wNumAxes >= 3)
+			{
+				if(joyinfo.dwZpos < joy_caps[i].dwZposLo) joy_status[i] |= 0x00100000;
+				if(joyinfo.dwZpos > joy_caps[i].dwZposHi) joy_status[i] |= 0x00200000;
+			}
+			if(joy_caps[i].wNumAxes >= 4)
+			{
+				if(joyinfo.dwRpos < joy_caps[i].dwRposLo) joy_status[i] |= 0x00400000;
+				if(joyinfo.dwRpos > joy_caps[i].dwRposHi) joy_status[i] |= 0x00800000;
+			}
+			if(joy_caps[i].wNumAxes >= 5)
+			{
+				if(joyinfo.dwUpos < joy_caps[i].dwUposLo) joy_status[i] |= 0x01000000;
+				if(joyinfo.dwUpos > joy_caps[i].dwUposHi) joy_status[i] |= 0x02000000;
+			}
+			if(joy_caps[i].wNumAxes >= 6)
+			{
+				if(joyinfo.dwVpos < joy_caps[i].dwVposLo) joy_status[i] |= 0x04000000;
+				if(joyinfo.dwVpos > joy_caps[i].dwVposHi) joy_status[i] |= 0x08000000;
+			}
+			if(joyinfo.dwPOV != 0xffff)
+			{
+				static const uint32_t dir[8] = {	0x10000000 + 0x00000000,
+													0x10000000 + 0x20000000,
+													0x00000000 + 0x20000000,
+													0x40000000 + 0x20000000,
+													0x40000000 + 0x00000000,
+													0x40000000 + 0x80000000,
+													0x00000000 + 0x80000000,
+													0x10000000 + 0x80000000,
+												};
+				for(int j = 0; j < 9; j++)
+				{
+					if(joyinfo.dwPOV < (DWORD)(2250 + 4500 * j))
+					{
+						joy_status[i] |= dir[j & 7];
+						break;
+					}
+				}
+			}
+			joy_status[i] |= ((joyinfo.dwButtons & joy_caps[i].dwButtonsMask) << 4);
+*/
+
+}
+#endif	// USE_JOYSTICK
+
+
+/*
 #ifdef USE_MOUSE
 void OSD::enable_mouse()
 {
-/*
-// TODO_MM
 	// enable mouse emulation
 	if(!mouse_enabled) {
 		// hide mouse cursor
@@ -760,24 +880,19 @@ void OSD::enable_mouse()
 		SetCursorPos(pt.x, pt.y);
 	}
 	mouse_enabled = true;
-*/
 }
 
 void OSD::disable_mouse()
 {
-/*
-// TODO_MM
 	// disable mouse emulation
 	if(mouse_enabled) {
 		ShowCursor(TRUE);
 	}
 	mouse_enabled = false;
-*/
 }
 
 void OSD::toggle_mouse()
 {
-/*
 // TODO_MM
 	// toggle mouse enable / disable
 	if(mouse_enabled) {
@@ -785,6 +900,6 @@ void OSD::toggle_mouse()
 	} else {
 		enable_mouse();
 	}
-*/
 }
 #endif
+*/

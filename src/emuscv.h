@@ -1,103 +1,181 @@
-#ifndef EMUSCV_H__
-#define EMUSCV_H__
-
-#ifndef _SCV
-	#define _SCV
-#endif
-
-#ifndef _LIBRETRO
-	#define _LIBRETRO
-#endif
+#ifndef _EMUSCV_INC_EMUSCV_H_
+#define _EMUSCV_INC_EMUSCV_H_
 
 #ifndef _USE_MATH_DEFINES
 	#define _USE_MATH_DEFINES
 #endif
 #include <math.h>
 
+// Libraries
+#include <libretro.h>
+#include <SDL2/SDL.h>
+#include <SDL2_gfx/SDL2_gfxPrimitives.h>
+#include <zlib/zlib.h>
+#include <unzip/unzip.h>
+#include <lpng/png.h>
+
+#include "common.h"
+
+// Embedded binary resources
+#include "res/binary.emuscv64x64xrgba8888.data.h"
+
 // SCV includes
-#include "emu.h"
+#ifndef EMUSCV
+	#define EMUSCV
+#endif
 
-#define APP_NAME					"Libretro-EmuSCV"
-#define APP_DESCRIPTION				"EmuSCV is an open source emulator of EPOCH/YENO Super Cassette Vision under General Public Licence (GPL), based on SCV and MESS/MAME"
-#ifndef APP_VERSION_MAJOR
-    #define APP_VERSION_MAJOR		"0"
-#endif
-#ifndef APP_VERSION_MINOR
-    #define APP_VERSION_MINOR		"00"
-#endif
-#ifndef APP_VERSION_DATETIME
-    #define APP_VERSION_DATETIME	""
-#endif
-#ifndef APP_VERSION
-    #define APP_VERSION				"0.00"
-#endif
-#define APP_AUTHOR					"Maxime MARCONATO (aka MaaaX) - maxime@maaax.com"
-#define APP_EXTENSIONS				"bin|rom|scv|0"
+class EMU;
 
+#define EMUSCV_NAME					"Libretro-EmuSCV"
+#define EMUSCV_DESCRIPTION			"EmuSCV is an open source emulator of EPOCH/YENO Super Cassette Vision under General Public Licence (GPL), based on SCV and MESS/MAME"
+#ifndef EMUSCV_VERSION_MAJOR
+    #define EMUSCV_VERSION_MAJOR	"0"
+#endif
+#ifndef EMUSCV_VERSION_MINOR
+    #define EMUSCV_VERSION_MINOR	"00"
+#endif
+#ifndef EMUSCV_VERSION_DATETIME
+    #define EMUSCV_VERSION_DATETIME	"00000000000000"
+#endif
+#ifndef EMUSCV_VERSION
+    #define EMUSCV_VERSION			"0.00.00000000000000"
+#endif
+#define EMUSCV_AUTHOR				"Maxime MARCONATO (aka MaaaX) - maxime@maaax.com"
+#define EMUSCV_EXTENSIONS			"cart|bin|rom|0|zip"
+
+// Input descriptions
+#define EMUSCV_INPUTDESC_BUTTON_SELECT	"BUTTON SELECT"
+#define EMUSCV_INPUTDESC_BUTTON_START	"BUTTON START"
+#define EMUSCV_INPUTDESC_BUTTON_LEFT	"BUTTON LEFT"
+#define EMUSCV_INPUTDESC_BUTTON_RIGHT	"BUTTON RIGHT"	// ┌───────┬──────┬─────────────┬──────┐
+#define EMUSCV_INPUTDESC_BUTTON_UP		"BUTTON UP"		// │ POS.  │ SNES │ PLAYSTATION │ XBOX │
+#define EMUSCV_INPUTDESC_BUTTON_DOWN	"BUTTON DOWN"	// ├───────┼──────┼─────────────┼──────┤
+#define EMUSCV_INPUTDESC_BUTTON_1		"BUTTON 1"		// │ RIGHT │  A   │  CIRCLE     │  B   │
+#define EMUSCV_INPUTDESC_BUTTON_2		"BUTTON 2"		// │ DOWN  │  B   │  CROSS      │  A   │
+#define EMUSCV_INPUTDESC_BUTTON_3		"BUTTON 3"		// │ TOP   │  X   │  TRIANGLE   │  Y   │
+#define EMUSCV_INPUTDESC_BUTTON_4		"BUTTON 4"		// │ LEFT  │  Y   │  SQUARE     │  X   │
+#define EMUSCV_INPUTDESC_BUTTON_L1		"BUTTON L1"		// └───────┴──────┴─────────────┴──────┘
+#define EMUSCV_INPUTDESC_BUTTON_R1		"BUTTON R1"
+#define EMUSCV_INPUTDESC_BUTTON_L2		"BUTTON L2"
+#define EMUSCV_INPUTDESC_BUTTON_R2		"BUTTON R2"
+#define EMUSCV_INPUTDESC_BUTTON_L3		"BUTTON L3"
+#define EMUSCV_INPUTDESC_BUTTON_R3		"BUTTON R3"
+#define EMUSCV_INPUTDESC_ANALOG_LEFT_X	"ANALOG LEFT X"
+#define EMUSCV_INPUTDESC_ANALOG_LEFT_Y	"ANALOG LEFT Y"
+#define EMUSCV_INPUTDESC_ANALOG_RIGHT_X	"ANALOG RIGHT X"
+#define EMUSCV_INPUTDESC_ANALOG_RIGHT_Y	"ANALOG RIGHT Y"
+
+#define EMUSCV_AXIS_NEUTRAL_MIN	-256
+#define EMUSCV_AXIS_NEUTRAL_MAX	256
+
+/*
 // device informations for virtual machine
+#define AUDIO_SAMPLING_RATE			44100
+#define AUDIO_SAMPLES_PER_FRAME		AUDIO_SAMPLING_RATE/FRAMES_PER_SEC
 #define CYCLES_PER_FRAME			CPU_CLOCKS / FRAMES_PER_SEC
+*/
 
-static const scrntype_t palette_pc[16] =
-{
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(0, 0, 136),		// 0 BLUE 1 (MEDIUM)
+/*
+static uint64_t retro_frame_time	= 0;
+static unsigned long cycles_per_frame = CYCLES_PER_FRAME;
+*/
 
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(8, 8, 8),			// 1 BLACK
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(0, 0, 224),		// 2 BLUE (LIGHT)
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(104, 0, 200),		// 3 PURPLE
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(0, 248, 0),		// 4 GREEN 1 (LIGHT)
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(128, 232, 122),	// 5 GREEN 2 (SOFT)
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(0, 248, 224),		// 6 CYAN
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(0, 152, 0),		// 7 GREEN 3 (MEDIUM)
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(216, 0, 0),		// 8 RED
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(224, 152, 0),		// 9 ORANGE
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(184, 0, 200),		// 10 FUSCHIA
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(248, 168, 160),	// 11 PINK / NUDE
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(248, 240, 16),	// 12 YELLOW
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(120, 136, 0), 	// 13 GREEN 4 (DARK) / MAROON
-
-	//RGB_COLOR(128, 128, 128),
-	RGB_COLOR(136, 136, 128),	// 14 GRAY
-
-	//RGB_COLOR(128, 128, 128)
-	RGB_COLOR(232, 232, 232)	// 15 WHITE
-};
-
+// /!\ Must be static
 class cEmuSCV
 {
 	public:
-		cEmuSCV();
-		~cEmuSCV();
+		cEmuSCV();															// Class constructor
+		~cEmuSCV();															// Class destructor
+		void RetroSetEnvironment(retro_environment_t cb);					// Libretro: set the environment
+		void RetroSetVideoRefresh(retro_video_refresh_t cb);				// Libretro: set the video refresh callback
+		void RetroSetAudioSample(retro_audio_sample_t cb);					// Libretro: set the audio sample callback
+		void RetroSetAudioSampleBatch(retro_audio_sample_batch_t cb);		// Libretro: set the audio batch callback
+		void RetroSetInputPoll(retro_input_poll_t cb);						// Libretro: set the input poll callback
+		void RetroSetInputState(retro_input_state_t cb);					// Libretro: set the input state callback
+		unsigned RetroGetApiVersion(void);									// Libretro: return the version used by the core for compatibility check with the frontend
+		unsigned RetroGetVideoRegion(void);									// Libretro: return the video standard used
+		void RetroGetSystemInfo(struct retro_system_info *info);			// Libretro: get the system infos
+		void RetroGetAudioVideoInfo(struct retro_system_av_info *info);		// Libretro: get the audio/video infos
+		void RetroInit(retro_audio_callback_t retro_audio_cb, retro_audio_set_state_callback_t retro_audio_set_state_cb, retro_frame_time_callback_t retro_frame_time_cb);												// Libretro: initialize the core
+		void RetroDeinit(void);												// Libretro: deinitialize the core
+		void RetroSetControllerPortDevice(unsigned port, unsigned device);	// Libretro: set controller port device
+		void RetroAudioCb(void);											// Libretro: audio callback
+		void RetroAudioSetStateCb(bool enable);								// Libretro: audio set state enable/disable callback
+		void RetroFrameTimeCb(retro_usec_t usec);							// Libretro: retro frame time callback
+		bool RetroLoadGame(const struct retro_game_info *info);				// Libretro: load game
+		void RetroUnloadGame(void);											// Libretro: unload game
+		void RetroRun(void);												// Libretro: run for only one frame
+		void RetroReset(void);												// Libretro: reset the Libretro core
+		size_t RetroSaveStateSize(void);									// Libretro: return save state size
+		void *RetroSaveStateData(void);										// Libretro: return save state data pointer
+		void RetroLoadSettings();											// Libretro: load core settings
+		void RetroSaveSettings();											// Libretro: save core settings
 
-	private:
+		retro_log_printf_t			RetroLogPrintf;
+		retro_environment_t 		RetroEnvironment;
+		retro_video_refresh_t		RetroVideoRefresh;
+		retro_audio_sample_t		RetroAudioSample;
+		retro_audio_sample_batch_t	RetroAudioSampleBatch;
+		retro_input_poll_t			RetroInputPoll;
+		retro_input_state_t			RetroInputState;
 
-	protected:
+		bool retro_core_initialized;		// Is the libretro core initialized ?
+		bool retro_use_audio_cb;			// Is the libretro audio callback used ?
+		bool retro_audio_enable;			// Is the libretro audio enabled ?
+		uint16_t retro_audio_phase;
+		uint64_t retro_frame_counter;
+		retro_usec_t retro_frame_time;
+		bool retro_input_support_bitmask;
+		bool retro_game_loaded;
 
+		bool is_power_on;
+		
+		char retro_base_directory[_MAX_PATH];
+		char retro_save_directory[_MAX_PATH];
+		char retro_game_path[_MAX_PATH];
+
+		// double	VideoFps;
+		int window_width_old;
+		int window_height_old;
+		double window_fps_old;
+
+		EMU *escv_emu;	// eSCV emulation core
+
+		SDL_Surface *frame_surface;		// SDL2 frame surface
+		SDL_Renderer *frame_renderer;	// SDL2 frame renderer
+		SDL_Surface *noise_surface;		// SDL2 TV static noise surface
+		SDL_Renderer *noise_renderer;	// SDL2 TV static noise renderer
+		
+		// To drive eSCV
+		int total_frames;
+		int draw_frames;
+//		int skip_frames;
+//		DWORD next_time;
+//		struct timespec next_time;
+//		bool prev_skip;
+//		DWORD update_fps_time;
+//		struct timespec update_fps_time;
+//		DWORD update_status_bar_time;
+//		DWORD disable_screen_saver_time;
+
+		bool key_pressed_0;
+		bool key_pressed_1;
+		bool key_pressed_2;
+		bool key_pressed_3;
+		bool key_pressed_4;
+		bool key_pressed_5;
+		bool key_pressed_6;
+		bool key_pressed_7;
+		bool key_pressed_8;
+		bool key_pressed_9;
+		bool key_pressed_cl;
+		bool key_pressed_en;
+		bool key_pressed_power;
+		bool key_pressed_pause;
+		bool key_pressed_reset;
+
+		uint64_t start_up_counter_power;
+		uint64_t start_up_counter_logo;
 };
 
-#endif // EMUSCV_H__
+#endif	// _EMUSCV_INC_EMUSCV_H_

@@ -8,11 +8,9 @@
 	[ uPD7801 ]
 */
 
-#ifndef _UPD7801_H_
-#define _UPD7801_H_
+#ifndef _EMUSCV_INC_VM_UPD7801_H_
+#define _EMUSCV_INC_VM_UPD7801_H_
 
-#include "vm.h"
-#include "../emu.h"
 #include "device.h"
 
 #define SIG_UPD7801_INTF0	0
@@ -181,4 +179,4 @@ public:
 	}
 };
 
-#endif
+#endif	// _EMUSCV_INC_VM_UPD7801_H_

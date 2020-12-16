@@ -7,8 +7,12 @@
 	[ common header ]
 */
 
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#ifndef _EMUSCV_INC_COMMON_H_
+#define _EMUSCV_INC_COMMON_H_
+
+#ifndef _LIBRETRO
+	#define _LIBRETRO
+#endif
 
 // move shared codes to DLL???
 //#ifdef _USE_QT
@@ -108,6 +112,7 @@
 #include <stdlib.h>
 #include <cstring>
 #include <string>
+#include <ctime>
 #if defined(_WIN32)
     #include <io.h>
 #elif defined(_OSX)
@@ -122,6 +127,7 @@
 #endif
 #include <assert.h>
 #include <errno.h>
+#include <unistd.h>
 
 // include environment/language dependent header files
 #ifdef _WIN32
@@ -337,6 +343,98 @@ using namespace std;
     #define UINT_MAX UINT8_MAX
 #endif
 
+// Virtual key codes
+#ifndef VK_SPACE
+    #define VK_SPACE 0x32
+#endif
+#ifndef VK_RETURN
+    #define VK_RETURN 0x0D
+#endif
+#ifndef VK_BACK
+    #define VK_BACK 0x08
+#endif
+#ifndef VK_NUMPAD0
+    #define VK_NUMPAD0 0x60
+#endif
+#ifndef VK_NUMPAD1
+    #define VK_NUMPAD1 0x61
+#endif
+#ifndef VK_NUMPAD2
+    #define VK_NUMPAD2 0x62
+#endif
+#ifndef VK_NUMPAD3
+    #define VK_NUMPAD3 0x63
+#endif
+#ifndef VK_NUMPAD4
+    #define VK_NUMPAD4 0x64
+#endif
+#ifndef VK_NUMPAD5
+    #define VK_NUMPAD5 0x65
+#endif
+#ifndef VK_NUMPAD6
+    #define VK_NUMPAD6 0x66
+#endif
+#ifndef VK_NUMPAD7
+    #define VK_NUMPAD7 0x67
+#endif
+#ifndef VK_NUMPAD8
+    #define VK_NUMPAD8 0x68
+#endif
+#ifndef VK_NUMPAD9
+    #define VK_NUMPAD9 0x69
+#endif
+#ifndef VK_LEFT
+    #define VK_LEFT 0x25
+#endif
+#ifndef VK_UP
+    #define VK_UP 0x26
+#endif
+#ifndef VK_RIGHT
+    #define VK_RIGHT 0x27
+#endif
+#ifndef VK_DOWN
+    #define VK_DOWN 0x28
+#endif
+#ifndef VK_CAPITAL
+	#define VK_CAPITAL 0x14
+#endif
+#ifndef VK_KANA
+	#define VK_KANA 0x15
+#endif
+#ifndef VK_KANJI
+	#define VK_KANJI 0x19
+#endif
+#ifndef VK_LSHIFT
+	#define VK_LSHIFT 0xA0
+#endif
+#ifndef VK_RSHIFT
+	#define VK_RSHIFT 0xA1
+#endif
+#ifndef VK_LCONTROL
+	#define VK_LCONTROL 0xA2
+#endif
+#ifndef VK_RCONTROL
+	#define VK_RCONTROL 0xA3
+#endif
+#ifndef VK_LMENU
+	#define VK_LMENU 0xA4
+#endif
+#ifndef VK_RMENU
+	#define VK_RMENU 0xA5
+#endif
+#ifndef VK_SHIFT
+	#define VK_SHIFT 0x10
+#endif
+#ifndef VK_CONTROL
+	#define VK_CONTROL 0x11
+#endif
+#ifndef VK_MENU
+	#define VK_MENU 0x12
+#endif
+// TODO_MM: complete other virtual key codes
+
+
+
 typedef union {
 	struct {
 #ifdef __BIG_ENDIAN__
@@ -355,7 +453,6 @@ typedef union {
 	uint16_t w;
 	int16_t sw;
 //	float16_t hf; // half float
-
 	inline void read_2bytes_le_from(uint8_t *t)
 	{
 		b.l = t[0]; b.h = t[1];
@@ -934,12 +1031,9 @@ int16_t DLL_PREFIX ExchangeEndianS16(uint16_t x);
 	#ifndef _vstprintf
 		#define _vstprintf vsprintf
 	#endif
-/*
-// TODO_MM
 	#ifndef _taccess
 		#define _taccess access
 	#endif
-*/
 	#ifndef _tremove
 		#define _tremove remove
 	#endif
@@ -1093,6 +1187,10 @@ typedef struct {
 #pragma pack()
 
 // file path
+#if defined(_LIBRETRO)
+void DLL_PREFIX set_libretro_system_directory(const _TCHAR *system_directory);
+void DLL_PREFIX set_libretro_save_directory(const _TCHAR *save_directory);
+#endif
 const _TCHAR *DLL_PREFIX get_application_path();
 const _TCHAR *DLL_PREFIX get_initial_current_path();
 const _TCHAR *DLL_PREFIX create_local_path(const _TCHAR *format, ...);
@@ -1166,4 +1264,4 @@ const _TCHAR *DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr);
 const _TCHAR *DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
 const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
 
-#endif
+#endif	// _EMUSCV_INC_COMMON_H_

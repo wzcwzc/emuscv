@@ -28,7 +28,8 @@
 	#include <shlwapi.h>
 	#pragma comment(lib, "shlwapi.lib")
 #else
-	#include <time.h>
+	#include <sys/stat.h>
+	#include <unistd.h>
 #endif
 #if !defined(_WIN32)
 	#include <wchar.h>
@@ -46,7 +47,10 @@
 #endif // _LIBRETRO
 
 
-#if defined(_WIN32) && !defined(_USE_QT)
+#if defined(_LIBRETRO)
+	static _TCHAR libretro_system_directory[_MAX_PATH];
+	static _TCHAR libretro_save_directory[_MAX_PATH];
+#elif defined(_WIN32) && !defined(_USE_QT)
 #else
     #include <sys/stat.h>
 	std::string DLL_PREFIX cpp_homedir;
@@ -288,7 +292,7 @@ int DLL_PREFIX min(int a, unsigned int b)
 {
 	if(a < 0) return a;
 	if(b > INT_MAX) return a;
-
+	
 	if(a < (int)b) {
 		return a;
 	} else {
@@ -406,13 +410,13 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 	register uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
 	register uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
 	int i;
-
+	
 	if(len == 0) return dst;
 	if(len < 8) {
 		return memcpy(dst, src, len);
 	}
 	len1 = len;
-
+	
 #if defined(WITHOUT_UNALIGNED_SIMD)
 	// Using SIMD without un-aligned instructions.
 	switch(s_align) {
@@ -903,7 +907,7 @@ UINT DLL_PREFIX MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT
 	snprintf(sval, 128, "%d", nDefault);
 	MyGetPrivateProfileString(lpAppName,lpKeyName, sval, sstr, 128, lpFileName);
 	s = sstr;
-
+	
 	if(s.empty()) {
 		i = nDefault;
 	} else {
@@ -1002,77 +1006,116 @@ struct to_upper {  // Refer from documentation of libstdc++, GCC5.
 #ifndef _WIN32
 static void _my_mkdir(std::string t_dir)
 {
-/*
-// TODO_MM
-//#if !defined(__WIN32) && !defined(__WIN64)
-//	if(fstatat(AT_FDCWD, csppath.c_str(), &st, 0) != 0) {
-//		mkdirat(AT_FDCWD, t_dir.c_str(), 0700); // Not found
-//	}
-#ifdef _USE_QT
 	struct stat st;
 
-	if(stat(t_dir.c_str(), &st) != 0) {
+#ifdef _USE_QT
+	if(stat(t_dir.c_str(), &st) != 0)
+	{
 		QDir dir = QDir::current();
 		dir.mkdir(QString::fromStdString(t_dir));
 		//dir.mkpath(QString::fromUtf8(app_path));
 	}
 #else
-	struct stat st;
-
-	if(stat(csppath.c_str(), &st) != 0) {
-		_mkdir(t_dir.c_str()); // Not found
+	if (stat(t_dir.c_str(), &st) != 0)
+	{
+		mkdir(t_dir.c_str(),S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	}
 #endif  // ifdef _USE_QT
-*/
 }
 #endif  // ifndef _WIN32
 
+#if defined(_LIBRETRO)
+void DLL_PREFIX set_libretro_system_directory(const _TCHAR *system_directory)
+{
+	memset(libretro_system_directory, 0, sizeof(libretro_system_directory));
+	strncpy(libretro_system_directory, system_directory, _MAX_PATH - 1);
+	int len = strlen(libretro_system_directory);
+	if(libretro_system_directory[len - 1] != '\\' && libretro_system_directory[len - 1] != '/')
+	{
+#if defined(_WIN32) || defined(Q_OS_WIN)
+		libretro_system_directory[len] = '\\';
+#else
+		libretro_system_directory[len] = '/';
+#endif
+		libretro_system_directory[len + 1] = '\0';
+	}
+}
+
+void DLL_PREFIX set_libretro_save_directory(const _TCHAR *save_directory)
+{
+	memset(libretro_save_directory, 0, sizeof(libretro_save_directory));
+	strncpy(libretro_save_directory, save_directory, _MAX_PATH - 1);
+	int len = strlen(libretro_save_directory);
+	if(libretro_save_directory[len - 1] != '\\' && libretro_save_directory[len - 1] != '/')
+	{
+#if defined(_WIN32) || defined(Q_OS_WIN)
+		libretro_save_directory[len] = '\\';
+#else
+		libretro_save_directory[len] = '/';
+#endif
+		libretro_save_directory[len + 1] = '\0';
+	}
+}
+#endif
+
 const _TCHAR *DLL_PREFIX get_application_path()
 {
+
 	static _TCHAR app_path[_MAX_PATH];
-/*
-// TODO_MM
+
 	static bool initialized = false;
 
-	if(!initialized) {
-#if defined(_WIN32) && !defined(_USE_QT)
+	if(!initialized)
+	{
+#if defined(_LIBRETRO)
+		strncpy(app_path, libretro_system_directory, _MAX_PATH);
+#elif defined(_WIN32) && !defined(_USE_QT)
 		_TCHAR tmp_path[_MAX_PATH], *ptr = NULL;
-		if(GetModuleFileName(NULL, tmp_path, _MAX_PATH) != 0 && GetFullPathName(tmp_path, _MAX_PATH, app_path, &ptr) != 0 && ptr != NULL) {
+		if(GetModuleFileName(NULL, tmp_path, _MAX_PATH) != 0 && GetFullPathName(tmp_path, _MAX_PATH, app_path, &ptr) != 0 && ptr != NULL)
+		{
 			*ptr = _T('\0');
-		} else {
+		}
+		else
+		{
 			my_tcscpy_s(app_path, _MAX_PATH, _T(".\\"));
 		}
 #else
-#if defined(Q_OS_WIN)
-		std::string delim = "\\";
-#else
-		std::string delim = "/";
-#endif
-		std::string csppath = cpp_homedir + "CommonSourceCodeProject" + delim ;
-		_my_mkdir(csppath);
+//#if defined(Q_OS_WIN)
+//		std::string delim = "\\";
+//#else
+//		std::string delim = "/";
+//#endif
+//		std::string csppath = cpp_homedir + "CommonSourceCodeProject" + delim ;
+//		_my_mkdir(csppath);
+//		
+//		std::string cpath = csppath + my_procname + delim;
+//		_my_mkdir(cpath);
+//		strncpy(app_path, cpath.c_str(), _MAX_PATH - 1);
 
-		std::string cpath = csppath + my_procname + delim;
-		_my_mkdir(cpath);
-		strncpy(app_path, cpath.c_str(), _MAX_PATH - 1);
+		uint bytes = min(uint(readlink("/proc/self/exe", app_path, sizeof(app_path))), uint(sizeof(app_path) - 1));
+		if(bytes >= 0)
+    		app_path[bytes] = '\0';
 #endif
 		initialized = true;
 	}
-*/
 	return (const _TCHAR *)app_path;
 }
 
 const _TCHAR *DLL_PREFIX get_initial_current_path()
 {
 	static _TCHAR current_path[_MAX_PATH];
-/*
-// TODO_MM
+	
 	static bool initialized = false;
-
+	
 	if(!initialized) {
 #if defined(_WIN32) && !defined(_USE_QT)
 		GetCurrentDirectoryA(_MAX_PATH, current_path);
 #else
+	#if defined(_USE_QT)
 		getcwd(current_path, _MAX_PATH);
+	#else
+		getcwd(current_path, _MAX_PATH);
+	#endif
 #endif
 		int len = strlen(current_path);
 		if(current_path[len - 1] != '\\' && current_path[len - 1] != '/') {
@@ -1086,7 +1129,7 @@ const _TCHAR *DLL_PREFIX get_initial_current_path()
 
 		initialized = true;
 	}
-*/
+	
 	return (const _TCHAR *)current_path;
 }
 
@@ -1097,7 +1140,7 @@ const _TCHAR *DLL_PREFIX create_local_path(const _TCHAR *format, ...)
 	unsigned int output_index = (table_index++) & 7;
 	_TCHAR file_name[_MAX_PATH];
 	va_list ap;
-
+	
 	va_start(ap, format);
 	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
 	va_end(ap);
@@ -1109,7 +1152,7 @@ void DLL_PREFIX create_local_path(_TCHAR *file_path, int length, const _TCHAR *f
 {
 	_TCHAR file_name[_MAX_PATH];
 	va_list ap;
-
+	
 	va_start(ap, format);
 	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
 	va_end(ap);
@@ -1129,7 +1172,7 @@ bool DLL_PREFIX is_absolute_path(const _TCHAR *file_path)
 const _TCHAR *DLL_PREFIX create_date_file_path(const _TCHAR *extension)
 {
 	cur_time_t cur_time;
-
+	
 	get_host_time(&cur_time);
 	return create_local_path(_T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.%s"), cur_time.year, cur_time.month, cur_time.day, cur_time.hour, cur_time.minute, cur_time.second, extension);
 }
@@ -1145,7 +1188,7 @@ const _TCHAR *DLL_PREFIX create_date_file_name(const _TCHAR *extension)
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
 	cur_time_t cur_time;
-
+	
 	get_host_time(&cur_time);
 	my_stprintf_s(file_name[output_index], _MAX_PATH, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.%s"), cur_time.year, cur_time.month, cur_time.day, cur_time.hour, cur_time.minute, cur_time.second, extension);
 	return (const _TCHAR *)file_name[output_index];

@@ -7,8 +7,8 @@
 	[ common header ]
 */
 
-#ifndef _VM_H_
-#define _VM_H_
+#ifndef _EMUSCV_INC_VM_VM_H_
+#define _EMUSCV_INC_VM_VM_H_
 
 // GIJUTSU-HYORON-SHA Babbase-2nd
 #ifdef _BABBAGE2ND
@@ -518,7 +518,7 @@
 #include "sc3000/sc3000.h"
 #endif
 
-// EPOCH Super Cassette Vision
+// EPOCH/YENO Super Cassette Vision
 #ifdef _SCV
 #include "scv/scv.h"
 #endif
@@ -661,4 +661,14 @@
 	#define KEY_KEEP_FRAMES 3
 #endif
 
+#ifndef NUM_JOYSTICK
+	#define NUM_JOYSTICK 0
 #endif
+#ifndef NUM_JOYSTICK_AXE
+	#define NUM_JOYSTICK_AXE 2
+#endif
+#ifndef NUM_JOYSTICK_BUTTON
+	#define NUM_JOYSTICK_BUTTON 4
+#endif
+
+#endif	// _EMUSCV_INC_VM_VM_H_

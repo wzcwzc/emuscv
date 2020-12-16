@@ -5,19 +5,27 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ***********************************************************
 * To do list
 ***********************************************************
-- rewrite Windows specific functions in crossplatform code
 - To test on Raspberry Pi
 
 
 ***********************************************************
-* Libretro-EmuSCV v0.05.AAAAMMJJhhmmss
+* Libretro-EmuSCV v0.05.20201216000000
 ***********************************************************
-- 
-- 
-- 
+- Added class cEmuSCV mapped with Libretro functions
+- eSCV fully embedded in EmuSCV
+- Windows specific functions rewrited in crossplatform code
+- Added video support
+- Added Libretro options for the core
+- Corrected 16 color palette
+- Corrected some graphic mode that was not supported by eSCV
+- Added support of inputs (keyboard, controllers)
+- Added support of power Off whith TV static noise (possibility to re-power On)
+- Added EmuSCV logo atstartup
+- Tested with RetroArch on windows 10, Mac OS X 10.10, Linuxmint 20
+
 
 ***********************************************************
-* Libretro-EmuSCV v0.04.AAAAMMJJhhmmss
+* Libretro-EmuSCV v0.04.20200831000000
 ***********************************************************
 - Addded support of changing resolution and changing fps
 - Added support of power off  
@@ -56,3 +64,4 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ***********************************************************
 - Tests with eSCV on windows
 - Project creation
+

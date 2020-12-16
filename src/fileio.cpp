@@ -83,8 +83,6 @@ FILEIO::~FILEIO(void)
 
 bool FILEIO::IsFileExisting(const _TCHAR *file_path)
 {
-/*
-// TODO_MM
 #if defined(_USE_QT) || defined(_USE_SDL)
 	FILE *f = fopen(file_path, "r");
 	if(f != NULL) {
@@ -101,13 +99,10 @@ bool FILEIO::IsFileExisting(const _TCHAR *file_path)
 #else
 	return (_taccess(file_path, 0) == 0);
 #endif
-*/
-    return false;
 }
 
 bool FILEIO::IsFileProtected(const _TCHAR *file_path)
 {
-/*
 #if defined(_USE_QT) || defined(_USE_SDL)
 	struct stat st;
 	if(stat(file_path, &st) == 0) {
@@ -125,8 +120,6 @@ bool FILEIO::IsFileProtected(const _TCHAR *file_path)
 #else
 	return (_taccess(file_path, 2) != 0);
 #endif
-*/
-    return false;
 }
 
 bool FILEIO::RemoveFile(const _TCHAR *file_path)
@@ -156,6 +149,7 @@ bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 	Fclose();
 
 	// store file path
+	memset(path, 0, sizeof(path));
 	my_tcscpy_s(path, _MAX_PATH, file_path);
 	open_mode = mode;
 

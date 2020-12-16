@@ -6,9 +6,9 @@
 
 	[ win32 DirectShow ]
 */
+#include "osd.h"
 /*
 // TODO_MM
-#include "osd.h"
 
 void OSD::initialize_video()
 {
@@ -39,6 +39,7 @@ void OSD::initialize_video()
 	cur_capture_dev_index = -1;
 #endif
 }
+*/
 
 #define SAFE_RELEASE(x) { \
 	if(x != NULL) { \
@@ -47,6 +48,7 @@ void OSD::initialize_video()
 	} \
 }
 
+/*
 void OSD::release_video()
 {
 	if(pMediaControl != NULL) {

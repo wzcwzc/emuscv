@@ -311,7 +311,7 @@ void load_config(const _TCHAR* config_path)
 			int tmp_l = MyGetPrivateProfileInt(_T("Sound"), create_string(_T("VolumeLeft%d"), i + 1), config.sound_volume_l[i], config_path);
 			int tmp_r = MyGetPrivateProfileInt(_T("Sound"), create_string(_T("VolumeRight%d"), i + 1), config.sound_volume_r[i], config_path);
 			#ifdef _USE_QT
-				// Note: when using balance , levels are -40Å}20db to 0Å}20db.
+				// Note: when using balance , levels are -40ÔøΩ}20db to 0ÔøΩ}20db.
 				config.sound_volume_l[i] = max(-60, min(20, tmp_l));
 				config.sound_volume_r[i] = max(-60, min(20, tmp_r));
 			#else
@@ -644,3 +644,113 @@ bool process_config_state(void *f, bool loading)
 	return true;
 }
 
+#if defined(_LIBRETRO)
+void DLL_PREFIX apply_display_config()
+{
+	switch(config.scv_console)
+	{
+		case SETTING_CONSOLE_EPOCH_VAL:
+		case SETTING_CONSOLE_YENO_VAL:
+		case SETTING_CONSOLE_EPOCHLADY_VAL:
+			config.window_console = config.scv_console;
+			break;
+		case SETTING_CONSOLE_AUTO_VAL:
+		default:
+			config.window_console = SETTING_CONSOLE_EPOCH_VAL;
+			break;
+	}
+	
+	switch(config.scv_display)
+	{
+		case SETTING_DISPLAY_EMUSCV_VAL:
+		case SETTING_DISPLAY_EPOCH_VAL:
+		case SETTING_DISPLAY_YENO_VAL:
+			config.screen_display = config.scv_display;
+			break;
+		case SETTING_DISPLAY_AUTO_VAL:
+		default:
+			switch(config.scv_console)
+			{
+				case SETTING_CONSOLE_EPOCH_VAL:
+				case SETTING_CONSOLE_EPOCHLADY_VAL:
+					config.screen_display = SETTING_DISPLAY_EPOCH_VAL;
+					break;
+				case SETTING_CONSOLE_YENO_VAL:
+					config.screen_display = SETTING_DISPLAY_YENO_VAL;
+					break;
+				case SETTING_CONSOLE_AUTO_VAL:
+				default:
+					config.screen_display = SETTING_DISPLAY_EMUSCV_VAL;
+					break;
+			}
+			break;
+	}
+
+	if(config.scv_displayfull)
+	{
+		config.draw_x = DRAW_X_FULL;
+		config.draw_y = DRAW_Y_FULL;
+		config.draw_width = DRAW_WIDTH_FULL;
+		config.draw_height = DRAW_HEIGHT_FULL;
+		config.window_width = WINDOW_WIDTH_FULL;
+		config.window_height = WINDOW_HEIGHT_FULL;
+	}
+	else
+	{
+		switch(config.screen_display)
+		{
+			case SETTING_DISPLAY_EPOCH_VAL:
+					config.draw_x = DRAW_X_EPOCH;
+					config.draw_y = DRAW_Y_EPOCH;
+					config.draw_width = DRAW_WIDTH_EPOCH;
+					config.draw_height = DRAW_HEIGHT_EPOCH;
+					config.window_width = WINDOW_WIDTH_EPOCH;
+					config.window_height = WINDOW_HEIGHT_EPOCH;
+				break;
+			case SETTING_DISPLAY_YENO_VAL:
+				config.draw_x = DRAW_X_YENO;
+				config.draw_y = DRAW_Y_YENO;
+				config.draw_width = DRAW_WIDTH_YENO;
+				config.draw_height = DRAW_HEIGHT_YENO;
+				config.window_width = WINDOW_WIDTH_YENO;
+				config.window_height = WINDOW_HEIGHT_YENO;
+				break;
+			case SETTING_DISPLAY_EMUSCV_VAL:
+			default:
+				config.draw_x = DRAW_X_EMUSCV;
+				config.draw_y = DRAW_Y_EMUSCV;
+				config.draw_width = DRAW_WIDTH_EMUSCV;
+				config.draw_height = DRAW_HEIGHT_EMUSCV;
+				config.window_width = WINDOW_WIDTH_EMUSCV;
+				config.window_height = WINDOW_HEIGHT_EMUSCV;
+				break;
+		}
+	}
+	config.window_aspect_ratio = (float)(config.window_width) / (float)(config.window_height);
+
+	switch(config.scv_displayfps)
+	{
+		case SETTING_DISPLAYFPS_EPOCH60_VAL:
+			config.window_fps = WINDOW_FPS_EPOCH;
+			break;
+		case SETTING_DISPLAYFPS_YENO50_VAL:
+			config.window_fps = WINDOW_FPS_YENO;
+			break;
+		case SETTING_DISPLAYFPS_AUTO_VAL:
+		default:
+			switch(config.scv_console)
+			{
+				case SETTING_CONSOLE_YENO_VAL:
+					config.window_fps = WINDOW_FPS_YENO;
+					break;
+				case SETTING_CONSOLE_EPOCH_VAL:
+				case SETTING_CONSOLE_EPOCHLADY_VAL:
+				case SETTING_CONSOLE_AUTO_VAL:
+				default:
+					config.window_fps = WINDOW_FPS_EPOCH;
+					break;
+			}
+			break;
+	}
+}
+#endif

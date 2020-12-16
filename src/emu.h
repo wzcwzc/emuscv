@@ -7,8 +7,8 @@
 	[ win32 emulation i/f ]
 */
 
-#ifndef _EMU_H_
-#define _EMU_H_
+#ifndef _EMUSCV_INC_EMU_H_
+#define _EMUSCV_INC_EMU_H_
 
 // for debug
 //#define _DEBUG_LOG
@@ -23,36 +23,37 @@
 
 #include <stdio.h>
 #include <assert.h>
+
 #include "common.h"
 #include "config.h"
+#include "fifo.h"
+#include "fileio.h"
 #include "vm/vm.h"
-
-#if defined(_USE_QT)
-#include <pthread.h>
-#define OSD_QT
-#elif defined(_USE_SDL)
-#include <pthread.h>
-#define OSD_SDL
-#elif defined(_LIBRETRO)
-#include <pthread.h>
-#define OSD_LIBRETRO
-#elif defined(_WIN32)
-#define OSD_WIN32
-#else
-// oops!
-#endif
 
 // OS dependent header files should be included in each osd.h
 // Please do not include them in emu.h
-
-#if defined(OSD_QT)
-#include "osd/qt/osd.h"
-#elif defined(OSD_SDL)
-#include "osd/sdl/osd.h"
-#elif defined(OSD_LIBRETRO)
-#include "osd/libretro/osd.h"
-#elif defined(OSD_WIN32)
-#include "osd/win32/osd.h"
+#if defined(_USE_QT)
+	#define OSD_QT
+	#include <pthread.h>
+	#include "osd/qt/osd.h"
+	class USING_FLAGS;
+	class GLDrawClass;
+	class EmuThreadClass;
+	class DrawThreadClass;
+#elif defined(_USE_SDL)
+	#define OSD_SDL
+	#include <pthread.h>
+	#include "osd/sdl/osd.h"
+#elif defined(_LIBRETRO)
+	#define OSD_LIBRETRO
+	#include <pthread.h>
+	#include "osd/libretro/osd.h"
+#elif defined(_WIN32)
+	#define OSD_WIN32
+	#include "osd/win32/osd.h"
+#else
+// oops!
+	class OSD;
 #endif
 
 #ifdef USE_FLOPPY_DISK
@@ -61,11 +62,6 @@
 #ifdef USE_BUBBLE
 #define MAX_B77_BANKS 16
 #endif
-
-class EMU;
-class OSD;
-class FIFO;
-class FILEIO;
 
 #ifdef USE_DEBUGGER
 #if defined(OSD_QT)
@@ -82,18 +78,16 @@ typedef struct {
 } debugger_thread_t;
 #endif
 
-#if defined(OSD_QT)
-class USING_FLAGS;
-class GLDrawClass;
-class EmuThreadClass;
-class DrawThreadClass;
-#endif
-
 class EMU
 {
 protected:
 	VM_TEMPLATE* vm;
 	OSD* osd;
+
+	// bios
+	bool bios_found;
+	bool bios_loaded;
+	bool bios_md5_ok;
 
 private:
 	// debugger
@@ -290,7 +284,9 @@ public:
 	bool is_screen_changed();
 #endif
 	int draw_screen();
-	scrntype_t* get_screen_buffer(int y);
+	scrntype_t* get_screen_ptr();
+	scrntype_t* get_line_ptr(int y);
+	scrntype_t* get_pixel_ptr(int x, int y);
 #ifdef USE_SCREEN_FILTER
 	void screen_skip_line(bool skip_line);
 #endif
@@ -413,6 +409,12 @@ public:
 	// misc
 	void sleep(uint32_t ms);
 
+	// bios
+	bool is_bios_found();
+	bool is_bios_present();
+	bool is_bios_ok();
+	void set_cpu_clocks(uint32_t clocks);
+
 	// user interface
 #ifdef USE_CART
 	void open_cart(int drv, const _TCHAR* file_path);
@@ -511,4 +513,4 @@ public:
 #endif
 };
 
-#endif
+#endif	// _EMUSCV_INC_EMU_H_

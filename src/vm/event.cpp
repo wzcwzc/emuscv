@@ -9,6 +9,8 @@
 
 #include "event.h"
 
+#include "../emu.h"
+
 #define EVENT_MIX	0
 
 void EVENT::initialize()
@@ -29,7 +31,10 @@ void EVENT::initialize()
 	
 	vline_start_clock = 0;
 	cur_vline = 0;
-	vclocks[0] = (int)((double)d_cpu[0].cpu_clocks / (double)FRAMES_PER_SEC / (double)LINES_PER_FRAME + 0.5); // temporary
+
+	next_frames_per_sec = config.window_fps;
+	vclocks[0] = (int)((double)d_cpu[0].cpu_clocks / (double)config.window_fps / (double)LINES_PER_FRAME + 0.5); // temporary
+
 }
 
 void EVENT::initialize_sound(int rate, int samples)
@@ -88,6 +93,8 @@ void EVENT::reset()
 
 void EVENT::drive()
 {
+	next_frames_per_sec = config.window_fps;
+
 	// raise pre frame events to update timing settings
 	for(int i = 0; i < frame_event_count; i++) {
 		frame_event[i]->event_pre_frame();

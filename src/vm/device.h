@@ -7,9 +7,10 @@
 	[ device base class ]
 */
 
-#ifndef _DEVICE_H_
-#define _DEVICE_H_
+#ifndef _EMUSCV_INC_VM_DEVICE_H_
+#define _EMUSCV_INC_VM_DEVICE_H_
 
+#include "../config.h"
 #include "vm.h"
 #include "../emu.h"
 
@@ -943,10 +944,17 @@ public:
 		return (const _TCHAR *)this_device_name;
 	}
 
+	// DEVICE* dummy;
+	// DEVICE* first_device;
+	// DEVICE* prev_device;
+	// int this_device_id;
+	// _TCHAR this_device_name[128];
+	// DEVICE* next_device;
+	// DEVICE* last_device;
+
 	DEVICE* prev_device;
 	DEVICE* next_device;
 	int this_device_id;
-	_TCHAR this_device_name[128];
-};
+	_TCHAR this_device_name[128];};
 
-#endif
+#endif	// _EMUSCV_INC_VM_DEVICE_H_

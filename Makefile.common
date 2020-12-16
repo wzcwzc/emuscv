@@ -50,19 +50,20 @@ SOURCES_C   :=	$(DEPENDENCIES_DIR)/SDL2_gfx/SDL2_framerate.c \
 				$(DEPENDENCIES_DIR)/lpng/pngwtran.c \
 				$(DEPENDENCIES_DIR)/lpng/pngwutil.c
 
-SOURCES_CXX :=	$(CORE_DIR)/libretro.cpp \
-				$(CORE_DIR)/emuscv.cpp \
-				$(CORE_DIR)/emu.cpp \
-				$(CORE_DIR)/common.cpp \
+SOURCES_CXX :=	$(CORE_DIR)/common.cpp \
 				$(CORE_DIR)/config.cpp \
-				$(CORE_DIR)/fifo.cpp \
+				$(CORE_DIR)/emu.cpp \
+				$(CORE_DIR)/emuscv.cpp \
 				$(CORE_DIR)/fileio.cpp \
+				$(CORE_DIR)/fifo.cpp \
+				$(CORE_DIR)/libretro.cpp \
+				$(CORE_DIR)/md5.cpp \
+				$(CORE_DIR)/vm/debugger.cpp \
 				$(CORE_DIR)/vm/event.cpp \
 				$(CORE_DIR)/vm/upd7801.cpp \
-				$(CORE_DIR)/vm/debugger.cpp \
-				$(CORE_DIR)/vm/scv/scv.cpp \
 				$(CORE_DIR)/vm/scv/io.cpp \
 				$(CORE_DIR)/vm/scv/memory.cpp \
+				$(CORE_DIR)/vm/scv/scv.cpp \
 				$(CORE_DIR)/vm/scv/sound.cpp \
 				$(CORE_DIR)/vm/scv/vdp.cpp \
 				$(CORE_DIR)/osd/libretro/osd.cpp \

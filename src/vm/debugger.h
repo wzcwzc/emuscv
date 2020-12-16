@@ -7,11 +7,9 @@
 	[ debugger ]
 */
 
-#ifndef _DEBUGGER_H_
-#define _DEBUGGER_H_
+#ifndef _EMUSCV_INC_VM_DEBUGGER_H_
+#define _EMUSCV_INC_VM_DEBUGGER_H_
 
-#include "vm.h"
-#include "../emu.h"
 #include "device.h"
 
 #ifdef USE_DEBUGGER
@@ -506,6 +504,5 @@ public:
 	int cpu_trace_ptr;
 };
 
-#endif
-#endif
-
+#endif	// USE_DEBUGGER
+#endif	// _EMUSCV_INC_VM_DEBUGGER_H_

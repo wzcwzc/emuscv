@@ -8,19 +8,21 @@
 */
 
 #include "osd.h"
-#include "../../fileio.h"
 /*
+#include "../../fileio.h"
+
 // TODO_MM
 #define DSOUND_BUFFER_SIZE (DWORD)(sound_samples * 8)
 #define DSOUND_BUFFER_HALF (DWORD)(sound_samples * 4)
 */
 void OSD::initialize_sound(int rate, int samples)
 {
-/*
-// TODO_MM
 	sound_rate = rate;
 	sound_samples = samples;
-	sound_available = sound_started = sound_muted = now_record_sound = false;
+	sound_available = sound_started = sound_muted = false;
+/*
+// TODO_MM
+	now_record_sound = false;
 	rec_sound_buffer_ptr = 0;
 
 	// initialize direct sound
@@ -69,8 +71,10 @@ void OSD::initialize_sound(int rate, int samples)
 	if(FAILED(lpds->CreateSoundBuffer(&dsbd, &lpdsSecondaryBuffer, NULL))) {
 		return;
 	}
-
-	sound_available = sound_first_half = true;
+*/
+	sound_available = true;
+/*
+	sound_first_half = true;
 */
 }
 
@@ -91,7 +95,6 @@ void OSD::release_sound()
 		lpds->Release();
 		lpds = NULL;
 	}
-
 	// stop recording
 	stop_record_sound();
 */
@@ -99,27 +102,28 @@ void OSD::release_sound()
 
 void OSD::update_sound(int* extra_frames)
 {
-/*
-// TODO_MM
 	*extra_frames = 0;
 #ifdef USE_DEBUGGER
 //	if(now_debugging) {
 //		return;
 //	}
 #endif
-	sound_muted = false;
 
+	sound_muted = false;
 	if(sound_available) {
+/*
 		DWORD play_c, write_c, offset, size1, size2;
 		WORD *ptr1, *ptr2;
-
+*/
 		// start play
 		if(!sound_started) {
+/*
 			lpdsSecondaryBuffer->Play(0, 0, DSBPLAY_LOOPING);
+*/
 			sound_started = true;
 			return;
 		}
-
+/*
 		// check current position
 		if(FAILED(lpdsSecondaryBuffer->GetCurrentPosition(&play_c, &write_c))) {
 			return;
@@ -180,15 +184,15 @@ void OSD::update_sound(int* extra_frames)
 		}
 		lpdsSecondaryBuffer->Unlock(ptr1, size1, ptr2, size2);
 		sound_first_half = !sound_first_half;
-	}
 */
+	}
 }
 
 void OSD::mute_sound()
 {
+	if(sound_available && !sound_muted) {
 /*
 // TODO_MM
-	if(sound_available && !sound_muted) {
 		// check current position
 		DWORD size1, size2;
 		WORD *ptr1, *ptr2;
@@ -203,26 +207,26 @@ void OSD::mute_sound()
 			ZeroMemory(ptr2, size2);
 		}
 		lpdsSecondaryBuffer->Unlock(ptr1, size1, ptr2, size2);
+*/
 	}
 	sound_muted = true;
-*/
 }
 
 void OSD::stop_sound()
 {
+	if(sound_available && sound_started) {
 /*
 // TODO_MM
-	if(sound_available && sound_started) {
 		lpdsSecondaryBuffer->Stop();
+*/
 		sound_started = false;
 	}
-*/
 }
 
-void OSD::start_record_sound()
-{
 /*
 // TODO_MM
+void OSD::start_record_sound()
+{
 	if(!now_record_sound) {
 		// create wave file
 		create_date_file_path(sound_file_path, _MAX_PATH, _T("wav"));
@@ -244,13 +248,10 @@ void OSD::start_record_sound()
 			delete rec_sound_fio;
 		}
 	}
-*/
 }
 
 void OSD::stop_record_sound()
 {
-/*
-// TODO_MM
 	if(now_record_sound) {
 		if(rec_sound_bytes == 0) {
 			rec_sound_fio->Fclose();
@@ -283,17 +284,14 @@ void OSD::stop_record_sound()
 		delete rec_sound_fio;
 		now_record_sound = false;
 	}
-*/
 }
 
 void OSD::restart_record_sound()
 {
-/*
-// TODO_MM
 	bool tmp = now_record_sound;
 	stop_record_sound();
 	if(tmp) {
 		start_record_sound();
 	}
-*/
 }
+*/

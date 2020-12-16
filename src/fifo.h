@@ -7,8 +7,8 @@
 	[ fifo buffer ]
 */
 
-#ifndef _FIFO_H_
-#define _FIFO_H_
+#ifndef _EMUSCV_INC_FIFO_H_
+#define _EMUSCV_INC_FIFO_H_
 
 #include "common.h"
 
@@ -32,5 +32,5 @@ public:
 	bool process_state(void *f, bool loading);
 };
 
-#endif
+#endif	// _EMUSCV_INC_FIFO_H_
 

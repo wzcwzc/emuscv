@@ -7,8 +7,8 @@
 	[ virtual machine template ]
 */
 
-#ifndef _VM_TEMPLATE_H_
-#define _VM_TEMPLATE_H_
+#ifndef _EMUSCV_INC_VM_VM_TEMPLATE_H_
+#define _EMUSCV_INC_VM_VM_TEMPLATE_H_
 
 #include "../common.h"
 
@@ -16,17 +16,22 @@ class EMU;
 class EVENT;
 class DEVICE;
 
-class DLL_PREFIX VM_TEMPLATE {
+class DLL_PREFIX VM_TEMPLATE
+{
 protected:
 	EMU* emu;
 #if defined(__GIT_REPO_VERSION)
 	_TCHAR _git_revision[256];
 #endif
-
+	
 public:
 	VM_TEMPLATE(EMU* parent_emu) : emu(parent_emu)
 	{
 		emu = parent_emu;
+		dummy = NULL;
+		first_device = NULL;
+		last_device = NULL;
+		
 #if defined(__GIT_REPO_VERSION)
 		memset(_git_revision, 0x00, sizeof(_git_revision));
 #endif
@@ -38,6 +43,8 @@ public:
 	virtual void special_reset() { }
 	virtual void run() { }
 	virtual void notify_power_off() { }
+	virtual EVENT* get_event(){ return NULL;};
+
 
 	virtual double get_frame_rate() { return 59.94; }
 	virtual void get_screen_resolution(int *w, int *h) {
@@ -120,6 +127,10 @@ public:
 	virtual bool is_hard_disk_inserted(int drv) { return false; }
 	virtual bool is_compact_disc_inserted(int drv) { return false; }
 	virtual bool is_cart_inserted(int drv) { return false; }
+	virtual bool is_bios_found() { return false; }
+	virtual bool is_bios_present() { return false; }
+	virtual bool is_bios_ok() { return false; }
+	virtual void set_cpu_clocks(uint32_t clocks){}
 	virtual bool is_bubble_casette_inserted(int drv) { return false; }
 	virtual bool is_laser_disc_inserted(int drv) { return false; }
 	virtual bool is_tape_inserted(int drv) { return false; }
@@ -164,4 +175,4 @@ public:
 	DEVICE* last_device;
 };
 
-#endif /* _VM_TEMPLATE_H_ */
+#endif	// _EMUSCV_INC_VM_VM_TEMPLATE_H_

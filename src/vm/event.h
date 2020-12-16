@@ -7,11 +7,9 @@
 	[ event manager ]
 */
 
-#ifndef _EVENT_H_
-#define _EVENT_H_
+#ifndef _EMUSCV_INC_VM_EVENT_H_
+#define _EMUSCV_INC_VM_EVENT_H_
 
-#include "vm.h"
-#include "../emu.h"
 #include "device.h"
 
 #define MAX_DEVICE	64
@@ -114,7 +112,7 @@ public:
 		// force update timing in the first frame
 		frames_per_sec = 0.0;
 		lines_per_frame = 0;
-		next_frames_per_sec = FRAMES_PER_SEC;
+		next_frames_per_sec = config.window_fps;
 		next_lines_per_frame = LINES_PER_FRAME;
 
 		// reset before other device may call set_realtime_render()
@@ -207,8 +205,10 @@ public:
 	void set_secondary_cpu_clock(DEVICE* device, uint32_t clocks)
 	{
 		// XXX: primary cpu clock should not be changed
-		for(int index = 1; index < dcount_cpu; index++) {
-			if(d_cpu[index].device == device) {
+		for(int index = 1; index < dcount_cpu; index++)
+		{
+			if(d_cpu[index].device == device)
+			{
 				d_cpu[index].accum_clocks = 0;
 				d_cpu[index].cpu_clocks = clocks;
 				d_cpu[index].update_clocks = (int)(1024.0 * (double)d_cpu[index].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
@@ -228,5 +228,4 @@ public:
 	bool is_frame_skippable();
 };
 
-#endif
-
+#endif	// _EMUSCV_INC_VM_EVENT_H_

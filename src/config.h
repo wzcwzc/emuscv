@@ -7,14 +7,30 @@
 	[ config ]
 */
 
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
+#ifndef _EMUSCV_INC_CONFIG_H_
+#define _EMUSCV_INC_CONFIG_H_
+
+// =======================================
+// 
+// Constantes redéfinies ici pour faciliter le debogage
+// 
+
+#ifndef _SCV
+	#define _SCV
+#endif
+
+#ifndef _LIBRETRO
+	#define _LIBRETRO
+#endif
+
+// =======================================
+
 
 #if defined(_USE_AGAR) || defined(_USE_QT)
 #include <string>
 #endif
-#include "vm/vm.h"
 #include "fileio.h"
+#include "vm/vm.h"
 
 #if defined(_USE_QT)
 	enum {
@@ -66,6 +82,9 @@ void DLL_PREFIX initialize_config();
 void DLL_PREFIX load_config(const _TCHAR* config_path);
 void DLL_PREFIX save_config(const _TCHAR* config_path);
 bool DLL_PREFIX process_config_state(void *f, bool loading);
+#if defined(_LIBRETRO)
+void DLL_PREFIX apply_display_config();
+#endif
 
 typedef struct {
 	// control
@@ -244,9 +263,32 @@ typedef struct {
 		int render_minor_version;
 		int rendering_type;
 	#endif
+
+	// Libretro
+	#if defined(_LIBRETRO)
+		int scv_console;
+		int scv_display;
+		int scv_displayfull;
+		int scv_displayfps;
+		int scv_langage;
+		int scv_checkbios;
+
+		int screen_display;
+
+		int draw_x;
+		int draw_y;
+		int draw_width;
+		int draw_height;
+
+		int window_console;
+		int window_width;
+		int window_height;
+		float window_aspect_ratio;
+		double window_fps;
+
+	#endif
 } config_t;
 
 extern DLL_PREFIX config_t config;
 
-#endif
-
+#endif	// _EMUSCV_INC_CONFIG_H_

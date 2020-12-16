@@ -1,40 +1,42 @@
 #include "emuscv.h"
 
-// emulation core
-EMU* emu;
+#include "emu.h"
+#include "vm/vm.h"
+#include "vm/scv/vdp_colors.h"
 
-#ifdef USE_CART
-/*
-// TODO_MM
-void open_cart_dialog(HWND hWnd, int drv);
-void open_recent_cart(int drv, int index);
-*/
-#endif
+extern void retro_audio_cb(void);
 
-#if defined(USE_CART) || defined(USE_FLOPPY_DISK) || defined(USE_HARD_DISK) || defined(USE_TAPE) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE) || defined(USE_BUBBLE)
-#define SUPPORT_DRAG_DROP
-#endif
+static uint8_t color_index = 0;
+
+// Not used in Libretro
+//#ifdef USE_CART
+//void open_cart_dialog(HWND hWnd, int drv);
+//void open_recent_cart(int drv, int index);
+//#endif
+
+// Not used in Libretro
+//#if defined(USE_CART) || defined(USE_FLOPPY_DISK) || defined(USE_HARD_DISK) || defined(USE_TAPE) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE) || defined(USE_BUBBLE)
+//#define SUPPORT_DRAG_DROP
+//#endif
 
 // dialog
-#ifdef USE_SOUND_VOLUME
-/*
+//#ifdef USE_SOUND_VOLUME
 // TODO_MM
-BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
-*/
-#endif
+//BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+//#endif
+
 #ifdef USE_JOYSTICK
-/*
 // TODO_MM
-BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
-BOOL CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
-*/
+//BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+//BOOL CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 #endif
 
 #ifdef USE_STATE
-const _TCHAR *state_file_path(int num)
-{
-	return create_local_path(_T("%s.sta%d"), _T(CONFIG_NAME), num);
-}
+// TODO_MM
+//const _TCHAR *state_file_path(int num)
+//{
+//	return create_local_path(_T("%s.sta%d"), _T(CONFIG_NAME), num);
+//}
 #endif
 
 // ----------------------------------------------------------------------------
@@ -46,12 +48,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow)
 {
 
-	// get os version
-	OSVERSIONINFO osvi;
-	ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	GetVersionEx((OSVERSIONINFO*)&osvi);
-	win8_or_later = (osvi.dwPlatformId == 2 && (osvi.dwMajorVersion > 6 || (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion >= 2)));
 
 	// load config
 	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
@@ -319,7 +315,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		PostQuitMessage(0);
 		return 0;
 	case WM_ACTIVATE:
-		// thanks PC8801MA‰ü
+		// thanks PC8801MAï¿½ï¿½
 		if(LOWORD(wParam) != WA_INACTIVE) {
 			himcPrev = ImmAssociateContext(hWnd, 0);
 		} else {
@@ -1254,122 +1250,2601 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 */
 
 
+//
+// Libretro: Default log handler, to use if any log callback handler is defined by the frontend
+//
+void EmuSCV_RetroLogFallback(enum retro_log_level level, const char *fmt, ...)
+{
+	(void)level;
 
+	va_list va;
 
+	va_start(va, fmt);
+	vfprintf(stderr, fmt, va);
+	va_end(va);
+}
 
-
-
-
+//
+// EmuSCV class constructor.
+//
 cEmuSCV::cEmuSCV()
 {
-	int total_frames	= 0;
-	int draw_frames		= 0;
-	int skip_frames		= 0;
-	DWORD next_time = 0;
-	bool prev_skip = false;
-	DWORD update_fps_time = 0;
-	DWORD update_status_bar_time = 0;
-	DWORD disable_screen_saver_time = 0;
-//	MSG msg;
+	// Init variables
+	retro_core_initialized		= false;
+	retro_use_audio_cb			= false;
+	retro_audio_enable			= false;
+	retro_audio_phase			= 0;
+	retro_frame_counter			= 0;
+	retro_frame_time			= 0;
+	retro_input_support_bitmask	= false;
+	retro_game_loaded			= false;
 
+	is_power_on					= true;
 
+	memset(retro_base_directory, 0, sizeof(retro_base_directory));
+	memset(retro_save_directory, 0, sizeof(retro_save_directory));
+	memset(retro_game_path, 0, sizeof(retro_game_path));
 
+	// Init functions
+	RetroLogPrintf			= EmuSCV_RetroLogFallback;
+	RetroEnvironment		= NULL;
+	RetroVideoRefresh		= NULL;
+	RetroAudioSample		= NULL;
+	RetroAudioSampleBatch	= NULL;
+	RetroInputPoll			= NULL;
+	RetroInputState			= NULL;
 
-//	emu = new EMU(hWnd, hInstance);
-	emu = new EMU();
-	emu->set_host_window_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
+	escv_emu = NULL;
 
-	// main loop
-	if(emu)
+	frame_surface = NULL;
+	frame_renderer = NULL;
+	noise_surface = NULL;
+	noise_renderer = NULL;
+
+	total_frames				= 0;
+	draw_frames					= 0;
+//	skip_frames					= 0;
+//	next_time.tv_sec			= 0;
+//	next_time.tv_nsec			= 0;
+//	prev_skip					= false;
+//	update_fps_time.tv_sec		= 0;
+//	update_fps_time.tv_nsec		= 0;
+//	update_status_bar_time		= 0;
+//	disable_screen_saver_time	= 0;
+
+	config.window_width = WINDOW_WIDTH_EMUSCV;
+	config.window_height = WINDOW_HEIGHT_EMUSCV;
+	config.window_aspect_ratio = WINDOW_ASPECT_RATIO_EMUSCV;
+	config.window_fps = WINDOW_FPS_EPOCH;
+
+	window_width_old = config.window_width;
+	window_height_old = config.window_height;
+	window_fps_old = config.window_fps;
+
+	key_pressed_0 = false;
+	key_pressed_1 = false;
+	key_pressed_2 = false;
+	key_pressed_3 = false;
+	key_pressed_4 = false;
+	key_pressed_5 = false;
+	key_pressed_6 = false;
+	key_pressed_7 = false;
+	key_pressed_8 = false;
+	key_pressed_9 = false;
+	key_pressed_cl = false;
+	key_pressed_en = false;
+	key_pressed_power = false;
+	key_pressed_pause = false;
+	key_pressed_reset = false;
+
+	start_up_counter_power = 0;
+	start_up_counter_logo = 0;
+}
+
+//
+// EmuSCV class destructor.
+//
+cEmuSCV::~cEmuSCV()
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::~cEmuSCV()\n", EMUSCV_NAME);
+
+	if (retro_game_loaded == TRUE)
 	{
-/*
-		// drive machine
-		int run_frames = emu->run();
-		total_frames += run_frames;
-
-		// timing controls
-		int sleep_period = 0;
-		bool now_skip = (config.full_speed || emu->is_frame_skippable()) && !emu->is_video_recording() && !emu->is_sound_recording();
-
-		if((prev_skip && !now_skip) || next_time == 0) {
-			next_time = timeGetTime();
-		}
-		if(!now_skip) {
-			static int accum = 0;
-			accum += emu->get_frame_interval();
-			int interval = accum >> 10;
-			accum -= interval << 10;
-			next_time += interval;
-		}
-		prev_skip = now_skip;
-
-		if(next_time > timeGetTime()) {
-			// update window if enough time
-			draw_frames += emu->draw_screen();
-			skip_frames = 0;
-
-			// sleep 1 frame priod if need
-			DWORD current_time = timeGetTime();
-			if((int)(next_time - current_time) >= 10) {
-				sleep_period = next_time - current_time;
-			}
-		} else if(++skip_frames > (int)emu->get_frame_rate()) {
-			// update window at least once per 1 sec in virtual machine time
-			draw_frames += emu->draw_screen();
-			skip_frames = 0;
-			next_time = timeGetTime();
-		}
-		Sleep(sleep_period);
-
-		// calc frame rate
-		DWORD current_time = timeGetTime();
-		if(update_fps_time <= current_time) {
-			if(update_fps_time != 0) {
-				if(emu->message_count > 0) {
-//					SetWindowText(hWnd, create_string(_T("%s - %s"), _T(DEVICE_NAME), emu->message));
-					emu->message_count--;
-				} else if(now_skip) {
-					int ratio = (int)(100.0 * (double)total_frames / emu->get_frame_rate() + 0.5);
-//					SetWindowText(hWnd, create_string(_T("%s - Skip Frames (%d %%)"), _T(DEVICE_NAME), ratio));
-				} else {
-					int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
-//					SetWindowText(hWnd, create_string(_T("%s - %d fps (%d %%)"), _T(DEVICE_NAME), draw_frames, ratio));
-				}
-				update_fps_time += 1000;
-				total_frames = draw_frames = 0;
-			}
-			update_fps_time = current_time + 1000;
-		}
-
-		// update status bar
-//		if(update_status_bar_time <= current_time) {
-//			if(hStatus != NULL && status_bar_visible) {
-//				if(get_status_bar_updated()) {
-//					SendMessage(hStatus, SB_SETTEXT, (WPARAM)0 | SBT_OWNERDRAW, (LPARAM)NULL);
-//						InvalidateRect(hStatus, NULL, FALSE);
-//				}
-//			}
-//			update_status_bar_time = current_time + 200;
-//		}
-
-		// disable screen saver
-//		if (disable_screen_saver_time <= current_time)
-//		{
-//			SetThreadExecutionState(ES_DISPLAY_REQUIRED);
-//			INPUT input[1];
-//			ZeroMemory(input, sizeof(INPUT));
-//			input[0].type = INPUT_MOUSE;
-//			input[0].mi.dwFlags = MOUSEEVENTF_MOVE;
-//			input[0].mi.dx = 0;
-//			input[0].mi.dy = 0;
-//			SendInput(1, input, sizeof(INPUT));
-//			disable_screen_saver_time = current_time + 30000;
-//		}
-*/
+		RetroUnloadGame();
+		retro_game_loaded = FALSE;
+	}
+	if (retro_core_initialized == TRUE)
+	{
+		RetroDeinit();
+		retro_core_initialized = FALSE;
 	}
 }
 
-cEmuSCV::~cEmuSCV()
+//
+// Libretro: set the environment
+//
+void cEmuSCV::RetroSetEnvironment(retro_environment_t cb)
 {
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSetEnvironment()\n", EMUSCV_NAME);
 
+	// Set the Libretro environment callback
+	RetroEnvironment = cb;
+
+	// Set the log callback
+	static struct retro_log_callback log_callback;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback))
+		RetroLogPrintf = log_callback.log;
+	else
+		RetroLogPrintf = EmuSCV_RetroLogFallback;
+
+	// The core can be run without ROM (to show display test if no game loaded)
+	static bool support_no_game = TRUE;
+	RetroEnvironment(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &support_no_game);
+
+	// Set the controllers description
+	static const struct retro_controller_description controller_joypad[] =
+	{
+		{ "Controller", RETRO_DEVICE_JOYPAD },	// controllers
+		{ 0 }
+	};
+	static const struct retro_controller_description controller_keyboard[] =
+	{
+		{ "Keyboard", RETRO_DEVICE_KEYBOARD },	// keyboard on the console
+		{ 0 }
+	};
+	// 2 controllers and 1 keyboard
+	static const struct retro_controller_info controller_info[] =
+	{
+		{ controller_joypad,   1 },	// port 0
+		{ controller_joypad,   1 },	// port 1
+		{ controller_keyboard, 1 },	// port 2
+		{ NULL, 0 },
+	};
+	RetroEnvironment(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)controller_info);
+
+	// Set the controller descriptor
+	struct retro_input_descriptor input_descriptor[] =
+	{
+		// Joypad 1: left side orange controller
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, EMUSCV_INPUTDESC_BUTTON_SELECT },	// Display console options, keyboard, manuals, etc.
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  EMUSCV_INPUTDESC_BUTTON_START },	// Pause
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   EMUSCV_INPUTDESC_BUTTON_LEFT },		// Controller joystick
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  EMUSCV_INPUTDESC_BUTTON_RIGHT },	// Controller joystick
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     EMUSCV_INPUTDESC_BUTTON_UP },		// Controller joystick
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   EMUSCV_INPUTDESC_BUTTON_DOWN },		// Controller joystick
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      EMUSCV_INPUTDESC_BUTTON_1 },		// Right controller button
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      EMUSCV_INPUTDESC_BUTTON_2 },		// Left controller button
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,      EMUSCV_INPUTDESC_BUTTON_3},
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,      EMUSCV_INPUTDESC_BUTTON_4 },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      EMUSCV_INPUTDESC_BUTTON_L1 },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      EMUSCV_INPUTDESC_BUTTON_R1 },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,     EMUSCV_INPUTDESC_BUTTON_L2 },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2,     EMUSCV_INPUTDESC_BUTTON_R2 },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L3,     EMUSCV_INPUTDESC_BUTTON_L3 },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3,     EMUSCV_INPUTDESC_BUTTON_R3 },
+		{ 0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT,  RETRO_DEVICE_ID_ANALOG_X, EMUSCV_INPUTDESC_ANALOG_LEFT_X },	// Controller joystick
+		{ 0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT,  RETRO_DEVICE_ID_ANALOG_Y, EMUSCV_INPUTDESC_ANALOG_LEFT_Y },	// Controller joystick
+		{ 0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X, EMUSCV_INPUTDESC_ANALOG_RIGHT_X },
+		{ 0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y, EMUSCV_INPUTDESC_ANALOG_RIGHT_Y },
+
+		// Joypad 2: right side blue controller
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, EMUSCV_INPUTDESC_BUTTON_SELECT },	// Display console options, keyboard, manuals, etc.
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  EMUSCV_INPUTDESC_BUTTON_START },	// Pause
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   EMUSCV_INPUTDESC_BUTTON_LEFT },		// Controller joystick
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  EMUSCV_INPUTDESC_BUTTON_RIGHT },	// Controller joystick
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     EMUSCV_INPUTDESC_BUTTON_UP },		// Controller joystick
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   EMUSCV_INPUTDESC_BUTTON_DOWN },		// Controller joystick
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      EMUSCV_INPUTDESC_BUTTON_1 },		// Right controller button
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      EMUSCV_INPUTDESC_BUTTON_2 },		// Left controller button
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,      EMUSCV_INPUTDESC_BUTTON_3},
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,      EMUSCV_INPUTDESC_BUTTON_4 },
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      EMUSCV_INPUTDESC_BUTTON_L1 },
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      EMUSCV_INPUTDESC_BUTTON_R1 },
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,     EMUSCV_INPUTDESC_BUTTON_L2 },
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2,     EMUSCV_INPUTDESC_BUTTON_R2 },
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L3,     EMUSCV_INPUTDESC_BUTTON_L3 },
+		{ 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3,     EMUSCV_INPUTDESC_BUTTON_R3 },
+		{ 1, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT,  RETRO_DEVICE_ID_ANALOG_X, EMUSCV_INPUTDESC_ANALOG_LEFT_X },	// Controller joystick
+		{ 1, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT,  RETRO_DEVICE_ID_ANALOG_Y, EMUSCV_INPUTDESC_ANALOG_LEFT_Y },	// Controller joystick
+		{ 1, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X, EMUSCV_INPUTDESC_ANALOG_RIGHT_X },
+		{ 1, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y, EMUSCV_INPUTDESC_ANALOG_RIGHT_Y },
+
+		{ 0 }
+	};
+	RetroEnvironment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, input_descriptor);
+
+	// Set config variables
+	struct retro_variable variable[] =
+	{
+		{ SETTING_CONSOLE_KEY, "CONSOLE; AUTO|EPOCH|YENO|EPOCHLADY" },
+		{ SETTING_DISPLAY_KEY, "DISPLAY; AUTO|EMUSCV|EPOCH|YENO" },
+		{ SETTING_DISPLAYFULL_KEY, "DISPLAY FULL; NO|YES" },
+		{ SETTING_DISPLAYFPS_KEY, "DISPLAY FPS; AUTO|EPOCH_60|YENO_50" },
+		{ SETTING_LANGAGE_KEY, "LANGAGE; AUTO|JP|EN|FR" },
+		{ SETTING_CHECKBIOS_KEY, "CHECKBIOS; YES|NN" },
+		{ NULL, NULL }
+	};
+	RetroEnvironment(RETRO_ENVIRONMENT_SET_VARIABLES, variable);
+}
+
+// 
+// Libretro: set the video refresh callback
+// 
+void cEmuSCV::RetroSetVideoRefresh(retro_video_refresh_t cb)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSetVideoRefresh()\n", EMUSCV_NAME);
+
+	// Set the Libretro video callback
+	RetroVideoRefresh = cb;
+}
+
+// 
+// Libretro: set the audio sample callback
+// 
+void cEmuSCV::RetroSetAudioSample(retro_audio_sample_t cb)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSetAudioSample()\n", EMUSCV_NAME);
+
+	// Set the Libretro audio sample callback
+	RetroAudioSample = cb;
+}
+
+// 
+// Libretro: set the audio batch callback
+// 
+void cEmuSCV::RetroSetAudioSampleBatch(retro_audio_sample_batch_t cb)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSetAudioSampleBatch()\n", EMUSCV_NAME);
+
+	// Set the Libretro audio sample batch callback
+	RetroAudioSampleBatch = cb;
+}
+
+// 
+// Libretro: set the input poll callback
+// 
+void cEmuSCV::RetroSetInputPoll(retro_input_poll_t cb)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSetInputPoll()\n", EMUSCV_NAME);
+
+	RetroInputPoll = cb;
+}
+
+// 
+// Libretro: set the input state callback
+// 
+void cEmuSCV::RetroSetInputState(retro_input_state_t cb)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSetInputState()\n", EMUSCV_NAME);
+
+	RetroInputState = cb;
+}
+
+//
+// Libretro: return the version used by the core for compatibility check with the frontend
+//
+unsigned cEmuSCV::RetroGetApiVersion(void)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroApiVersion()\n", EMUSCV_NAME);
+
+	return RETRO_API_VERSION;
+}
+
+//
+// Libretro: return the video standard used
+//
+unsigned cEmuSCV::RetroGetVideoRegion(void)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetVideoRegion()\n", EMUSCV_NAME);
+
+	return RETRO_REGION_PAL;
+}
+
+// 
+// Libretro: get the system infos
+// 
+void cEmuSCV::RetroGetSystemInfo(struct retro_system_info *info)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetSystemInfo()\n", EMUSCV_NAME);
+
+	memset(info, 0, sizeof(*info));
+	info->library_name		= EMUSCV_NAME;
+	info->library_version	= EMUSCV_VERSION;
+	info->valid_extensions	= EMUSCV_EXTENSIONS;
+	info->need_fullpath		= FALSE;
+	info->block_extract		= TRUE;
+}
+
+// 
+// Libretro: get the audio/video infos
+// 
+void cEmuSCV::RetroGetAudioVideoInfo(struct retro_system_av_info *info)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV:RetroGetAudioVideoInfo()\n", EMUSCV_NAME);
+
+	memset(info, 0, sizeof(*info));
+	info->timing.fps            = config.window_fps;
+	info->timing.sample_rate    = 44100;
+	info->geometry.base_width   = config.window_width;
+	info->geometry.base_height  = config.window_height;
+	info->geometry.max_width    = config.window_width * WINDOW_ZOOM_MAX;
+	info->geometry.max_height   = config.window_height * WINDOW_ZOOM_MAX;
+	info->geometry.aspect_ratio = config.window_aspect_ratio;
+}
+
+//
+// Libretro: initialize the core
+//
+void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_state_callback_t RetroAudioSetStateCb, retro_frame_time_callback_t RetroFrameTimeCb)
+{
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroInit()\n", EMUSCV_NAME);
+
+	if (retro_core_initialized == TRUE)
+		return;
+
+	// Set audio callbacks
+	struct retro_audio_callback audio_callback = { RetroAudioCb, RetroAudioSetStateCb };
+	retro_use_audio_cb = RetroEnvironment(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &audio_callback);
+
+	// Set frame time callback
+	struct retro_frame_time_callback frame_time_callback;
+	frame_time_callback.callback  = RetroFrameTimeCb;
+	frame_time_callback.reference = 1000000 / FRAMES_PER_SEC;
+	frame_time_callback.callback(frame_time_callback.reference);
+	RetroEnvironment(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &frame_time_callback);
+
+	// Retrieve base directory
+	const char *dir = NULL;
+	memset(retro_base_directory, 0, sizeof(retro_base_directory));
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
+	{
+		snprintf(retro_base_directory, sizeof(retro_base_directory), "%s", dir);
+		set_libretro_system_directory(dir);
+		RetroLogPrintf(RETRO_LOG_INFO, "[%s] Base directory: %s\n", EMUSCV_NAME, retro_base_directory);
+	}
+
+	// Retrieve save directory	retro_base_path
+	memset(retro_save_directory, 0, sizeof(retro_save_directory));
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir) && dir)
+	{
+		snprintf(retro_save_directory, sizeof(retro_save_directory), "%s", dir);
+		set_libretro_save_directory(dir);
+		RetroLogPrintf(RETRO_LOG_INFO, "[%s] Save directory: %s\n", EMUSCV_NAME, retro_save_directory);
+	}
+
+	// Init core variables
+	retro_core_initialized 		= false;
+	is_power_on					= false;
+	retro_frame_time			= 0;
+	retro_game_loaded			= false;
+    retro_input_support_bitmask	= RetroEnvironment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL);
+	retro_audio_enable			= false;
+	retro_audio_phase			= 0;
+
+	// Init SDL
+	if (SDL_Init(SDL_INIT_VIDEO) != 0)
+	{
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL initialization failed! %s\n", EMUSCV_NAME, SDL_GetError());
+		return;	// Fatal error
+	}
+
+	// Initialize eSCV settings
+	initialize_config();
+
+	// Load EmuSCV settings
+	RetroLoadSettings();
+
+	// initialize the eSCV emulation core
+	escv_emu = new EMU();
+//	escv_emu->set_host_window_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
+	if(!escv_emu->is_bios_present())
+	{
+		if(!escv_emu->is_bios_found())
+		{
+			// Affichage "BIOS non trouvÃ©"
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] BIOS not found!\n", EMUSCV_NAME);
+		}
+		else if(!escv_emu->is_bios_ok())
+		{
+			// Affichage "BIOS incorrect"
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Bad BIOS!\n", EMUSCV_NAME);
+		}
+		else
+		{
+			// Affichage "BIOS non chargÃ©"
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] BIOS not loaded!\n", EMUSCV_NAME);
+		}
+#ifdef USE_NOTIFY_POWER_OFF
+
+		// notify power off
+		escv_emu->notify_power_off();
+#endif
+
+		delete(escv_emu);
+		escv_emu = NULL;
+		return;	// Fatal error
+	}
+
+	is_power_on				= true;
+	retro_core_initialized	= true;
+}
+
+//
+// Libretro: deinitialize the core
+//
+void cEmuSCV::RetroDeinit(void)
+{
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroDeinit()\n", EMUSCV_NAME);
+
+	if (!retro_core_initialized)
+		return;
+
+	if (retro_game_loaded)
+		RetroUnloadGame();
+
+	// Destroy eSCV
+	if (escv_emu != NULL)
+	{
+#ifdef USE_NOTIFY_POWER_OFF
+		// notify power off
+		escv_emu->notify_power_off();
+
+#endif
+		delete(escv_emu);
+		escv_emu = NULL;
+	}
+
+	// Deinit SDL
+	SDL_Quit();
+	
+	// Reinit core variables
+	retro_frame_time			= 0;
+	retro_game_loaded			= FALSE;
+    retro_input_support_bitmask	= FALSE;
+	retro_audio_enable			= FALSE;
+	retro_audio_phase			= 0;
+	retro_core_initialized 		= FALSE;
+}
+
+// 
+// Libretro: set controller port device
+// 
+void cEmuSCV::RetroSetControllerPortDevice(unsigned port, unsigned device)
+{
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSetControllerPortDevice()\n          Set device %d into port %d\n", EMUSCV_NAME, device, port);
+}
+
+// 
+// Libretro: audio callback
+// 
+void cEmuSCV::RetroAudioCb(void)
+{
+//	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroAudioCb()\n", EMUSCV_NAME);
+
+	int16_t val = 0x0000;
+//	if (retro_audio_enable == TRUE)// && button_pressed == TRUE)
+//	{
+//		// Play A 440Hz
+//		for (unsigned i = 0; i < AUDIO_SAMPLES_PER_FRAME; i++, phase++)
+//		{
+//			int16_t val = INT16_MAX * sinf(2.0f * M_PI * phase * 440.0f / AUDIO_SAMPLING_RATE);
+//			audio_cb(val, val);
+//		}
+//	}
+//	else
+//	{
+		// Mute
+//		for (unsigned i = 0; i < AUDIO_SAMPLES_PER_FRAME; i++)
+		for (uint16_t i = 0; i < 44100; i++)
+			RetroAudioSample(val, val);
+//	}
+	retro_audio_phase %= 44100;//AUDIO_SAMPLING_RATE;
+}
+
+// 
+// Libretro: audio set state enable/disable callback
+// 
+void cEmuSCV::RetroAudioSetStateCb(bool enable)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroAudioSetStateCb()\n          Set audio state = %s\n", EMUSCV_NAME, (enable == TRUE ? "ON" : "OFF"));
+
+	// Set audio state
+	retro_audio_enable = enable;
+}
+
+// 
+// Libretro: frame time callback
+// 
+void cEmuSCV::RetroFrameTimeCb(retro_usec_t usec)
+{
+	int64_t usec_corrected = usec*FRAMES_PER_SEC/config.window_fps;
+	// Log
+//	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroFrameTimeCb()\n          Frame time = %d microseconds\n", EMUSCV_NAME, usec_corrected);
+	
+	// Memorise current frame time
+	retro_frame_time = usec_corrected;
+}
+
+// 
+// Libretro: load game
+// 
+bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroLoadGame()\n", EMUSCV_NAME);
+
+	if(retro_game_loaded)
+		RetroUnloadGame();
+
+	// Set the performance level is guide to Libretro to give an idea of how intensive this core is to run for the game
+	// It should be set in retro_load_game()
+	static unsigned performance_level = 4;
+	RetroEnvironment(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &performance_level);
+
+    enum retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_XRGB8888;
+    if (!RetroEnvironment(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixel_format))
+    {
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] XRGB8888 pixel format not supported!\n", EMUSCV_NAME);
+        return FALSE;
+    }
+
+	bool updated = false;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+		RetroLoadSettings();
+
+	// SDL frame surface
+    frame_surface = SDL_CreateRGBSurface(0, config.window_width, config.window_height, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+    if (frame_surface == NULL)
+	{
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL surface creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
+        return FALSE;
+	}
+
+	// SDL frame renderer
+    frame_renderer = SDL_CreateSoftwareRenderer(frame_surface);
+    if (frame_renderer == NULL)
+	{
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL surface renderer creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
+        return FALSE;
+    }
+
+	// SDL TV static noise surface
+    noise_surface = SDL_CreateRGBSurface(0, config.window_width >> 2, config.window_height >> 2, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+    if (noise_surface == NULL)
+	{
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL surface creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
+        return FALSE;
+	}
+
+	// SDL TV static noise renderer
+    noise_renderer = SDL_CreateSoftwareRenderer(noise_surface);
+    if (noise_renderer == NULL)
+	{
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL surface renderer creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
+        return FALSE;
+    }
+
+	// Paint it black
+	SDL_SetRenderDrawColor(frame_renderer, 0, 0, 0, 255);
+	SDL_RenderClear(frame_renderer);
+
+	// reset the frame counter
+	retro_frame_counter = 0;
+
+	// Get game rom path
+	memset(retro_game_path, 0, sizeof(retro_game_path));
+    if (info && info->data)
+	{
+		snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
+		RetroLogPrintf(RETRO_LOG_INFO, "[%s] load game: %s\n", EMUSCV_NAME, retro_game_path);
+/*
+		unzFile zipfile = unzOpen(retro_game_path);
+		if (zipfile == NULL)
+		{
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] game ZIP archive not found!\n", EMUSCV_NAME);
+			return FALSE;
+		}
+		RetroLogPrintf(RETRO_LOG_INFO, "[%s] game ZIP archive found\n", EMUSCV_NAME);
+
+		// Get info about the zip file
+		unz_global_info global_info;
+		if (unzGetGlobalInfo( zipfile, &global_info ) != UNZ_OK)
+		{
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] can't read game ZIP archive!\n", EMUSCV_NAME);
+			unzClose(zipfile);
+			return FALSE;
+		}
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] number of entries %d\n", EMUSCV_NAME, global_info.number_entry);
+
+		// Buffer to hold data read from the zip file.
+		uint8_t *read_buffer = NULL;
+
+		unz_file_info file_info;
+		if (unzLocateFile(zipfile, "cartjpfront.png", 2) == UNZ_OK)
+		{
+			// Get info about current file.
+			char filename[MAX_FILENAME];
+			if (unzGetCurrentFileInfo(
+				zipfile,
+				&file_info,
+				filename,
+				MAX_FILENAME,
+				NULL, 0, NULL, 0 ) != UNZ_OK)
+			{
+				RetroLogPrintf(RETRO_LOG_ERROR, "[%s] could not read file info\n", EMUSCV_NAME);
+				unzClose(zipfile);
+				return FALSE;
+			}
+//			RetroLogPrintf(RETRO_LOG_INFO, "[%s] file info read\n", EMUSCV_NAME);
+
+			// Check if this entry is a directory or file.
+//			const size_t filename_length = strlen( filename );
+//			if ( filename[filename_length-1] == dir_delimiter )
+//			{
+//				// Entry is a directory, so create it.
+//				RetroLogPrintf(RETRO_LOG_INFO, "[%s] dir: %s\n", EMUSCV_NAME, filename);
+//				mkdir( filename );
+//			}
+//			else
+//			if (unzStringFileNameCompare(filename, "cartfrfront.png", 2) == 0)
+//			{
+				// Entry is a file, so extract it.
+				RetroLogPrintf(RETRO_LOG_INFO, "[%s] file: %s\n", EMUSCV_NAME, filename);
+				RetroLogPrintf(RETRO_LOG_INFO, "[%s] uncompressed size: %u\n", EMUSCV_NAME, file_info.uncompressed_size);
+				RetroLogPrintf(RETRO_LOG_INFO, "[%s] crc: %u\n", EMUSCV_NAME, file_info.crc);
+
+				if ( unzOpenCurrentFile( zipfile ) != UNZ_OK )
+				{
+					log_printf_cb(RETRO_LOG_ERROR, "[%s] can't open file\n", EMUSCV_NAME);
+					unzClose( zipfile );
+					return FALSE;
+				}
+//				// Open a file to write out the data.
+//				FILE *out = fopen( filename, "wb" );
+//				if ( out == NULL )
+//				{
+//					printf( "could not open destination file\n" );
+//					unzCloseCurrentFile( zipfile );
+//					unzClose( zipfile );
+//					return -1;
+//				}
+				read_buffer = (uint8_t*)malloc(file_info.uncompressed_size);
+				if ( read_buffer == NULL )
+				{
+					RetroLogPrintf(RETRO_LOG_ERROR, "[%s] can't allocate memory for the image!\n", EMUSCV_NAME);
+					unzCloseCurrentFile( zipfile );
+					unzClose( zipfile );
+					return FALSE;
+				}
+				RetroLogPrintf(RETRO_LOG_INFO, "[%s] Memory allocated for PNG image!\n", EMUSCV_NAME);
+
+				int error = UNZ_OK;
+				do
+				{
+					error = unzReadCurrentFile( zipfile, read_buffer, file_info.uncompressed_size );
+					if ( error < 0 )
+					{
+						RetroLogPrintf(RETRO_LOG_ERROR, "[%s] error %d\n", EMUSCV_NAME, error);
+						unzCloseCurrentFile( zipfile );
+						unzClose( zipfile );
+						return FALSE;
+					}
+					RetroLogPrintf(RETRO_LOG_INFO, "[%s] PNG image loaded into memory\n", EMUSCV_NAME);
+//					// Write data to file.
+//					if ( error > 0 )
+//					{
+//						fwrite( read_buffer, error, 1, out ); // You should check return of fwrite...
+//					}
+				} while ( error > 0 );
+//				fclose( out );
+//			}
+			unzCloseCurrentFile( zipfile );
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] ZIP file closed\n", EMUSCV_NAME);
+
+//			// Go the the next entry listed in the zip file.
+//			if ( ( i+1 ) < global_info.number_entry )
+//			{
+//				if ( unzGoToNextFile( zipfile ) != UNZ_OK )
+//				{
+//					RetroLogPrintf(RETRO_LOG_ERROR, "[%s] cound not read next file\n", EMUSCV_NAME);
+//					unzClose( zipfile );
+//					return false;
+//				}
+//			}
+		}
+		unzClose(zipfile);
+
+
+		if (read_buffer != NULL)
+		{
+//			uint8_t *read_buffer_sig[9];
+//			memset(read_buffer_sig,0,9);
+//			memcpy(read_buffer_sig, read_buffer, 8);
+//			RetroLogPrintf(RETRO_LOG_INFO, "[%s] PNG signature = %s\n", EMUSCV_NAME, read_buffer_sig);
+			if(png_check_sig(read_buffer,8))
+			{
+				RetroLogPrintf(RETRO_LOG_INFO, "[%s] PNG signature OK\n", EMUSCV_NAME);
+
+				// get PNG file info struct (memory is allocated by libpng)
+				png_structp png_ptr = NULL;
+				png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+
+				if(png_ptr != NULL)
+				{
+					log_printf_cb(RETRO_LOG_INFO, "[%s] PNG read struct created\n", EMUSCV_NAME);
+
+					// get PNG image data info struct (memory is allocated by libpng)
+					png_infop info_ptr = NULL;
+					info_ptr = png_create_info_struct(png_ptr);
+
+					if(info_ptr != NULL)
+					{
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] PNG info struct created\n", EMUSCV_NAME);
+						PngReadDataHandle a = {{read_buffer,file_info.uncompressed_size},0};
+						png_set_read_fn(png_ptr, &a, png_read_data_from_inputstream);
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] PNG read fn setted\n", EMUSCV_NAME);
+						png_read_info(png_ptr, info_ptr);
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] png_read_info()\n", EMUSCV_NAME);
+						image_width = png_get_image_width(png_ptr, info_ptr);
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] image_width = %u\n", EMUSCV_NAME, image_width);
+						image_height = png_get_image_height(png_ptr, info_ptr);
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] image_height = %u\n", EMUSCV_NAME, image_height);
+						image_bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] image_bit_depth = %u\n", EMUSCV_NAME, image_bit_depth);
+						image_color_type = png_get_color_type(png_ptr, info_ptr);
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] image_color_type = %u\n", EMUSCV_NAME, image_color_type);
+
+						// ignored image interlacing, compression and filtering.
+
+						// force 8-bit color channels:
+						if (image_bit_depth == 16)
+							png_set_strip_16(png_ptr);
+						else if (image_bit_depth < 8)
+							png_set_packing(png_ptr);
+
+						// force formats to RGB:
+						if (image_color_type != PNG_COLOR_TYPE_RGBA)
+							png_set_expand(png_ptr);
+						else if (image_color_type == PNG_COLOR_TYPE_PALETTE)
+							png_set_palette_to_rgb(png_ptr);
+						else if (image_color_type == PNG_COLOR_TYPE_GRAY)
+							png_set_gray_to_rgb(png_ptr);
+						else if (image_color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+							png_set_gray_to_rgb(png_ptr);
+
+						// add full opacity alpha channel if required:
+						if (image_color_type != PNG_COLOR_TYPE_RGBA)
+							png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
+
+						// apply the output transforms before reading image data:
+						png_read_update_info(png_ptr, info_ptr);
+
+						// allocate RGBA image data:
+						image_data = (png_byte *)malloc((size_t)(image_width * image_height * (4)));
+						if (image_data == NULL)
+							RetroLogPrintf(RETRO_LOG_ERROR, "[%s] error allocating image buffer\n", EMUSCV_NAME);
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] image buffer allocated\n", EMUSCV_NAME);
+
+						// allocate row pointers:
+						image_row_data = (png_bytep *)malloc((size_t)(image_height * sizeof(png_bytep)));
+						if (image_row_data == NULL)
+							RetroLogPrintf(RETRO_LOG_ERROR, "[%s] error allocating row pointers\n", EMUSCV_NAME);
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] row pointers allocated\n", EMUSCV_NAME);
+
+						// set the row pointers and read the RGBA image data:
+						for (png_uint_32 row = 0; row < image_height; row++)
+							image_row_data[row] = image_data + (image_height - (row + 1)) * (image_width * (4));
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] row pointers set\n", EMUSCV_NAME);
+
+						png_read_image(png_ptr, image_row_data);
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] png_read_image()\n", EMUSCV_NAME);
+
+						// libpng and dynamic resource unwinding:
+						png_read_end(png_ptr, NULL);
+						RetroLogPrintf(RETRO_LOG_INFO, "[%s] png_read_end()\n", EMUSCV_NAME);
+
+//						png_uint_32 retval = png_get_IHDR(png_ptr, info_ptr, &width, &height, &bitDepth, &colorType, NULL, NULL, NULL);
+//						log_printf_cb(RETRO_LOG_INFO, "[%s] png_get_IHDR()\n", EMUSCV_NAME);
+//						if(retval != 1)
+//						{
+//							RetroLogPrintf(RETRO_LOG_INFO, "[%s] PNG width:%u \n", EMUSCV_NAME, width);
+//							RetroLogPrintf(RETRO_LOG_INFO, "[%s] PNG height:%u \n", EMUSCV_NAME, height);
+//							RetroLogPrintf(RETRO_LOG_INFO, "[%s] TEST TEST TEST\n", EMUSCV_NAME);
+//						}
+//						else
+//						{
+//							RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't read PNG header!\n", EMUSCV_NAME);
+//						}
+//						png_destroy_info_struct(&png_ptr, NULL, NULL);
+					}
+					else
+					{
+						RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't create PNG info struct!\n", EMUSCV_NAME);
+					}
+					png_destroy_read_struct(&png_ptr, NULL, NULL);
+					RetroLogPrintf(RETRO_LOG_INFO, "[%s] png_destroy_read_struct()\n", EMUSCV_NAME);
+				}
+				else
+				{
+					RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't create PNG read struct!\n", EMUSCV_NAME);
+				}
+			}
+			else
+			{
+				RetroLogPrintf(RETRO_LOG_WARN, "[%s] PNG signature KO\n", EMUSCV_NAME);
+			}
+
+
+
+			free(read_buffer);
+			read_buffer = NULL;
+		}
+*/
+		// Insert cart
+		if(escv_emu && escv_emu->is_bios_present() && strcmp(retro_game_path, "") != 0)
+		{
+			escv_emu->open_cart(0,retro_game_path);
+			if(escv_emu->is_cart_inserted(0))
+				retro_game_loaded = TRUE;
+		}
+
+	}
+	else
+	{
+		RetroLogPrintf(RETRO_LOG_INFO, "[%s] no game\n", EMUSCV_NAME);
+		retro_game_loaded = FALSE;
+	}
+
+	return TRUE;
+}
+
+// 
+// Libretro: unload game
+// 
+void cEmuSCV::RetroUnloadGame(void)
+{
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroUnloadGame()\n", EMUSCV_NAME);
+
+	// 
+	if(escv_emu && escv_emu->is_cart_inserted(0))
+		escv_emu->close_cart(0);
+
+	// Free SDL TV static noise renderer
+	if (noise_renderer != NULL)
+	{
+		SDL_DestroyRenderer(noise_renderer);
+		noise_renderer = NULL;
+	}
+
+	// Free SDL TV static noise surface
+	if (noise_surface != NULL)
+	{
+		SDL_FreeSurface(noise_surface);
+		noise_surface = NULL;
+	}
+
+	// Free SDL frame renderer
+	if (frame_renderer != NULL)
+	{
+		SDL_DestroyRenderer(frame_renderer);
+		frame_renderer = NULL;
+	}
+
+	// Free SDL frame surface
+	if (frame_surface != NULL)
+	{
+		SDL_FreeSurface(frame_surface);
+		frame_surface = NULL;
+	}
+
+	retro_game_loaded = FALSE;
+}
+
+//
+// Libretro: run for only one frame
+//
+void cEmuSCV::RetroRun(void)
+{
+	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] cEmuSCV::RetroRun()\n", EMUSCV_NAME);
+
+	unsigned port0			= 0;
+	unsigned port1			= 1;
+	int16_t ret0			= 0;
+	int16_t ret1			= 0;
+	int16_t key0			= 0;
+	int16_t key1			= 0;
+	int16_t key2			= 0;
+	int16_t key3			= 0;
+	int16_t key4			= 0;
+	int16_t key5			= 0;
+	int16_t key6			= 0;
+	int16_t key7			= 0;
+	int16_t key8			= 0;
+	int16_t key9			= 0;
+	int16_t keyEnter		= 0;
+	int16_t keyClear		= 0;
+	int16_t keyPower		= 0;
+	int16_t keyReset		= 0;
+	int16_t keyPause		= 0;
+	int16_t analogleftx0	= 0;
+	int16_t analoglefty0	= 0;
+	int16_t analogrightx0	= 0;
+	int16_t analogrighty0	= 0;
+	int16_t analogleftx1	= 0;
+	int16_t analoglefty1	= 0;
+	int16_t analogrightx1	= 0;
+	int16_t analogrighty1	= 0;
+
+	uint32_t color			= 0xFF000000;
+
+	uint32_t posx			= 0;
+	uint32_t posy			= 0;
+	uint32_t sizx			= 0;
+	uint32_t sizy			= 0;
+
+	bool config_changed = false;
+
+
+	// SDL surfaces and renderers must exists
+	if (frame_surface == NULL || noise_surface == NULL)
+	{
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL surface not created!\n", EMUSCV_NAME);
+		return;
+	}
+	if (frame_renderer == NULL || noise_renderer == NULL)
+	{
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL surface renderer not created!\n", EMUSCV_NAME);
+		return;
+	}
+
+	// Recreate SDL surfaces and renderers if the size change
+	if(frame_surface->w != config.window_width || frame_surface->h != config.window_height)
+	{
+		// Free SDL TV static noise renderer
+		if (noise_renderer != NULL)
+		{
+			SDL_DestroyRenderer(noise_renderer);
+			noise_renderer = NULL;
+		}
+
+		// Free SDL TV static noise surface
+		if (noise_surface != NULL)
+		{
+			SDL_FreeSurface(noise_surface);
+			noise_surface = NULL;
+		}
+
+		// Free SDL frame renderer
+		if (frame_renderer != NULL)
+		{
+			SDL_DestroyRenderer(frame_renderer);
+			frame_renderer = NULL;
+		}
+
+		// Free SDL frame surface
+		if (frame_surface != NULL)
+		{
+			SDL_FreeSurface(frame_surface);
+			frame_surface = NULL;
+		}
+
+		// SDL TV static noise surface
+		noise_surface = SDL_CreateRGBSurface(0, config.window_width >> 2, config.window_height >> 2, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+		if (noise_surface == NULL)
+		{
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL surface creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
+			return;
+		}
+
+		// SDL TV static noise renderer
+		noise_renderer = SDL_CreateSoftwareRenderer(noise_surface);
+		if (noise_renderer == NULL)
+		{
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL surface renderer creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
+			return;
+		}
+	}
+
+	// Get inputs
+	RetroInputPoll();
+
+	// Controllers buttons
+	if (retro_input_support_bitmask)
+	{
+		ret0 = RetroInputState(port0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
+		ret1 = RetroInputState(port1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
+	}
+	else
+	{
+		unsigned i;
+		for (i = RETRO_DEVICE_ID_JOYPAD_B; i < RETRO_DEVICE_ID_JOYPAD_R3+1; i++)
+		{
+			if (RetroInputState(port0, RETRO_DEVICE_JOYPAD, 0, i))
+				ret0 |= (1 << i);
+		}
+		for (i = RETRO_DEVICE_ID_JOYPAD_B; i < RETRO_DEVICE_ID_JOYPAD_R3+1; i++)
+		{
+			if (RetroInputState(port1, RETRO_DEVICE_JOYPAD, 0, i))
+				ret1 |= (1 << i);
+		}
+	}
+	// Controllers analog sticks
+	analogleftx0	= RetroInputState(port0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
+	analoglefty0	= RetroInputState(port0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
+	analogrightx0	= RetroInputState(port0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
+	analogrighty0	= RetroInputState(port0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y);
+	analogleftx1	= RetroInputState(port1, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
+	analoglefty1	= RetroInputState(port1, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
+	analogrightx1	= RetroInputState(port1, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
+	analogrighty1	= RetroInputState(port1, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y);
+	// Keyboard
+	key1 = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_1)
+		|| RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP1);
+	key2 = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_2)
+		|| RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP2);
+	key3 = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_3)
+		|| RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP3);
+	key4 = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_4)
+		|| RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP4);
+	key5 = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_5)
+		|| RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP5);
+	key6 = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_6)
+		|| RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP6);
+	key7 = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_7)
+		|| RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP7);
+	key8 = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_8)
+		|| RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP8);
+	key9 = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_9)
+		|| RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP9);
+	key0 = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_0)
+		|| RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP0);
+	keyEnter = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RETURN)
+            || RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP_ENTER);
+	keyClear = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_BACKSPACE)
+            || RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_DELETE);
+	keyPower = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_i);
+	keyReset = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_r);
+	keyPause = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_LCTRL)
+            || RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RCTRL);
+
+	bool updated = false;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+	{
+		RetroLoadSettings();
+		config_changed = true;
+	}
+
+	if(escv_emu != NULL)
+	{
+		// LEFT CONTROLLER 1, orange
+		// Analog left
+		if(analogleftx0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogleftx0 >= EMUSCV_AXIS_NEUTRAL_MAX || analoglefty0 <= EMUSCV_AXIS_NEUTRAL_MIN || analoglefty0 >= EMUSCV_AXIS_NEUTRAL_MAX)
+			escv_emu->get_osd()->set_joy_status(	0,
+													(analoglefty0 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(analoglefty0 >= EMUSCV_AXIS_NEUTRAL_MAX),
+													(analogleftx0 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(analogleftx0 >= EMUSCV_AXIS_NEUTRAL_MAX),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
+		// Analog right
+		else if(analogrightx0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrightx0 >= 32 || analogrighty0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrighty0 >= 32)
+			escv_emu->get_osd()->set_joy_status(	0,
+													(analogrighty0 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(analogrighty0 >= EMUSCV_AXIS_NEUTRAL_MAX),
+													(analogrightx0 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(analogrightx0 >= EMUSCV_AXIS_NEUTRAL_MAX),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
+		// Directionnal cross
+		else
+			escv_emu->get_osd()->set_joy_status(	0,
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_UP)),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
+
+		// LEFT CONTROLLER 2, blue
+		// Analog left
+		if(analogleftx1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogleftx1 >= EMUSCV_AXIS_NEUTRAL_MAX || analoglefty1 <= EMUSCV_AXIS_NEUTRAL_MIN || analoglefty1 >= EMUSCV_AXIS_NEUTRAL_MAX)
+			escv_emu->get_osd()->set_joy_status(	1,
+													(analoglefty1 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(analoglefty1 >= EMUSCV_AXIS_NEUTRAL_MAX),
+													(analogleftx1 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(analogleftx1 >= EMUSCV_AXIS_NEUTRAL_MAX),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
+		// Analog right
+		else if(analogrightx1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrightx1 >= 32 || analogrighty1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrighty1 >= 32)
+			escv_emu->get_osd()->set_joy_status(	1,
+													(analogrighty1 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(analogrighty1 >= 32),
+													(analogrightx1 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(analogrightx1 >= 32),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
+		// Directionnal cross
+		else
+			escv_emu->get_osd()->set_joy_status(	1,
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_UP)),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
+	}
+
+	// Button SELECT
+	// open configuration
+	if ((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT)))
+	{
+	}
+
+	// Other buttons
+	// open the console keyboard overlay
+	if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L3)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))
+	|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L3)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R3)))
+	{
+	}
+
+	if(start_up_counter_power < 150)
+	{
+		// Auto power ON after 0,5 seconds
+		start_up_counter_power += 300/config.window_fps;
+		is_power_on = (start_up_counter_power >= 150);
+	}
+	else
+	{
+		// Key POWER ON/OFF
+		if(keyPower != 0)
+		{
+			if (!key_pressed_power)
+			{
+				is_power_on = !is_power_on;
+				if(is_power_on)
+					RetroReset();
+			}
+			key_pressed_power = true;		
+		}
+		else if(key_pressed_power)
+			key_pressed_power = false;
+	}
+
+/*	if (!is_power_on)
+	{
+#ifdef USE_NOTIFY_POWER_OFF
+		// notify power off
+		if(escv_emu != NULL)
+		{
+			escv_emu->notify_power_off();
+		}
+#endif
+		RetroEnvironment(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+	}
+*/
+    // Key RESET
+	if (keyReset != 0)
+	{
+		key_pressed_reset = true;
+		RetroReset();
+	}
+	else if(key_pressed_reset)
+		key_pressed_reset = false;
+
+    // Key PAUSE
+	if (keyPause != 0)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_SPACE, false, key_pressed_pause);
+		key_pressed_pause = true;
+	}
+	else if(key_pressed_pause)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_SPACE, false);
+		key_pressed_pause = false;
+	}
+
+	// Key 0
+	if (key0 != 0)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_NUMPAD0, false, key_pressed_0);
+		key_pressed_0 = true;
+	}
+	else if(key_pressed_0)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_NUMPAD0, false);
+		key_pressed_0 = false;
+	}
+
+	// Key 1
+	if (key1 != 0)
+	{
+/*
+		if(!key_pressed_1)
+		{
+			config.scv_display = SETTING_DISPLAY_EMUSCV_VAL;
+			config_changed = true;
+		}
+*/
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_NUMPAD1, false, key_pressed_1);
+		key_pressed_1 = true;
+	}
+	else if(key_pressed_1)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_NUMPAD1, false);
+		key_pressed_1 = false;
+	}
+
+	// Key 2
+	if (key2 != 0)
+	{
+/*
+		config.scv_display = SETTING_DISPLAY_EPOCH_VAL;
+		config_changed = true;
+*/
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_NUMPAD2, false, key_pressed_2);
+		key_pressed_2 = true;
+	}
+	else if(key_pressed_2)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_NUMPAD2, false);
+		key_pressed_2 = false;
+	}
+
+	// Key 3
+	if (key3 != 0)
+	{
+/*
+		config.scv_display = SETTING_DISPLAY_YENO_VAL;
+		config_changed = true;
+*/
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_NUMPAD3, false, key_pressed_3);
+		key_pressed_3 = true;
+	}
+	else if(key_pressed_3)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_NUMPAD3, false);
+		key_pressed_3 = false;
+	}
+
+	// Key 4
+	if (key4 != 0)
+	{
+/*
+		config.scv_displayfull = SETTING_DISPLAYFULL_NO_VAL;
+		config_changed = true;
+*/
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_NUMPAD4, false, key_pressed_4);
+		key_pressed_4 = true;
+	}
+	else if(key_pressed_4)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_NUMPAD4, false);
+		key_pressed_4 = false;
+	}
+
+	// Key 5
+	if (key5 != 0)
+	{
+/*
+		config.scv_displayfull = SETTING_DISPLAYFULL_YES_VAL;
+		config_changed = true;
+*/
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_NUMPAD5, false, key_pressed_5);
+		key_pressed_5 = true;
+	}
+	else if(key_pressed_5)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_NUMPAD5, false);
+		key_pressed_5 = false;
+	}
+
+	// Key 6
+	if (key6 != 0)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_NUMPAD6, false, key_pressed_6);
+		key_pressed_6 = true;
+	}
+	else if(key_pressed_6)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_NUMPAD6, false);
+		key_pressed_6 = false;
+	}
+
+	// Key 7
+	if (key7 != 0)
+	{
+/*
+		config.scv_displayfps = SETTING_DISPLAYFPS_EPOCH60_VAL;
+		config_changed = true;
+*/
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_NUMPAD7, false, key_pressed_7);
+		key_pressed_7 = true;
+	}
+	else if(key_pressed_7)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_NUMPAD7, false);
+		key_pressed_7 = false;
+	}
+
+	// Key 8
+	if (key8 != 0)
+	{
+/*
+		config.scv_displayfps = SETTING_DISPLAYFPS_YENO50_VAL;
+		config_changed = true;
+*/
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_NUMPAD8, false, key_pressed_8);
+		key_pressed_8 = true;
+	}
+	else if(key_pressed_8)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_NUMPAD8, false);
+		key_pressed_8 = false;
+	}
+
+	// Key 9
+	if (key9 != 0)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_NUMPAD9, false, key_pressed_9);
+		key_pressed_9 = true;
+	}
+	else if(key_pressed_9)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_NUMPAD9, false);
+		key_pressed_9 = false;
+	}
+
+	// Key CL
+	if (keyClear != 0)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_BACK, false, key_pressed_cl);
+		key_pressed_cl = true;
+	}
+	else if(key_pressed_cl)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_BACK, false);
+		key_pressed_cl = false;
+	}
+
+	// Key EN
+	// Controllers 1 & 2, Button START
+	if (keyEnter != 0 || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)))
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_down(VK_RETURN, false, key_pressed_en);
+		key_pressed_en = true;
+	}
+	else if(key_pressed_en)
+	{
+		if(escv_emu != NULL)
+			escv_emu->key_up(VK_RETURN, false);
+		key_pressed_en = false;
+	}
+
+	if(config_changed)
+	{
+		apply_display_config();
+		RetroSaveSettings();
+	}
+
+	if (config.window_width != window_width_old || config.window_height != window_height_old || config.window_fps != window_fps_old)
+	{
+		struct retro_system_av_info av_info;
+		retro_get_system_av_info(&av_info);
+		av_info.timing.fps = config.window_fps;
+		RetroEnvironment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &av_info);
+
+		window_width_old = config.window_width;
+		window_height_old = config.window_height;
+		window_fps_old = config.window_fps;
+
+		// Paint it black
+		SDL_SetRenderDrawColor(frame_renderer, 0, 0, 0, 255);
+		SDL_RenderClear(frame_renderer);
+	}
+
+	// Increment the frame counter
+	retro_frame_counter++;
+
+	if(is_power_on && escv_emu)
+	{
+		// drive machine
+		int run_frames = escv_emu->run();
+		total_frames += run_frames;
+
+		// update window if enough time
+		draw_frames += escv_emu->draw_screen();
+
+		// Copy screen
+		SDL_Rect RectSrc;
+		RectSrc.x = config.draw_x;
+		RectSrc.y = config.draw_y;
+		RectSrc.w = config.draw_width;
+		RectSrc.h = config.draw_height;
+		SDL_SetSurfaceBlendMode(escv_emu->get_osd()->get_vm_screen_buffer()->frame_surface, SDL_BLENDMODE_NONE);
+		if(SDL_BlitScaled(escv_emu->get_osd()->get_vm_screen_buffer()->frame_surface, &RectSrc, frame_surface, NULL) != 0)
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL blit scaled failed! %s\n", EMUSCV_NAME, SDL_GetError());
+	}
+	else
+	{
+		SDL_SetRenderDrawColor(frame_renderer, 0, 0, 0, 255);
+		SDL_RenderClear(frame_renderer);
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL blit scaled failed! %s\n", EMUSCV_NAME, SDL_GetError());
+
+		for(int y = 0; y < noise_surface->h; y++)
+			for(int x = 0; x < noise_surface->w; x++)
+			{
+				uint8_t noise_color = rand() % 255;
+			    pixelRGBA(noise_renderer, x, y, noise_color, noise_color, noise_color, 255);
+			}
+		SDL_SetSurfaceBlendMode(frame_surface, SDL_BLENDMODE_NONE);
+		if(SDL_BlitScaled(noise_surface, NULL, frame_surface, NULL) != 0)
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL blit scaled failed! %s\n", EMUSCV_NAME, SDL_GetError());
+	}
+
+/*
+	// Clear background, changing color every 60 frames
+	if (retro_frame_counter % FRAMES_PER_SEC == 0)
+	{
+		if (retro_frame_counter > UINT64_MAX - FRAMES_PER_SEC)
+			retro_frame_counter = 0;
+		color_index++;
+		if (color_index > 16)
+			color_index = 1;
+	}
+	color = palette_pc[color_index];
+	SDL_SetRenderDrawColor(frame_renderer, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	SDL_RenderClear(frame_renderer);
+*/
+/*
+    // Draw a lonely pixel (using an other color than background)
+    // with an ellipse around
+	color = palette_pc[colorIndex < 12 ? colorIndex + 4 : colorIndex - 12 ];  // Different color of background color
+	posx = 10;
+	posy = 10;
+	boxRGBA(frame_renderer, 4*posx, 3*posy, 4*posx+3, 3*posy+2, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	ellipseRGBA(frame_renderer, 4*posx+1, 3*posy+1, 10, 12, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+*/
+	// Logo at startup
+	if(start_up_counter_logo < 1200)
+	{
+		start_up_counter_logo += 300/config.window_fps;
+		if(start_up_counter_logo > 1200)
+			start_up_counter_logo = 1200;
+	}
+	if(start_up_counter_logo < 1200)
+	{
+		// Draw an embedded binary image (64x97 pixels in ARGB8888 format)
+		posx = config.window_width - 75;
+		posy = config.window_height - 80;
+		sizx = 64;
+		sizy = 64;
+		uint8_t alpha = (start_up_counter_logo < 1200-100 ? 255: 255*(1200-start_up_counter_logo)/100);
+		for (uint32_t y = 0; y < sizy; y++)
+			for (uint32_t x = 0; x < sizx; x++)
+				pixelRGBA(frame_renderer, posx+x, posy+y, src_res_emuscv64x64xrgba8888_data[4*(x+y*sizx)], src_res_emuscv64x64xrgba8888_data[4*(x+y*sizx)+1], src_res_emuscv64x64xrgba8888_data[4*(x+y*sizx)+2], alpha*src_res_emuscv64x64xrgba8888_data[4*(x+y*sizx)+3]/255);
+	}
+
+/*
+	// Draw a PNG image read from ZIP file
+	if(image_data != NULL)
+	{
+		posx = 80;
+		posy = 30;
+		sizx = image_width;
+		sizy = image_height;
+		for (uint32_t y = 0; y < sizy; y++)
+			for (uint32_t x = 0; x < sizx; x++)
+				pixelRGBA(frame_renderer, posx+x, posy+sizy-y, image_data[4*(x+y*sizx)], image_data[4*(x+y*sizx)+1], image_data[4*(x+y*sizx)+2], image_data[4*(x+y*sizx)+3]);
+	}
+
+	// Reset button state
+	button_pressed = FALSE;
+*/
+
+/*
+	// FIRST CONTROLLER (LEFT SIDE, ORANGE)
+	posx = 100;
+	posy = 350;
+	// Contour
+	color = palette_pc[1];	// Black
+    rectangleRGBA(frame_renderer, posx+29, posy, posx+60, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// L3
+    rectangleRGBA(frame_renderer, posx+29, posy+32, posx+60, posy+63, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// L2
+    rectangleRGBA(frame_renderer, posx+29, posy+64, posx+60, posy+95, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// L1
+    rectangleRGBA(frame_renderer, posx+29, posy+96, posx+60, posy+126, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// UP
+    rectangleRGBA(frame_renderer, posx, posy+125, posx+30, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// LEFT
+    rectangleRGBA(frame_renderer, posx+59, posy+125, posx+89, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// RIGHT
+    rectangleRGBA(frame_renderer, posx+29, posy+155, posx+60, posy+185, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// DOWN
+    rectangleRGBA(frame_renderer, posx+14, posy+186, posx+75, posy+247, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// LEFT STICK
+    rectangleRGBA(frame_renderer, posx+90, posy+125, posx+121, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// SELECT
+    rectangleRGBA(frame_renderer, posx+122, posy+125, posx+153, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// START
+    rectangleRGBA(frame_renderer, posx+154, posy+125, posx+185, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// BUTTON 4
+    rectangleRGBA(frame_renderer, posx+212, posy+125, posx+243, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// BUTTON 1
+    rectangleRGBA(frame_renderer, posx+168, posy+186, posx+229, posy+247, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// RIGHT STICK
+    rectangleRGBA(frame_renderer, posx+183, posy+154, posx+214, posy+185, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// BUTTON 2
+    rectangleRGBA(frame_renderer, posx+183, posy+96, posx+214, posy+127, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// BUTTON 3
+    rectangleRGBA(frame_renderer, posx+183, posy+64, posx+214, posy+95, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// R1
+    rectangleRGBA(frame_renderer, posx+183, posy+32, posx+214, posy+63, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// R2
+    rectangleRGBA(frame_renderer, posx+183, posy, posx+214, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// R3
+	color = palette_pc[14];	// Gray
+    boxRGBA(frame_renderer, posx+30, posy+126, posx+58, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// Cross center
+    boxRGBA(frame_renderer, posx+15, posy+187, posx+73, posy+245, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// LEFT STICK
+    boxRGBA(frame_renderer, posx+169, posy+187, posx+227, posy+245, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// RIGHT STICK
+	color = palette_pc[1];	// Black
+	lineRGBA(frame_renderer, posx+44-15, posy+216, posx+44+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// LEFT STICK
+	lineRGBA(frame_renderer, posx+44, posy+216-15, posx+44, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// LEFT STICK
+	lineRGBA(frame_renderer, posx+198-15, posy+216, posx+198+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// RIGHT STICK
+	lineRGBA(frame_renderer, posx+198, posy+216-15, posx+198, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// RIGHT STICK
+	// Button L3
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L3))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[6];	// Cyan
+	}
+    boxRGBA(frame_renderer, posx+30, posy+1, posx+58, posy+29, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button L2
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L2))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[2];	// Blue Light
+	}
+    boxRGBA(frame_renderer, posx+30, posy+33, posx+58, posy+61, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button L1
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[0];	// Blue medium
+	}
+    boxRGBA(frame_renderer, posx+30, posy+65, posx+58, posy+93, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button UP
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+30, posy+97, posx+58, posy+125, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button LEFT
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+1, posy+126, posx+29, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button RIGHT
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+59, posy+126, posx+87, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button DOWN
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+30, posy+155, posx+58, posy+183, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Left analog stick
+	if (analogleftx0 <= -32 || analogleftx0 >= 32 || analoglefty0 <= -32 || analoglefty0 >= 32)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[15];	// White
+	}
+    boxRGBA(frame_renderer, posx+44-3+26*analogleftx0/INT16_MAX, posy+216-3+26*analoglefty0/INT16_MAX, posx+44+3+26*analogleftx0/INT16_MAX, posy+216+3+26*analoglefty0/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button SELECT
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[13];	// Green dark
+	}
+    boxRGBA(frame_renderer, posx+91, posy+126, posx+119, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button START
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[5];	// Green soft
+	}
+    boxRGBA(frame_renderer, posx+123, posy+126, posx+151, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button 4
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[2];	// Blue light
+	}
+    boxRGBA(frame_renderer, posx+155, posy+126, posx+183, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button 1
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[8];	// Red
+	}
+    boxRGBA(frame_renderer, posx+213, posy+126, posx+241, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Right analog stick
+	if (analogrightx0 <= -32 || analogrightx0 >= 32 || analogrighty0 <= -32 || analogrighty0 >= 32)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[15];	// White
+	}
+    boxRGBA(frame_renderer, posx+198-3+26*analogrightx0/INT16_MAX, posy+216-3+26*analogrighty0/INT16_MAX, posx+198+3+26*analogrightx0/INT16_MAX, posy+216+3+26*analogrighty0/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button 2
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[7];	// Green medium
+	}
+    boxRGBA(frame_renderer, posx+184, posy+155, posx+212, posy+183, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button 3
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_X))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[9];	// Orange
+	}
+    boxRGBA(frame_renderer, posx+184, posy+97, posx+212, posy+125, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button R1
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[3];	// Purple
+	}
+    boxRGBA(frame_renderer, posx+184, posy+65, posx+212, posy+93, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button R2
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R2))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[10];	// Fuschia
+	}
+    boxRGBA(frame_renderer, posx+184, posy+33, posx+212, posy+61, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button R3
+	if (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[11];	// Pink
+	}
+    boxRGBA(frame_renderer, posx+184, posy+1, posx+212, posy+29, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+
+
+
+	// SECOND CONTROLLER (RIGHT SIDE, BLUE)
+	posx = 500;
+	posy = 350;
+	// Contour
+	color = palette_pc[1];	// Black
+    rectangleRGBA(frame_renderer, posx+29, posy, posx+60, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// L3
+    rectangleRGBA(frame_renderer, posx+29, posy+32, posx+60, posy+63, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// L2
+    rectangleRGBA(frame_renderer, posx+29, posy+64, posx+60, posy+95, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// L1
+    rectangleRGBA(frame_renderer, posx+29, posy+96, posx+60, posy+126, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// UP
+    rectangleRGBA(frame_renderer, posx, posy+125, posx+30, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// LEFT
+    rectangleRGBA(frame_renderer, posx+59, posy+125, posx+89, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// RIGHT
+    rectangleRGBA(frame_renderer, posx+29, posy+155, posx+60, posy+185, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// DOWN
+    rectangleRGBA(frame_renderer, posx+14, posy+186, posx+75, posy+247, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// LEFT STICK
+    rectangleRGBA(frame_renderer, posx+90, posy+125, posx+121, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// SELECT
+    rectangleRGBA(frame_renderer, posx+122, posy+125, posx+153, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// START
+    rectangleRGBA(frame_renderer, posx+154, posy+125, posx+185, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// BUTTON 4
+    rectangleRGBA(frame_renderer, posx+212, posy+125, posx+243, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// BUTTON 1
+    rectangleRGBA(frame_renderer, posx+168, posy+186, posx+229, posy+247, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// RIGHT STICK
+    rectangleRGBA(frame_renderer, posx+183, posy+154, posx+214, posy+185, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// BUTTON 2
+    rectangleRGBA(frame_renderer, posx+183, posy+96, posx+214, posy+127, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// BUTTON 3
+    rectangleRGBA(frame_renderer, posx+183, posy+64, posx+214, posy+95, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// R1
+    rectangleRGBA(frame_renderer, posx+183, posy+32, posx+214, posy+63, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// R2
+    rectangleRGBA(frame_renderer, posx+183, posy, posx+214, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// R3
+	color = palette_pc[14];	// Gray
+    boxRGBA(frame_renderer, posx+30, posy+126, posx+58, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// Cross center
+    boxRGBA(frame_renderer, posx+15, posy+187, posx+73, posy+245, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// LEFT STICK
+    boxRGBA(frame_renderer, posx+169, posy+187, posx+227, posy+245, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);			// RIGHT STICK
+	color = palette_pc[1];	// Black
+	lineRGBA(frame_renderer, posx+44-15, posy+216, posx+44+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// LEFT STICK
+	lineRGBA(frame_renderer, posx+44, posy+216-15, posx+44, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);		// LEFT STICK
+	lineRGBA(frame_renderer, posx+198-15, posy+216, posx+198+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// RIGHT STICK
+	lineRGBA(frame_renderer, posx+198, posy+216-15, posx+198, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);	// RIGHT STICK
+	// Button L3
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L3))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[6];	// Cyan
+	}
+    boxRGBA(frame_renderer, posx+30, posy+1, posx+58, posy+29, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button L2
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[2];	// Blue Light
+	}
+    boxRGBA(frame_renderer, posx+30, posy+33, posx+58, posy+61, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button L1
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[0];	// Blue medium
+	}
+    boxRGBA(frame_renderer, posx+30, posy+65, posx+58, posy+93, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button UP
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+30, posy+97, posx+58, posy+125, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button LEFT
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+1, posy+126, posx+29, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button RIGHT
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+59, posy+126, posx+87, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button DOWN
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+30, posy+155, posx+58, posy+183, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Left analog stick
+	if (analogleftx1 <= -32 || analogleftx1 >= 32 || analoglefty1 <= -32 || analoglefty1 >= 32)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[15];	// White
+	}
+    boxRGBA(frame_renderer, posx+44-3+26*analogleftx1/INT16_MAX, posy+216-3+26*analoglefty1/INT16_MAX, posx+44+3+26*analogleftx1/INT16_MAX, posy+216+3+26*analoglefty1/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button SELECT
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[13];	// Green dark
+	}
+    boxRGBA(frame_renderer, posx+91, posy+126, posx+119, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button START
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[5];	// Green soft
+	}
+    boxRGBA(frame_renderer, posx+123, posy+126, posx+151, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button 4
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[2];	// Blue light
+	}
+    boxRGBA(frame_renderer, posx+155, posy+126, posx+183, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button 1
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[8];	// Red
+	}
+    boxRGBA(frame_renderer, posx+213, posy+126, posx+241, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Right analog stick
+	if (analogrightx1 <= -32 || analogrightx1 >= 32 || analogrighty1 <= -32 || analogrighty1 >= 32)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[15];	// White
+	}
+    boxRGBA(frame_renderer, posx+198-3+26*analogrightx1/INT16_MAX, posy+216-3+26*analogrighty1/INT16_MAX, posx+198+3+26*analogrightx1/INT16_MAX, posy+216+3+26*analogrighty1/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button 2
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[7];	// Green medium
+	}
+    boxRGBA(frame_renderer, posx+184, posy+155, posx+212, posy+183, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button 3
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[9];	// Orange
+	}
+    boxRGBA(frame_renderer, posx+184, posy+97, posx+212, posy+125, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button R1
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[3];	// Purple
+	}
+    boxRGBA(frame_renderer, posx+184, posy+65, posx+212, posy+93, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button R2
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[10];	// Fuschia
+	}
+    boxRGBA(frame_renderer, posx+184, posy+33, posx+212, posy+61, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Button R3
+	if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[11];	// Pink
+	}
+    boxRGBA(frame_renderer, posx+184, posy+1, posx+212, posy+29, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+
+
+
+	// KEYBOARD
+	posx = 550;
+	posy = 100;
+	// Contour
+	color = palette_pc[1];	// Black
+    rectangleRGBA(frame_renderer, posx, posy, posx+73, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);                      // POWER ON/OFF BUTTON
+    rectangleRGBA(frame_renderer, posx, posy+48, posx+73, posy+48+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);                // RESET BUTTON
+    rectangleRGBA(frame_renderer, posx, posy+96, posx+73, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);                // PAUSE BUTTON
+    rectangleRGBA(frame_renderer, posx+74, posy, posx+74+31, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx+74+32, posy, posx+74+32+31, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx+74+64, posy, posx+74+64+31, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx+74, posy+32, posx+74+31, posy+32+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx+74+32, posy+32, posx+74+32+31, posy+32+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx+74+64, posy+32, posx+74+64+31, posy+32+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx+74, posy+64, posx+74+31, posy+64+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx+74+32, posy+64, posx+74+32+31, posy+64+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx+74+64, posy+64, posx+74+64+31, posy+64+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx+74, posy+96, posx+74+31, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx+74+32, posy+96, posx+74+32+31, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    rectangleRGBA(frame_renderer, posx+74+64, posy+96, posx+74+64+31, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key POWER ON/OFF
+	if (keyPower != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+	boxRGBA(frame_renderer, posx+1, posy+1, posx+1+70, posy+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	color = palette_pc[1];	// Black
+	if (is_power_on)
+		rectangleRGBA(frame_renderer, posx+43, posy+1, posx+72, posy+30, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	else
+        rectangleRGBA(frame_renderer, posx+1, posy+1, posx+30, posy+30, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key RESET
+	if (keyReset != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+1, posy+48+1, posx+1+70, posy+48+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Key PAUSE
+	if (keyPause != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+1, posy+97, posx+1+70, posy+97+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key 7
+	if (key7 != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+74+1, posy+1, posx+74+1+28, posy+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key 8
+	if (key8 != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+74+33, posy+1, posx+74+33+28, posy+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key 9
+	if (key9 != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+74+65, posy+1, posx+74+65+28, posy+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key 4
+	if (key4 != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+74+1, posy+33, posx+74+1+28, posy+33+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key 5
+	if (key5 != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+74+33, posy+33, posx+74+33+28, posy+33+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key 6
+	if (key6 != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+74+65, posy+33, posx+74+65+28, posy+33+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+	// Key 1
+	if (key1 != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+	boxRGBA(frame_renderer, posx+74+1, posy+65, posx+74+1+28, posy+65+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key 2
+	if (key2 != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+74+33, posy+65, posx+74+33+28, posy+65+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key 3
+	if (key3 != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+74+65, posy+65, posx+74+65+28, posy+65+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key 0
+	if (key0 != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+74+1, posy+97, posx+74+1+28, posy+97+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key CL
+	if (keyClear != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+74+33, posy+97, posx+74+33+28, posy+97+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+    // Key EN
+	if (keyEnter != 0)
+	{
+//		button_pressed = TRUE;
+		color = palette_pc[4];	// Green light
+	}
+	else
+	{
+		color = palette_pc[14];	// Gray
+	}
+    boxRGBA(frame_renderer, posx+74+65, posy+97, posx+74+65+28, posy+97+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+*/
+
+
+	// Call audio callback manually if not set
+	if (retro_use_audio_cb == FALSE)
+		RetroAudioCb();
+
+	// Call video callback
+//	RetroVideoRefresh(escv_emu->get_osd()->get_vm_screen_ptr(), SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*sizeof(uint32_t));
+	RetroVideoRefresh(frame_surface->pixels, config.window_width, config.window_height,  config.window_width*sizeof(uint32_t));
+}
+
+/*
+png_byte *volatile image_data = NULL;
+png_bytep *volatile image_row_data = NULL;
+png_uint_32 image_width = 0;
+png_uint_32 image_height = 0;
+int image_bit_depth = 0;
+int image_color_type = -1;
+*/
+
+/*
+#ifdef _WIN32
+	#define dir_delimiter '\\'
+#else
+	#define dir_delimiter '/'
+#endif
+#define MAX_FILENAME 512
+#define PNGSIGBYTES 8
+
+typedef struct
+{
+	const png_bytep data;
+	const png_size_t size;
+} PngDataHandle;
+
+typedef struct
+{
+	const PngDataHandle datahandle;
+	png_size_t offset;
+} PngReadDataHandle;
+
+void png_read_data_from_inputstream(png_structp png_ptr, png_bytep raw_data, png_size_t read_length)
+{
+	PngReadDataHandle *handle = (PngReadDataHandle *)png_get_io_ptr(png_ptr);
+	if(handle == NULL)
+	{
+		log_printf_cb(RETRO_LOG_ERROR, "[%s] png_get_io_ptr() KO\n", EMUSCV_NAME);
+		return;
+	}
+
+	const png_bytep png_src = handle->datahandle.data + handle->offset;
+
+	if(memcpy((char *)raw_data, (char *)png_src, (size_t)read_length) == NULL)
+	{
+		log_printf_cb(RETRO_LOG_ERROR, "[%s] memcpy() KO\n", EMUSCV_NAME);
+		return;
+	}
+	handle->offset += read_length;
+}
+*/
+
+/*
+bool file_present_in_system(std::string fname)
+{
+    const char *systemdirtmp = NULL;
+    bool worked = environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &systemdirtmp);
+    if (!worked)
+        return false;
+
+    std::string fullpath  = systemdirtmp;
+    fullpath             += "/";
+    fullpath             += fname;
+
+   RFILE *fp             = filestream_open(fullpath.c_str(), RETRO_VFS_FILE_ACCESS_READ,
+         RETRO_VFS_FILE_ACCESS_HINT_NONE);
+
+   if (fp)
+   {
+      filestream_close(fp);
+      return true;
+   }
+
+   return false;
+}
+*/
+
+//
+// Libretro: load core settings
+//
+void cEmuSCV::RetroLoadSettings(void)
+{
+	struct retro_variable var;
+
+
+	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] cEmuSCV::RetroLoadSettings()\n", EMUSCV_NAME);
+	
+	// CONSOLE
+	config.scv_console	= SETTING_CONSOLE_AUTO_VAL;
+	var.key		= SETTING_CONSOLE_KEY;
+	var.value	= NULL;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		_TCHAR str[sizeof(var.value)];
+		memset(str, 0, sizeof(str));
+		strncpy(str, var.value, sizeof(str));
+		if(strcmp(str, _T(SETTING_CONSOLE_EPOCH_KEY)) == 0)
+			config.scv_console = SETTING_CONSOLE_EPOCH_VAL;
+		else if(strcmp(str, _T(SETTING_CONSOLE_YENO_KEY)) == 0)
+			config.scv_console = SETTING_CONSOLE_YENO_VAL;
+		else if(strcmp(str, _T(SETTING_CONSOLE_EPOCHLADY_KEY)) == 0)
+			config.scv_console = SETTING_CONSOLE_EPOCHLADY_VAL;
+	}
+	switch(config.scv_console)
+	{
+		case SETTING_CONSOLE_EPOCH_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Show console as EPOCH\n", EMUSCV_NAME);
+			break;
+		case SETTING_CONSOLE_YENO_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Show console as YENO\n", EMUSCV_NAME);
+			break;
+		case SETTING_CONSOLE_EPOCHLADY_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Show console as EPOCH LADY\n", EMUSCV_NAME);
+			break;
+		case SETTING_CONSOLE_AUTO_VAL:
+		default:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Show console as AUTO (EPOCH)\n", EMUSCV_NAME);
+	}
+
+	// DISPLAY
+	config.scv_display	= SETTING_DISPLAY_AUTO_VAL;
+	var.key		= SETTING_DISPLAY_KEY;
+	var.value	= NULL;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		_TCHAR str[sizeof(var.value)];
+		memset(str, 0, sizeof(str));
+		strncpy(str, var.value, sizeof(str));
+		if(strcmp(str, _T(SETTING_DISPLAY_EMUSCV_KEY)) == 0)
+			config.scv_display = SETTING_DISPLAY_EMUSCV_VAL;
+		else if(strcmp(str, _T(SETTING_DISPLAY_EPOCH_KEY)) == 0)
+			config.scv_display = SETTING_DISPLAY_EPOCH_VAL;
+		else if(strcmp(str, _T(SETTING_DISPLAY_YENO_KEY)) == 0)
+			config.scv_display = SETTING_DISPLAY_YENO_VAL;
+	}
+	switch(config.scv_display)
+	{
+		case SETTING_DISPLAY_EMUSCV_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display picture as EmuSCV (custom)\n", EMUSCV_NAME);
+			break;
+		case SETTING_DISPLAY_EPOCH_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display picture as EPOCH (genuine)\n", EMUSCV_NAME);
+			break;
+		case SETTING_DISPLAY_YENO_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display picture as YENO (genuine)\n", EMUSCV_NAME);
+			break;
+		case SETTING_DISPLAY_AUTO_VAL:
+		default:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display picture as AUTO (EmuSCV)\n", EMUSCV_NAME);
+	}
+
+	// FULL DISPLAY
+	config.scv_displayfull	= SETTING_DISPLAYFULL_NO_VAL;
+	var.key		= SETTING_DISPLAYFULL_KEY;
+	var.value	= NULL;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		_TCHAR str[sizeof(var.value)];
+		memset(str, 0, sizeof(str));
+		strncpy(str, var.value, sizeof(str));
+		if(strcmp(str, _T(SETTING_DISPLAYFULL_YES_KEY)) == 0)
+			config.scv_displayfull = SETTING_DISPLAYFULL_YES_VAL;
+	}
+	switch(config.scv_displayfull)
+	{
+		case SETTING_DISPLAYFULL_YES_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display full picture (developer mode)\n", EMUSCV_NAME);
+			break;
+		case SETTING_DISPLAYFULL_NO_VAL:
+		default:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display normal picture (user mode)\n", EMUSCV_NAME);
+	}
+
+	// FPS
+	config.scv_displayfps	= SETTING_DISPLAYFPS_AUTO_VAL;
+	var.key		= SETTING_DISPLAYFPS_KEY;
+	var.value	= NULL;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		_TCHAR str[sizeof(var.value)];
+		memset(str, 0, sizeof(str));
+		strncpy(str, var.value, sizeof(str));
+		if(strcmp(str, _T(SETTING_DISPLAYFPS_EPOCH60_KEY)) == 0)
+			config.scv_displayfps = SETTING_DISPLAYFPS_EPOCH60_VAL;
+		else if(strcmp(str, _T(SETTING_DISPLAYFPS_YENO50_KEY)) == 0)
+			config.scv_displayfps = SETTING_DISPLAYFPS_YENO50_VAL;
+	}
+	switch(config.scv_displayfps)
+	{
+		case SETTING_DISPLAYFPS_EPOCH60_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display set as 60Hz / 60 FPS (EPOCH)\n", EMUSCV_NAME);
+			break;
+		case SETTING_DISPLAYFPS_YENO50_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display set as 50Hz / 50 FPS (YENO)\n", EMUSCV_NAME);
+			break;
+		case SETTING_DISPLAYFPS_AUTO_VAL:
+		default:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display Frequency / FPS set as AUTO (depending of display)\n", EMUSCV_NAME);
+	}
+
+	// LANGAGE
+	config.scv_langage	= SETTING_LANGAGE_AUTO_VAL;
+	var.key		= SETTING_LANGAGE_KEY;
+	var.value	= NULL;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		_TCHAR str[sizeof(var.value)];
+		memset(str, 0, sizeof(str));
+		strncpy(str, var.value, sizeof(str));
+		if(strcmp(str, _T(SETTING_LANGAGE_JP_KEY)) == 0)
+			config.scv_langage = SETTING_LANGAGE_JP_VAL;
+		else if(strcmp(str, _T(SETTING_LANGAGE_EN_KEY)) == 0)
+			config.scv_langage = SETTING_LANGAGE_EN_VAL;
+		else if(strcmp(str, _T(SETTING_LANGAGE_FR_KEY)) == 0)
+			config.scv_langage = SETTING_LANGAGE_FR_VAL;
+	}
+	switch(config.scv_langage)
+	{
+		case SETTING_LANGAGE_JP_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage set as JP (EPOCH)\n", EMUSCV_NAME);
+			break;
+		case SETTING_LANGAGE_EN_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage set as EN (YENO)\n", EMUSCV_NAME);
+			break;
+		case SETTING_LANGAGE_FR_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage set as FR\n", EMUSCV_NAME);
+			break;
+		case SETTING_LANGAGE_AUTO_VAL:
+		default:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage set as AUTO (depending of console)\n", EMUSCV_NAME);
+	}
+
+	// CHECK BIOS
+	config.scv_checkbios	= SETTING_CHECKBIOS_YES_VAL;
+	var.key		= SETTING_DISPLAYFULL_KEY;
+	var.value	= NULL;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		_TCHAR str[sizeof(var.value)];
+		memset(str, 0, sizeof(str));
+		strncpy(str, var.value, sizeof(str));
+		if(strcmp(str, _T(SETTING_CHECKBIOS_NO_KEY)) == 0)
+			config.scv_checkbios = SETTING_CHECKBIOS_NO_VAL;
+	}
+	switch(config.scv_checkbios)
+	{
+		case SETTING_CHECKBIOS_NO_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Don't check BIOS\n", EMUSCV_NAME);
+			break;
+		case SETTING_CHECKBIOS_YES_VAL:
+		default:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Check BIOS\n", EMUSCV_NAME);
+	}
+
+	apply_display_config();
+}
+
+//
+// Libretro: save core settings
+//
+void cEmuSCV::RetroSaveSettings(void)
+{
+	// Save current config
+	struct retro_variable variable[7]; 
+
+	variable[0].key = SETTING_CONSOLE_KEY;
+	switch(config.scv_console)
+	{
+		case SETTING_CONSOLE_EPOCH_VAL:
+			variable[0].value = "CONSOLE; EPOCH";
+			break;
+		case SETTING_CONSOLE_YENO_VAL:
+			variable[0].value = "CONSOLE; YENO";
+			break;
+		case SETTING_CONSOLE_EPOCHLADY_VAL:
+			variable[0].value = "CONSOLE; EPOCHLADY";
+			break;
+		case SETTING_CONSOLE_AUTO_VAL:
+		default:
+			variable[0].value = "CONSOLE; AUTO";
+			break;
+	}
+	
+	variable[1].key = SETTING_DISPLAY_KEY;
+	switch(config.scv_display)
+	{
+		case SETTING_DISPLAY_EMUSCV_VAL:
+			variable[1].value = "DISPLAY; EMUSCV";
+			break;
+		case SETTING_DISPLAY_EPOCH_VAL:
+			variable[1].value = "DISPLAY; EPOCH";
+			break;
+		case SETTING_DISPLAY_YENO_VAL:
+			variable[1].value = "DISPLAY; YENO";
+			break;
+		case SETTING_DISPLAY_AUTO_VAL:
+		default:
+			variable[1].value = "DISPLAY; AUTO";
+			break;
+	}
+
+	variable[2].key = SETTING_DISPLAYFULL_KEY;
+	if(config.scv_displayfull == SETTING_DISPLAYFULL_YES_VAL)
+		variable[2].value = "DISPLAY FULL; YES";
+	else
+		variable[2].value = "DISPLAY FULL; NO";
+	
+	variable[3].key = SETTING_DISPLAYFPS_KEY;
+	switch(config.scv_displayfps)
+	{
+		case SETTING_DISPLAYFPS_EPOCH60_VAL:
+			variable[3].value = "DISPLAY FPS; EPOCH_60";
+			break;
+		case SETTING_DISPLAYFPS_YENO50_VAL:
+			variable[3].value = "DISPLAY FPS; YENO_50";
+			break;
+		case SETTING_DISPLAYFPS_AUTO_VAL:
+		default:
+			variable[3].value = "DISPLAY FPS; AUTO";
+			break;
+	}
+	
+	variable[4].key = SETTING_LANGAGE_KEY;
+	switch(config.scv_langage)
+	{
+		case SETTING_LANGAGE_JP_VAL:
+			variable[4].value = "LANGAGE; JP";
+			break;
+		case SETTING_LANGAGE_EN_VAL:
+			variable[4].value = "LANGAGE; EN";
+			break;
+		case SETTING_LANGAGE_FR_VAL:
+			variable[4].value = "LANGAGE; FR";
+			break;
+		case SETTING_LANGAGE_AUTO_VAL:
+		default:
+			variable[4].value = "LANGAGE; AUTO";
+			break;
+	}
+	
+	variable[5].key = SETTING_CHECKBIOS_KEY;
+	if(config.scv_checkbios == SETTING_CHECKBIOS_NO_VAL)
+		variable[5].value = "CHECK BIOS; NO";
+	else
+		variable[5].value = "CHECK BIOS; YES";
+
+	variable[6].key = NULL;
+	variable[6].value = NULL;
+
+	RetroEnvironment(RETRO_ENVIRONMENT_SET_VARIABLES, variable);
+
+	// Set possible values
+	variable[0].value = "CONSOLE; AUTO|EPOCH|YENO|EPOCHLADY";
+	variable[1].value = "DISPLAY; AUTO|EMUSCV|EPOCH|YENO";
+	variable[2].value = "DISPLAY FULL; NO|YES";
+	variable[3].value = "DISPLAY FPS; AUTO|EPOCH_60|YENO_50";
+	variable[4].value = "LANGAGE; AUTO|JP|EN|FR";
+	variable[5].value = "CHECK BIOS; YES|NO";
+	RetroEnvironment(RETRO_ENVIRONMENT_SET_VARIABLES, variable);
+}
+
+//
+// Libretro: reset the Libretro core
+//
+void cEmuSCV::RetroReset(void)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroReset()\n", EMUSCV_NAME);
+
+	if(escv_emu)
+	{
+		escv_emu->reset();
+	}
+}
+
+// 
+// Libretro: return save state size
+// 
+size_t cEmuSCV::RetroSaveStateSize(void)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSaveStateSize()\n", EMUSCV_NAME);
+
+	return 0;
+}
+
+// 
+// Libretro: return save state data pointer
+// 
+void *cEmuSCV::RetroSaveStateData(void)
+{
+	// Log
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSaveStateData()\n", EMUSCV_NAME);
+
+	return NULL;
 }

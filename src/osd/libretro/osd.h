@@ -7,8 +7,17 @@
 	[ libretro dependent ]
 */
 
-#ifndef _LIBRETRO_OSD_H_
-#define _LIBRETRO_OSD_H_
+#ifndef _EMUSCV_INC_OSD_LIBRETRO_OSD_H_
+#define _EMUSCV_INC_OSD_LIBRETRO_OSD_H_
+
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+#include <SDL2/SDL.h>
+#include <SDL2_gfx/SDL2_gfxPrimitives.h>
+
 /*
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT		0x500
@@ -34,10 +43,11 @@
 #include <dsound.h>
 #include <dinput.h>
 */
-#include "../../vm/vm.h"
-//#include "../../emu.h"
+
 #include "../../common.h"
 #include "../../config.h"
+#include "../../vm/vm.h"
+//#include "../../emu.h"
 
 //#ifdef USE_ZLIB
 // relative path from *.vcproj/*.vcxproj, not from this directory :-(
@@ -172,32 +182,45 @@ public:
 #endif
 */
 // osd common
-
 #define OSD_CONSOLE_BLUE		1 // text color contains blue
 #define OSD_CONSOLE_GREEN		2 // text color contains green
 #define OSD_CONSOLE_RED			4 // text color contains red
 #define OSD_CONSOLE_INTENSITY	8 // text color is intensified
-/*
-typedef struct bitmap_s {
+
+typedef struct bitmap_s
+{
 	// common
 	inline bool initialized()
 	{
-		return (hdcDib != NULL);
+		return (frame_surface != NULL && frame_renderer != NULL);
 	}
-	inline scrntype_t* get_buffer(int y)
+	inline scrntype_t* get_screen_ptr()
 	{
-		return lpBmp + width * (height - y - 1);
+		if(frame_surface == NULL)
+			return NULL;
+		return (scrntype_t *)frame_surface->pixels;
+	}
+	inline scrntype_t* get_line_ptr(int y)
+	{
+		if(frame_surface == NULL)
+			return NULL;
+		return (scrntype_t *)frame_surface->pixels + width * y;
+	}
+	inline scrntype_t* get_pixel_ptr(int x, int y)
+	{
+		if(frame_surface == NULL)
+			return NULL;
+		return (scrntype_t *)frame_surface->pixels + width * y + x;
 	}
 	int width, height;
-	// win32 dependent
-	HDC hdcDib;
-	HBITMAP hBmp, hOldBmp;
-	LPBYTE lpBuf;
-	scrntype_t* lpBmp;
-	LPBITMAPINFO lpDib;
-} bitmap_t;
 
-typedef struct font_s {
+	// Libretro dependent
+	SDL_Surface *frame_surface;		// SDL2 frame surface
+	SDL_Renderer *frame_renderer;	// SDL2 frame renderer
+} bitmap_t;
+/*
+typedef struct font_s
+{
 	// common
 	inline bool initialized()
 	{
@@ -210,7 +233,8 @@ typedef struct font_s {
 	HFONT hFont;
 } font_t;
 
-typedef struct pen_s {
+typedef struct pen_s
+{
 	// common
 	inline bool initialized()
 	{
@@ -232,8 +256,10 @@ typedef struct {
 	int result;
 } rec_video_thread_param_t;
 */
+
 class FIFO;
 class FILEIO;
+class VM_TEMPLATE;
 
 class OSD
 {
@@ -259,18 +285,18 @@ private:
 	bool dinput_key_available;
 //	bool dinput_joy_available;
 
+*/
 	uint8_t keycode_conv[256];
-	*/
 	uint8_t key_status[256];	// windows key code mapping
-	/*
+/*
 	uint8_t key_dik[256];
 	uint8_t key_dik_prev[256];
-	bool key_shift_pressed, key_shift_released;
-	bool key_caps_locked;
-	*/
+*/
+//	bool key_shift_pressed, key_shift_released;
+//	bool key_caps_locked;
 	bool lost_focus;
-/*
 #ifdef USE_JOYSTICK
+/*
 	// bit0-3	up,down,left,right
 	// bit4-19	button #1-#16
 	// bit20-21	z-axis pos
@@ -278,10 +304,10 @@ private:
 	// bit24-25	u-axis pos
 	// bit26-27	v-axis pos
 	// bit28-31	pov pos
-	*/
+*/
 	uint32_t joy_status[4];
+	uint32_t joy_status_current[4];
 	int joy_num;
-	/*
 	struct {
 		UINT wNumAxes;
 		DWORD dwXposLo, dwXposHi;
@@ -293,19 +319,21 @@ private:
 		DWORD dwButtonsMask;
 	} joy_caps[4];
 	bool joy_to_key_status[256];
-#endif
+#endif	// #ifdef USE_JOYSTICK
 
+/*
 #ifdef USE_MOUSE
 	int32_t mouse_status[3];	// x, y, button (b0 = left, b1 = right)
 	bool mouse_enabled;
-#endif
+#endif	// #ifdef USE_MOUSE
 */
 	// screen
 	void initialize_screen();
 	void release_screen();
-/*
-	void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
+	void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int red, int green, int blue, int alpha);
 	void release_screen_buffer(bitmap_t *buffer);
+
+/*
 #ifdef USE_SCREEN_FILTER
 	void apply_rgb_filter_to_screen_buffer(bitmap_t *source, bitmap_t *dest);
 	void apply_rgb_filter_x3_y3(bitmap_t *source, bitmap_t *dest);
@@ -313,42 +341,40 @@ private:
 	void apply_rgb_filter_x2_y3(bitmap_t *source, bitmap_t *dest);
 	void apply_rgb_filter_x2_y2(bitmap_t *source, bitmap_t *dest);
 	void apply_rgb_filter_x1_y1(bitmap_t *source, bitmap_t *dest);
-#endif
-//#ifdef USE_SCREEN_ROTATE
+#endif	// #ifdef USE_SCREEN_FILTER
+#ifdef USE_SCREEN_ROTATE
 	void rotate_screen_buffer(bitmap_t *source, bitmap_t *dest);
-//#endif
+#endif	// #ifdef USE_SCREEN_ROTATE
 	void stretch_screen_buffer(bitmap_t *source, bitmap_t *dest);
-
 	bool initialize_d3d9();
 	bool initialize_d3d9_surface(bitmap_t *buffer);
 	void release_d3d9();
 	void release_d3d9_surface();
 	void copy_to_d3d9_surface(bitmap_t *buffer);
-
+*/
 	int add_video_frames();
 
-	bitmap_t vm_screen_buffer;
+	bitmap_t vm_screen_buffer;	// Buffer containing entire display
+/*
 #ifdef USE_SCREEN_FILTER
 	bitmap_t filtered_screen_buffer;
 	bitmap_t tmp_filtered_screen_buffer;
-#endif
-//#ifdef USE_SCREEN_ROTATE
-	bitmap_t rotated_screen_buffer;
-//#endif
-	bitmap_t stretched_screen_buffer;
-	bitmap_t shrinked_screen_buffer;
-	bitmap_t video_screen_buffer;
-
-	bitmap_t* draw_screen_buffer;
-
+#endif	// #ifdef USE_SCREEN_FILTER
+#ifdef USE_SCREEN_ROTATE
+//	bitmap_t rotated_screen_buffer;
+#endif	// #ifdef USE_SCREEN_ROTATE
+//	bitmap_t stretched_screen_buffer;
+//	bitmap_t shrinked_screen_buffer;
+//	bitmap_t video_screen_buffer;
+//	bitmap_t* draw_screen_buffer;
+//	int draw_screen_width, draw_screen_height;
 	int host_window_width, host_window_height;
 	bool host_window_mode;
-	*/
+*/
 	int vm_screen_width, vm_screen_height;
+/*
 	int vm_window_width, vm_window_height;
 	int vm_window_width_aspect, vm_window_height_aspect;
-	/*
-	int draw_screen_width, draw_screen_height;
 
 	Gdiplus::GdiplusStartupInput gdiSI;
 	ULONG_PTR gdiToken;
@@ -360,9 +386,8 @@ private:
 
 	_TCHAR video_file_path[_MAX_PATH];
 	int rec_video_fps;
-	*/
+
 	double rec_video_run_frames;
-	/*
 	double rec_video_frames;
 
 	LPBITMAPINFO lpDibRec;
@@ -374,18 +399,18 @@ private:
 	LONG lAVIFrames;
 	HANDLE hVideoThread;
 	rec_video_thread_param_t rec_video_thread_param;
-
+*/
 	bool first_draw_screen;
 	bool first_invalidate;
 	bool self_invalidate;
-*/
+
 	// sound
 	void initialize_sound(int rate, int samples);
 	void release_sound();
-/*
+
 	int sound_rate, sound_samples;
 	bool sound_available, sound_started, sound_muted;
-
+/*
 	LPDIRECTSOUND lpds;
 	LPDIRECTSOUNDBUFFER lpdsPrimaryBuffer, lpdsSecondaryBuffer;
 
@@ -456,7 +481,6 @@ public:
 
 	// common
 	VM_TEMPLATE* vm;
-
 	void initialize(int rate, int samples);
 	void release();
 	void power_off();
@@ -470,7 +494,7 @@ public:
 	}
 	void force_unlock_vm();
 	void sleep(uint32_t ms);
-
+/*
 	// common debugger
 #ifdef USE_DEBUGGER
 	void start_waiting_in_debugger();
@@ -488,7 +512,7 @@ public:
 	int read_console_input(_TCHAR* buffer, unsigned int length);
 	bool is_console_key_pressed(int vk);
 	void close_debugger_console();
-
+*/
 	// common input
 	void update_input();
 	void key_down(int code, bool extended, bool repeat);
@@ -499,6 +523,20 @@ public:
 	{
 		lost_focus = true;
 	}
+
+#ifdef USE_JOYSTICK
+	void set_joy_status(int joy_index,
+						bool up, bool down, bool left, bool right,
+						bool button1, bool button2, bool button3, bool button4,
+						bool button5, bool button6, bool button7, bool button8,
+						bool button9, bool button10, bool button11, bool button12,
+						bool button13, bool button14, bool button15, bool button16,
+						uint16_t zaxis, uint16_t raxis, uint16_t uaxis, uint16_t vaxis,
+						uint32_t pov);
+
+#endif	// USE_JOYSTICK
+
+/*
 #ifdef USE_MOUSE
 	void enable_mouse();
 	void disable_mouse();
@@ -508,6 +546,7 @@ public:
 		return mouse_enabled;
 	}
 #endif
+*/
 	uint8_t* get_key_buffer()
 	{
 		return key_status;
@@ -518,23 +557,27 @@ public:
 		return joy_status;
 	}
 #endif
+/*
 #ifdef USE_MOUSE
 	int32_t* get_mouse_buffer()
 	{
 		return mouse_status;
 	}
 #endif
+*/
 #ifdef USE_AUTO_KEY
 	bool now_auto_key;
 #endif
 
 	// common screen
+/*
 	double get_window_mode_power(int mode);
 	int get_window_mode_width(int mode);
 	int get_window_mode_height(int mode);
 	void set_host_window_size(int window_width, int window_height, bool window_mode);
 	void set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect);
 	void set_vm_screen_lines(int lines);
+
 	int get_vm_window_width()
 	{
 		return vm_window_width;
@@ -551,23 +594,30 @@ public:
 	{
 		return vm_window_height_aspect;
 	}
-	scrntype_t* get_vm_screen_buffer(int y);
+*/
+	bitmap_t* get_vm_screen_buffer();
+	scrntype_t* get_vm_screen_ptr();
+	scrntype_t* get_vm_line_ptr(int y);
+	scrntype_t* get_vm_pixel_ptr(int x, int y);
+	
 	int draw_screen();
-	/*
+/*
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	void reload_bitmap()
 	{
 		first_invalidate = true;
 	}
 #endif
-*/
 	void capture_screen();
+
 	bool start_record_video(int fps);
 	void stop_record_video();
 	void restart_record_video();
+*/
 	void add_extra_frames(int extra_frames);
-	bool now_record_video;
 /*
+	bool now_record_video;
+
 #ifdef USE_SCREEN_FILTER
 	bool screen_skip_line;
 #endif
@@ -576,11 +626,12 @@ public:
 	void update_sound(int* extra_frames);
 	void mute_sound();
 	void stop_sound();
+/*
 	void start_record_sound();
 	void stop_record_sound();
 	void restart_record_sound();
 	bool now_record_sound;
-/*
+
 	// common video device
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	void get_video_buffer();
@@ -672,4 +723,4 @@ public:
 */
 };
 
-#endif	// _LIBRETRO_OSD_H_
+#endif	// _EMUSCV_INC_OSD_LIBRETRO_OSD_H_

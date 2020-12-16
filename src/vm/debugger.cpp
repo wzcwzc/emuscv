@@ -16,10 +16,9 @@
     #include <sys/io.h>
 #endif
 #include <fcntl.h>
-#include "device.h"
-#include "debugger.h"
-#include "vm.h"
+
 #include "../fileio.h"
+#include "debugger.h"
 
 #ifdef USE_DEBUGGER
 
@@ -1020,8 +1019,10 @@ RESTART_GO:
 							break;
 						}
 						p->osd->sleep(10);
-					}#elif defined(OSD_QT)
-					while(!p->request_terminate && !cpu_debugger->now_suspended) {						if(p->osd->console_input_string() != NULL && p->osd->is_console_active()) {
+					}
+#elif defined(OSD_QT)
+					while(!p->request_terminate && !cpu_debugger->now_suspended) {
+						if(p->osd->console_input_string() != NULL && p->osd->is_console_active()) {
 							p->osd->clear_console_input_string();
 							break;
 						}

@@ -4,144 +4,133 @@
 	Author : Takeda.Toshiya
 	Date   : 2015.11.20-
 
-	[ win32 screen ]
+	[ libretro screen ]
 */
 
 #include "osd.h"
-/*
-// TODO_MM
+
 #define REC_VIDEO_SUCCESS	1
 #define REC_VIDEO_FULL		2
 #define REC_VIDEO_ERROR		3
-*/
+
 void OSD::initialize_screen()
 {
 /*
-// TODO_MM
 	host_window_width = WINDOW_WIDTH;
 	host_window_height = WINDOW_HEIGHT;
 	host_window_mode = true;
-
+*/
 	vm_screen_width = SCREEN_WIDTH;
 	vm_screen_height = SCREEN_HEIGHT;
+/*
 	vm_window_width = WINDOW_WIDTH;
 	vm_window_height = WINDOW_HEIGHT;
-	vm_window_width_aspect = WINDOW_WIDTH_ASPECT;
-	vm_window_height_aspect = WINDOW_HEIGHT_ASPECT;
-
+	vm_window_width_aspect = WINDOW_WIDTH;
+	vm_window_height_aspect = WINDOW_HEIGHT;
+*/
 	memset(&vm_screen_buffer, 0, sizeof(bitmap_t));
+
+/*
 #ifdef USE_SCREEN_FILTER
 	memset(&filtered_screen_buffer, 0, sizeof(bitmap_t));
 	memset(&tmp_filtered_screen_buffer, 0, sizeof(bitmap_t));
 #endif
-//#ifdef USE_SCREEN_ROTATE
+#ifdef USE_SCREEN_ROTATE
 	memset(&rotated_screen_buffer, 0, sizeof(bitmap_t));
-//#endif
+#endif
 	memset(&stretched_screen_buffer, 0, sizeof(bitmap_t));
 	memset(&shrinked_screen_buffer, 0, sizeof(bitmap_t));
 	memset(&video_screen_buffer, 0, sizeof(bitmap_t));
-
 	lpd3d9 = NULL;
 	lpd3d9Device = NULL;
 	lpd3d9Surface = NULL;
 	lpd3d9OffscreenSurface = NULL;
-
 	now_record_video = false;
 	pAVIStream = NULL;
 	pAVICompressed = NULL;
 	pAVIFile = NULL;
+	rec_video_run_frames = rec_video_frames = 0;
+*/
 
 	first_draw_screen = false;
 	first_invalidate = true;
 	self_invalidate = false;
-*/
 }
 
 void OSD::release_screen()
 {
 /*
-// TODO_MM
 	stop_record_video();
 
 	release_d3d9();
+*/
 	release_screen_buffer(&vm_screen_buffer);
+/*
 #ifdef USE_SCREEN_FILTER
 	release_screen_buffer(&filtered_screen_buffer);
 	release_screen_buffer(&tmp_filtered_screen_buffer);
 #endif
-//#ifdef USE_SCREEN_ROTATE
+#ifdef USE_SCREEN_ROTATE
 	release_screen_buffer(&rotated_screen_buffer);
-//#endif
+#endif
 	release_screen_buffer(&stretched_screen_buffer);
 	release_screen_buffer(&shrinked_screen_buffer);
 	release_screen_buffer(&video_screen_buffer);
 */
 }
 
+/*
 double OSD::get_window_mode_power(int mode)
 {
-/*
-// TODO_MM
-	if(mode + WINDOW_MODE_BASE == 2) {
+	if(mode + WINDOW_MODE_BASE == 2)
+	{
 		return 1.5;
-	} else if(mode + WINDOW_MODE_BASE > 2) {
+	}
+	else if(mode + WINDOW_MODE_BASE > 2)
+	{
 		return mode + WINDOW_MODE_BASE - 1;
 	}
 	return mode + WINDOW_MODE_BASE;
-*/
-	return 0;
 }
+
 
 int OSD::get_window_mode_width(int mode)
 {
-/*
-// TODO_MM
-//#ifdef USE_SCREEN_ROTATE
+#ifdef USE_SCREEN_ROTATE
 	if(config.rotate_type == 1 || config.rotate_type == 3) {
 		return (int)((config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * get_window_mode_power(mode));
 	}
-//#endif
+#endif
+
 	return (int)((config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * get_window_mode_power(mode));
-*/
-	return 0;
 }
 
 int OSD::get_window_mode_height(int mode)
 {
-/*
-// TODO_MM
-//#ifdef USE_SCREEN_ROTATE
+#ifdef USE_SCREEN_ROTATE
 	if(config.rotate_type == 1 || config.rotate_type == 3) {
 		return (int)((config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * get_window_mode_power(mode));
 	}
-//#endif
+#endif
 	return (int)((config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * get_window_mode_power(mode));
-*/
-	return 0;
 }
 
 void OSD::set_host_window_size(int window_width, int window_height, bool window_mode)
 {
-/*
-// TODO_MM
-	if(window_width != -1) {
+	if(window_width != -1)
 		host_window_width = window_width;
-	}
-	if(window_height != -1) {
+	if(window_height != -1)
 		host_window_height = window_height;
-	}
 	host_window_mode = window_mode;
 
 	first_draw_screen = false;
 	first_invalidate = true;
-*/
 }
 
 void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect)
 {
-/*
-// TODO_MM
-	if(vm_screen_width != screen_width || vm_screen_height != screen_height) {
+	if(vm_screen_width != screen_width || vm_screen_height != screen_height)
+	{
 		if(window_width == -1) {
 			window_width = screen_width;
 		}
@@ -163,11 +152,12 @@ void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_wid
 			vm_window_width_aspect = window_width_aspect;
 			vm_window_height_aspect = window_height_aspect;
 
-			// change the window size
-			PostMessage(main_window_handle, WM_RESIZE, 0L, 0L);
-		} else {
-			// to make sure
-			set_host_window_size(-1, -1, host_window_mode);
+		// 	// change the window size
+		// 	PostMessage(main_window_handle, WM_RESIZE, 0L, 0L);
+		// } else {
+		// 	// to make sure
+		// 	set_host_window_size(-1, -1, host_window_mode);
+
 		}
 	}
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
@@ -175,74 +165,97 @@ void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_wid
 			stop_record_video();
 //			stop_record_sound();
 		}
-		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, COLORONCOLOR);
+		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0, 0, 0, 255);
 	}
-*/
 }
 
 void OSD::set_vm_screen_lines(int lines)
 {
 //	set_vm_screen_size(vm_screen_width, lines, vm_window_width, vm_window_height, vm_window_width_aspect, vm_screen_height);
 }
-
-scrntype_t* OSD::get_vm_screen_buffer(int y)
-{
-/*
-// TODO_MM
-	return vm_screen_buffer.get_buffer(y);
 */
-	return NULL;
+bitmap_t* OSD::get_vm_screen_buffer()
+{
+	return &vm_screen_buffer;
+}
+
+scrntype_t* OSD::get_vm_screen_ptr()
+{
+	return vm_screen_buffer.get_screen_ptr();
+}
+
+scrntype_t* OSD::get_vm_line_ptr(int y)
+{
+	return vm_screen_buffer.get_line_ptr(y);
+}
+
+scrntype_t* OSD::get_vm_pixel_ptr(int x, int y)
+{
+	return vm_screen_buffer.get_pixel_ptr(x, y);
 }
 
 int OSD::draw_screen()
 {
 /*
-// TODO_MM
 	// check avi file recording timing
-	if(now_record_video && rec_video_run_frames <= 0) {
+	if(now_record_video && rec_video_run_frames <= 0)
+	{
 		return 0;
 	}
-
+*/
 	// draw screen
-	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
-		if(now_record_video) {
+	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height)
+	{
+/*
+		if(now_record_video)
+		{
 			stop_record_video();
-//			stop_record_sound();
+			stop_record_sound();
 		}
-		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, COLORONCOLOR);
+*/
+		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0, 0, 0, 255);
 	}
+
 #ifdef USE_SCREEN_FILTER
 	screen_skip_line = false;
-#endif
+
+#endif	// #ifdef USE_SCREEN_FILTER
 	vm->draw_screen();
 
+/*
 #ifndef ONE_BOARD_MICRO_COMPUTER
 	// screen size was changed in vm->draw_screen()
-	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
+	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height)
+	{
 		return 0;
 	}
+
 	draw_screen_buffer = &vm_screen_buffer;
 
 	// calculate screen size
-//#ifdef USE_SCREEN_ROTATE
+#ifdef USE_SCREEN_ROTATE
 	int tmp_width_aspect = (config.rotate_type == 1 || config.rotate_type == 3) ? vm_window_height_aspect : vm_window_width_aspect;
 	int tmp_height_aspect = (config.rotate_type == 1 || config.rotate_type == 3) ? vm_window_width_aspect : vm_window_height_aspect;
 	int tmp_width = (config.rotate_type == 1 || config.rotate_type == 3) ? vm_window_height : vm_window_width;
 	int tmp_height = (config.rotate_type == 1 || config.rotate_type == 3) ? vm_window_width : vm_window_height;
-//#else
-//	#define tmp_width_aspect vm_window_width_aspect
-//	#define tmp_height_aspect vm_window_height_aspect
-//	#define tmp_width vm_window_width
-//	#define tmp_height vm_window_height
-//#endif
+#else	// #ifdef USE_SCREEN_ROTATE
+	#define tmp_width_aspect vm_window_width_aspect
+	#define tmp_height_aspect vm_window_height_aspect
+	#define tmp_width vm_window_width
+	#define tmp_height vm_window_height
+#endif	// #ifdef USE_SCREEN_ROTATE
 
-	if(host_window_mode) {
+	if(host_window_mode)
+	{
 		// window mode
 		draw_screen_width = host_window_width;
 		draw_screen_height = host_window_height;
-	} else {
+	}
+	else
+	{
 		// fullscreen mode
-		if(config.fullscreen_stretch_type == 0) {
+		if(config.fullscreen_stretch_type == 0)
+		{
 			// dot by dot
 			int tmp_pow_x = host_window_width / tmp_width;
 			int tmp_pow_y = host_window_height / tmp_height;
@@ -254,23 +267,31 @@ int OSD::draw_screen()
 			}
 			draw_screen_width = tmp_width * tmp_pow;
 			draw_screen_height = tmp_height * tmp_pow;
-		} else if(config.fullscreen_stretch_type == 1) {
+		}
+		else if(config.fullscreen_stretch_type == 1)
+		{
 			// stretch (no aspect)
 			draw_screen_width = (host_window_height * tmp_width) / tmp_height;
 			draw_screen_height = host_window_height;
-			if(draw_screen_width > host_window_width) {
+			if(draw_screen_width > host_window_width)
+			{
 				draw_screen_width = host_window_width;
 				draw_screen_height = (host_window_width * tmp_height) / tmp_width;
 			}
-		} else if(config.fullscreen_stretch_type == 2) {
+		}
+		else if(config.fullscreen_stretch_type == 2)
+		{
 			// stretch (aspect)
 			draw_screen_width = (host_window_height * tmp_width_aspect) / tmp_height_aspect;
 			draw_screen_height = host_window_height;
-			if(draw_screen_width > host_window_width) {
+			if(draw_screen_width > host_window_width)
+			{
 				draw_screen_width = host_window_width;
 				draw_screen_height = (host_window_width * tmp_height_aspect) / tmp_width_aspect;
 			}
-		} else if(config.fullscreen_stretch_type == 3) {
+		}
+		else if(config.fullscreen_stretch_type == 3)
+		{
 			// stretch (fill)
 			draw_screen_width = host_window_width;
 			draw_screen_height = host_window_height;
@@ -278,91 +299,102 @@ int OSD::draw_screen()
 	}
 	int dest_pow_x = (int)ceil((double)draw_screen_width / (double)tmp_width);
 	int dest_pow_y = (int)ceil((double)draw_screen_height / (double)tmp_height);
-//#ifdef USE_SCREEN_ROTATE
+#ifdef USE_SCREEN_ROTATE
 	int tmp_pow_x = (config.rotate_type == 1 || config.rotate_type == 3) ? dest_pow_y : dest_pow_x;
 	int tmp_pow_y = (config.rotate_type == 1 || config.rotate_type == 3) ? dest_pow_x : dest_pow_y;
-//#else
-//	#define tmp_pow_x dest_pow_x
-//	#define tmp_pow_y dest_pow_y
-//#endif
+#else	// #ifdef USE_SCREEN_ROTATE
+	#define tmp_pow_x dest_pow_x
+	#define tmp_pow_y dest_pow_y
+#endif	// #ifdef USE_SCREEN_ROTATE
 
 #ifdef USE_SCREEN_FILTER
 	// apply crt filter
-	if(config.filter_type == SCREEN_FILTER_RGB) {
-		if(filtered_screen_buffer.width != vm_screen_width * tmp_pow_x || filtered_screen_buffer.height != vm_screen_height * tmp_pow_y) {
+	if(config.filter_type == SCREEN_FILTER_RGB)
+	{
+		if(filtered_screen_buffer.width != vm_screen_width * tmp_pow_x || filtered_screen_buffer.height != vm_screen_height * tmp_pow_y)
+		{
 			initialize_screen_buffer(&filtered_screen_buffer, vm_screen_width * tmp_pow_x, vm_screen_height * tmp_pow_y, COLORONCOLOR);
 		}
 		apply_rgb_filter_to_screen_buffer(draw_screen_buffer, &filtered_screen_buffer);
 		draw_screen_buffer = &filtered_screen_buffer;
-	} else if(config.filter_type == SCREEN_FILTER_RF) {
+	}
+	else if(config.filter_type == SCREEN_FILTER_RF)
+	{
 		// FIXME
 	}
-#endif
-//#ifdef USE_SCREEN_ROTATE
+#endif	// USE_SCREEN_FILTER
+#ifdef USE_SCREEN_ROTATE
 	// rotate screen
-	if(config.rotate_type == 1 || config.rotate_type == 3) {
-		if(rotated_screen_buffer.width != draw_screen_buffer->height || rotated_screen_buffer.height != draw_screen_buffer->width) {
-			initialize_screen_buffer(&rotated_screen_buffer, draw_screen_buffer->height, draw_screen_buffer->width, COLORONCOLOR);
-		}
-		rotate_screen_buffer(draw_screen_buffer, &rotated_screen_buffer);
-		draw_screen_buffer = &rotated_screen_buffer;
-	} else if(config.rotate_type == 2) {
-		if(rotated_screen_buffer.width != draw_screen_buffer->width || rotated_screen_buffer.height != draw_screen_buffer->height) {
-			initialize_screen_buffer(&rotated_screen_buffer, draw_screen_buffer->width, draw_screen_buffer->height, COLORONCOLOR);
+	if(config.rotate_type == 1 || config.rotate_type == 3)
+	{
+		if(rotated_screen_buffer.width != draw_screen_buffer->height || rotated_screen_buffer.height != draw_screen_buffer->width)
+		{
+			initialize_screen_buffer(&rotated_screen_buffer, draw_screen_buffer->height, draw_screen_buffer->width, 0, 0, 0, 255);
 		}
 		rotate_screen_buffer(draw_screen_buffer, &rotated_screen_buffer);
 		draw_screen_buffer = &rotated_screen_buffer;
 	}
-//#endif
+	else if(config.rotate_type == 2)
+	{
+		if(rotated_screen_buffer.width != draw_screen_buffer->width || rotated_screen_buffer.height != draw_screen_buffer->height)
+		{
+			initialize_screen_buffer(&rotated_screen_buffer, draw_screen_buffer->width, draw_screen_buffer->height, 0, 0, 0, 255);
+		}
+		rotate_screen_buffer(draw_screen_buffer, &rotated_screen_buffer);
+		draw_screen_buffer = &rotated_screen_buffer;
+	}
+#endif	// #ifdef USE_SCREEN_ROTATE
 	// stretch screen
-	if(draw_screen_buffer->width != tmp_width * dest_pow_x || draw_screen_buffer->height != tmp_height * dest_pow_y) {
-		if(stretched_screen_buffer.width != tmp_width * dest_pow_x || stretched_screen_buffer.height != tmp_height * dest_pow_y) {
-			initialize_screen_buffer(&stretched_screen_buffer, tmp_width * dest_pow_x, tmp_height * dest_pow_y, COLORONCOLOR);
+	if(draw_screen_buffer->width != tmp_width * dest_pow_x || draw_screen_buffer->height != tmp_height * dest_pow_y)
+	{
+		if(stretched_screen_buffer.width != tmp_width * dest_pow_x || stretched_screen_buffer.height != tmp_height * dest_pow_y)
+		{
+			initialize_screen_buffer(&stretched_screen_buffer, tmp_width * dest_pow_x, tmp_height * dest_pow_y, 0, 0, 0, 255);
 		}
 		stretch_screen_buffer(draw_screen_buffer, &stretched_screen_buffer);
 		draw_screen_buffer = &stretched_screen_buffer;
 	}
 
-	// initialize d3d9 surface
-	static bool prev_use_d3d9 = config.use_d3d9;
-	static bool prev_wait_vsync = config.wait_vsync;
-	static int prev_window_width = 0, prev_window_height = 0;
-	static int prev_screen_width = 0, prev_screen_height = 0;
+	// // initialize d3d9 surface
+	// static bool prev_use_d3d9 = config.use_d3d9;
+	// static bool prev_wait_vsync = config.wait_vsync;
+	// static int prev_window_width = 0, prev_window_height = 0;
+	// static int prev_screen_width = 0, prev_screen_height = 0;
 
-	if(prev_use_d3d9 != config.use_d3d9 || prev_wait_vsync != config.wait_vsync || prev_window_width != host_window_width || prev_window_height != host_window_height) {
-		if(config.use_d3d9) {
-			config.use_d3d9 = initialize_d3d9();
-		} else {
-			release_d3d9();
-		}
-		prev_use_d3d9 = config.use_d3d9;
-		prev_wait_vsync = config.wait_vsync;
-		prev_window_width = host_window_width;
-		prev_window_height = host_window_height;
-		prev_screen_width = prev_screen_height = 0;
-	}
-	if(prev_screen_width != draw_screen_buffer->width || prev_screen_height != draw_screen_buffer->height) {
-		if(config.use_d3d9) {
-			config.use_d3d9 = initialize_d3d9_surface(draw_screen_buffer);
-		}
-		prev_screen_width = draw_screen_buffer->width;
-		prev_screen_height = draw_screen_buffer->height;
-	}
+	// if(prev_use_d3d9 != config.use_d3d9 || prev_wait_vsync != config.wait_vsync || prev_window_width != host_window_width || prev_window_height != host_window_height) {
+	// 	if(config.use_d3d9) {
+	// 		config.use_d3d9 = initialize_d3d9();
+	// 	} else {
+	// 		release_d3d9();
+	// 	}
+	// 	prev_use_d3d9 = config.use_d3d9;
+	// 	prev_wait_vsync = config.wait_vsync;
+	// 	prev_window_width = host_window_width;
+	// 	prev_window_height = host_window_height;
+	// 	prev_screen_width = prev_screen_height = 0;
+	// }
+	// if(prev_screen_width != draw_screen_buffer->width || prev_screen_height != draw_screen_buffer->height) {
+	// 	if(config.use_d3d9) {
+	// 		config.use_d3d9 = initialize_d3d9_surface(draw_screen_buffer);
+	// 	}
+	// 	prev_screen_width = draw_screen_buffer->width;
+	// 	prev_screen_height = draw_screen_buffer->height;
+	// }
 
-	if(config.use_d3d9) {
-		// copy screen to d3d9 offscreen surface
-		copy_to_d3d9_surface(draw_screen_buffer);
-	} else {
-		if(draw_screen_buffer->width != draw_screen_width || draw_screen_buffer->height != draw_screen_height) {
-			if(shrinked_screen_buffer.width != draw_screen_width || shrinked_screen_buffer.height != draw_screen_height) {
-				initialize_screen_buffer(&shrinked_screen_buffer, draw_screen_width, draw_screen_height, HALFTONE);
-			}
-			stretch_screen_buffer(draw_screen_buffer, &shrinked_screen_buffer);
-			draw_screen_buffer = &shrinked_screen_buffer;
-		}
-	}
-#endif
+	// if(config.use_d3d9) {
+	// 	// copy screen to d3d9 offscreen surface
+	// 	copy_to_d3d9_surface(draw_screen_buffer);
+	// } else {
+	// 	if(draw_screen_buffer->width != draw_screen_width || draw_screen_buffer->height != draw_screen_height) {
+	// 		if(shrinked_screen_buffer.width != draw_screen_width || shrinked_screen_buffer.height != draw_screen_height) {
+	// 			initialize_screen_buffer(&shrinked_screen_buffer, draw_screen_width, draw_screen_height, HALFTONE);
+	// 		}
+	// 		stretch_screen_buffer(draw_screen_buffer, &shrinked_screen_buffer);
+	// 		draw_screen_buffer = &shrinked_screen_buffer;
+	// 	}
+	// }
 
+#endif	// #ifndef ONE_BOARD_MICRO_COMPUTER
 	// invalidate window
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	if(first_invalidate) {
@@ -389,16 +421,19 @@ int OSD::draw_screen()
 	InvalidateRect(main_window_handle, &rect, first_invalidate);
 #endif
 	UpdateWindow(main_window_handle);
-	first_draw_screen = self_invalidate = true;
+*/
 
+	first_draw_screen = self_invalidate = true;
+/*
 	// record avi file
 	if(now_record_video) {
 		return add_video_frames();
 	} else {
+*/
 		return 1;
+/*
 	}
 */
-	return 0;
 }
 
 /*
@@ -502,15 +537,17 @@ void OSD::update_screen(HDC hdc)
 	}
 #endif
 }
+*/
 
-void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode)
+void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int red, int green, int blue, int alpha)
 {
 	release_screen_buffer(buffer);
 
+/*
 	HDC hdc = GetDC(main_window_handle);
 	buffer->hdcDib = CreateCompatibleDC(hdc);
 #if defined(_RGB565)
-	// thanks PC8801MA‰ü
+	// thanks PC8801MAï¿½ï¿½
 	buffer->lpBuf = (LPBYTE)GlobalAlloc(GPTR, sizeof(BITMAPINFOHEADER) + sizeof(DWORD) * 3);
 #else
 	buffer->lpBuf = (LPBYTE)GlobalAlloc(GPTR, sizeof(BITMAPINFO));
@@ -546,6 +583,23 @@ void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int 
 	buffer->hOldBmp = (HBITMAP)SelectObject(buffer->hdcDib, buffer->hBmp);
 	ReleaseDC(main_window_handle, hdc);
 	SetStretchBltMode(buffer->hdcDib, mode);
+*/
+
+	// SDL frame surface
+    buffer->frame_surface = SDL_CreateRGBSurface(0, width, height, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+    if (buffer->frame_surface == NULL)
+	{
+	}
+
+	// SDL frame renderer
+    buffer->frame_renderer = SDL_CreateSoftwareRenderer(buffer->frame_surface);
+    if (buffer->frame_renderer == NULL)
+	{
+    }
+
+	// Paint it black
+	SDL_SetRenderDrawColor(buffer->frame_renderer, red, green, blue, alpha);
+	SDL_RenderClear(buffer->frame_renderer);
 
 	buffer->width = width;
 	buffer->height = height;
@@ -554,6 +608,7 @@ void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int 
 void OSD::release_screen_buffer(bitmap_t *buffer)
 {
 	if(buffer->initialized()) {
+/*
 		if(buffer->hdcDib != NULL && buffer->hOldBmp != NULL) {
 			SelectObject(buffer->hdcDib, buffer->hOldBmp);
 		}
@@ -569,10 +624,17 @@ void OSD::release_screen_buffer(bitmap_t *buffer)
 			DeleteDC(buffer->hdcDib);
 			buffer->hdcDib = NULL;
 		}
+*/
+		// Free SDL surface
+		if (buffer->frame_surface == NULL)
+		{
+			SDL_FreeSurface(buffer->frame_surface);
+			buffer->frame_surface = NULL;
+		}
 	}
 	memset(buffer, 0, sizeof(bitmap_t));
 }
-
+/*
 #ifdef USE_SCREEN_FILTER
 #define _3_8(v) (((((v) * 3) >> 3) * 180) >> 8)
 #define _5_8(v) (((((v) * 3) >> 3) * 180) >> 8)
@@ -983,18 +1045,18 @@ void OSD::apply_rgb_filter_x1_y1(bitmap_t *source, bitmap_t *dest)
 }
 #endif
 
-//#ifdef USE_SCREEN_ROTATE
+#ifdef USE_SCREEN_ROTATE
 void OSD::rotate_screen_buffer(bitmap_t *source, bitmap_t *dest)
 {
 	if(config.rotate_type == 1) {
 		// turn right 90deg
 		if(source->width == dest->height && source->height == dest->width) {
 			for(int y = 0; y < source->height; y++) {
-				scrntype_t* source_buffer = source->get_buffer(y);
+				scrntype_t* source_buffer = source->get_line_ptr(y);
 				int offset = dest->width - y - 1;
 
 				for(int x = 0; x < source->width; x++) {
-					dest->get_buffer(x)[offset] = source_buffer[x];
+					dest->get_line_ptr(x)[offset] = source_buffer[x];
 				}
 			}
 		}
@@ -1002,8 +1064,8 @@ void OSD::rotate_screen_buffer(bitmap_t *source, bitmap_t *dest)
 		// turn right 180deg
 		if(source->width == dest->width && source->height == dest->height) {
 			for(int y = 0; y < source->height; y++) {
-				scrntype_t* source_buffer = source->get_buffer(y);
-				scrntype_t* dest_buffer = dest->get_buffer(dest->height - y - 1);
+				scrntype_t* source_buffer = source->get_line_ptr(y);
+				scrntype_t* dest_buffer = dest->get_line_ptr(dest->height - y - 1);
 				int offset = dest->width - 1;
 
 				for(int x = 0; x < source->width; x++) {
@@ -1015,27 +1077,29 @@ void OSD::rotate_screen_buffer(bitmap_t *source, bitmap_t *dest)
 		// turn right 270deg
 		if(source->width == dest->height && source->height == dest->width) {
 			for(int y = 0; y < source->height; y++) {
-				scrntype_t* source_buffer = source->get_buffer(y);
+				scrntype_t* source_buffer = source->get_line_ptr(y);
 				int offset = dest->height - 1;
 
 				for(int x = 0; x < source->width; x++) {
-					dest->get_buffer(offset - x)[y] = source_buffer[x];
+					dest->get_line_ptr(offset - x)[y] = source_buffer[x];
 				}
 			}
 		}
+	}
 }
-//#endif
+#endif
 
 void OSD::stretch_screen_buffer(bitmap_t *source, bitmap_t *dest)
 {
-	if((dest->width % source->width) == 0 && (dest->height % source->height) == 0) {
+	if((dest->width % source->width) == 0 && (dest->height % source->height) == 0)
+	{
 		// faster than StretchBlt()
 		int pow_x = dest->width / source->width;
 		int pow_y = dest->height / source->height;
 
 		for(int y = 0, yy = 0; y < source->height; y++, yy += pow_y) {
-			scrntype_t* source_buffer = source->get_buffer(y);
-			scrntype_t* dest_buffer = dest->get_buffer(yy);
+			scrntype_t* source_buffer = source->get_line_ptr(y);
+			scrntype_t* dest_buffer = dest->get_line_ptr(yy);
 
 			if(pow_x != 1) {
 				scrntype_t* tmp_buffer = dest_buffer;
@@ -1055,15 +1119,30 @@ void OSD::stretch_screen_buffer(bitmap_t *source, bitmap_t *dest)
 			if(pow_y != 1) {
 				for(int py = 1; py < pow_y; py++) {
 					// about 10% faster than memcpy()
-					scrntype_t* tmp_buffer = dest->get_buffer(yy + py);
+					scrntype_t* tmp_buffer = dest->get_line_ptr(yy + py);
 					for(int x = 0; x < dest->width; x++) {
 						tmp_buffer[x] = dest_buffer[x];
 					}
 				}
 			}
 		}
-	} else {
-		StretchBlt(dest->hdcDib, 0, 0, dest->width, dest->height, source->hdcDib, 0, 0, source->width, source->height, SRCCOPY);
+	}
+	else
+	{
+//		StretchBlt(dest->hdcDib, 0, 0, dest->width, dest->height, source->hdcDib, 0, 0, source->width, source->height, SRCCOPY);
+
+		SDL_Rect RectSrc;
+		RectSrc.x = 0;
+		RectSrc.y = 0;
+		RectSrc.w = source->width;
+		RectSrc.h = source->height;
+		SDL_Rect RectDst;
+		RectDst.x = 0;
+		RectDst.y = 0;
+		RectDst.w = dest->width;
+		RectDst.h = dest->height;
+//		SDL_SetSurfaceBlendMode(source->frame_surface, SDL_BLENDMODE_NONE);
+		SDL_BlitScaled(source->frame_surface, &RectSrc, dest->frame_surface, &RectDst);
 	}
 }
 
@@ -1178,21 +1257,15 @@ void OSD::copy_to_d3d9_surface(bitmap_t *buffer)
 	}
 
 }
-*/
 
 void OSD::capture_screen()
 {
-/*
-// TODO_MM
 //	write_bitmap_to_file(&vm_screen_buffer, create_date_file_path(_T("bmp")));
 	write_bitmap_to_file(&vm_screen_buffer, create_date_file_path(_T("png")));
-*/
 }
 
 bool OSD::start_record_video(int fps)
 {
-/*
-// TODO_MM
 	if(fps > 0) {
 		rec_video_fps = fps;
 		rec_video_run_frames = rec_video_frames = 0;
@@ -1250,7 +1323,7 @@ bool OSD::start_record_video(int fps)
 	rec_video_thread_param.lAVIFrames = 0;
 	rec_video_thread_param.frames = 0;
 	rec_video_thread_param.result = 0;
-*/
+
 	now_record_video = true;
 
 	return true;
@@ -1258,8 +1331,6 @@ bool OSD::start_record_video(int fps)
 
 void OSD::stop_record_video()
 {
-/*
-// TODO_MM
 	// release thread
 	if(hVideoThread != (HANDLE)0) {
 		WaitForSingleObject(hVideoThread, INFINITE);
@@ -1296,7 +1367,6 @@ void OSD::stop_record_video()
 			fclose(fp);
 		}
 	}
-*/
 	now_record_video = false;
 }
 
@@ -1314,8 +1384,6 @@ void OSD::add_extra_frames(int extra_frames)
 	rec_video_run_frames += extra_frames;
 }
 
-/*
-// TODO_MM
 unsigned __stdcall rec_video_thread(void *lpx)
 {
 	volatile rec_video_thread_param_t *p = (rec_video_thread_param_t *)lpx;
