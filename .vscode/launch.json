@@ -1,0 +1,1389 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "(gdb) Launch (LNX) + no cart",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart ASTRO WARS 1",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "retroarch",
+            "args": ["-v", "-L","~/Dev/libretro-emuscv/emuscv_libretro.so","~/Dev/libretro-emuscv/roms/astrwrs.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart ASTRO WARS 2",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/astrwrs2.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart BASIC NYUMON",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/basic.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart BOULDER DASH (Japan)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/bdash.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart BOULDER DASH (Europe)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/bdasha.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart COMIC CIRCUS",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/comicirc.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart DORAEMON",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/doraemon.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart DRAGON BALL",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/dball.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart DRAGON SLAYER",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/dslayer.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart ELEVATOR FIGHT",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/elevfght.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart KUNG-FU ROAD",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/kungfurd.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart LUPIN III",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/lupin3.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart MAPPY",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/mappy.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart MILKY PRINCESS",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/milkyprn.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart MINER 2049ER",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/mine2049.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart NEBULA (Japan)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/nebula.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart NEBULA (Europe)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/nebulaa.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart POLE POSITION 2",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/polepos2.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart POP & CHIPS",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/popchips.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart PROFESSIONAL WRESTLING",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/prowrest.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart PUNCH BOY",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/punchboy.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart REAL GRAPHIC MAHJONG",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/rgmahjon.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart SHOGI NYUMON",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/shogi.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart SKY KID",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/skykid.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart STAR SPEEDER",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/starspdr.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart SUPER BASEBALL",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/baseball.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart SUPER SANSUPYUTA",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/sansupyu.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart SUPER SOCCER (Japan)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/soccer.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart SUPER SOCCER (Europe)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/soccera.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart SUPER GOLF",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/suprgolf.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart TON TON BALL",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/ttball.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart WHEELY RACER",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/wheelrcr.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart Y2 MONSTER LAND",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/y2mnstld.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + cart RAW",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/bdasha.bin"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+
+
+
+
+
+        {
+            "name": "(gdb) Launch (WIN) + no cart",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart ASTRO WARS 1",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\astrwrs.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart ASTRO WARS 2",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\astrwrs2.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart BASIC NYUMON",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\basic.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart BOULDER DASH (Japan)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\bdash.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart BOULDER DASH (Europe)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\bdasha.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart COMIC CIRCUS",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\comicirc.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart DORAEMON",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\doraemon.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart DRAGON BALL",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\dball.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart DRAGON SLAYER",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\dslayer.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart ELEVATOR FIGHT",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\elevfght.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart KUNG-FU ROAD",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\kungfurd.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart LUPIN III",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\lupin3.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart MAPPY",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\mappy.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart MILKY PRINCESS",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\milkyprn.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart MINER 2049ER",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\mine2049.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart NEBULA (Japan)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\nebula.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart NEBULA (Europe)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\nebulaa.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart POLE POSITION 2",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\polepos2.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart POP & CHIPS",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\popchips.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart PROFESSIONAL WRESTLING",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\prowrest.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart PUNCH BOY",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\punchboy.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart REAL GRAPHIC MAHJONG",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\rgmahjon.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart SHOGI NYUMON",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\shogi.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart SKY KID",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\skykid.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart STAR SPEEDER",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\starspdr.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart SUPER BASEBALL",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\baseball.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart SUPER SANSUPYUTA",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\sansupyu.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart SUPER SOCCER (Japan)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\soccer.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart SUPER SOCCER (Europe)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\soccera.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart SUPER GOLF",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\suprgolf.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart TON TON BALL",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\ttball.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart WHEELY RACER",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\wheelrcr.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart Y2 MONSTER LAND",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\y2mnstld.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + cart RAW",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\polepos2.bin"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+ 
+ 
+ 
+ 
+ 
+        {
+            "name": "(lldb) Launch (MAC) + no cart",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/Applications/RetroArch.app/Contents/MacOS/RetroArch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.dylib"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(lldb) Launch (LNX) + cart ASTRO WARS 1",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/Applications/RetroArch.app/Contents/MacOS/RetroArch",
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.dylib","~/Dev/libretro-emuscv/roms/astrwrs.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+
+    ]
+}

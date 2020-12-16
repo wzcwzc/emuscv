@@ -7,8 +7,8 @@
 	[ uPD1771C ]
 */
 
-#ifndef _SOUND_H_
-#define _SOUND_H_
+#ifndef _EMUSCV_INC_VM_SCV_SOUND_H_
+#define _EMUSCV_INC_VM_SCV_SOUND_H_
 
 #include "../vm.h"
 #include "../../emu.h"
@@ -92,5 +92,4 @@ public:
 	void initialize_sound(int rate);
 };
 
-#endif
-
+#endif	// _EMUSCV_INC_VM_SCV_SOUND_H_

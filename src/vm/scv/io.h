@@ -7,11 +7,9 @@
 	[ i/o ]
 */
 
-#ifndef _IO_H_
-#define _IO_H_
+#ifndef _EMUSCV_INC_VM_SCV_IO_H_
+#define _EMUSCV_INC_VM_SCV_IO_H_
 
-#include "../vm.h"
-#include "../../emu.h"
 #include "../device.h"
 
 class IO : public DEVICE
@@ -49,4 +47,4 @@ public:
 	}
 };
 
-#endif
+#endif	// _EMUSCV_INC_VM_SCV_IO_H_

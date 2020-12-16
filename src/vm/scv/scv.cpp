@@ -8,27 +8,25 @@
 */
 
 #include "scv.h"
-#include "../../emu.h"
+
 #include "../device.h"
+//#include "../../emu.h"
 #include "../event.h"
-
 #include "../upd7801.h"
-
-#ifdef USE_DEBUGGER
-#include "../debugger.h"
-#endif
-
 #include "io.h"
 #include "memory.h"
 #include "sound.h"
 #include "vdp.h"
+#ifdef USE_DEBUGGER
+#include "../debugger.h"
+#endif
 
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
 
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
-{/*
+{
 	// create devices
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
@@ -64,31 +62,29 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	*/
 }
 
 VM::~VM()
 {
-	/*
 	// delete all devices
-	for(DEVICE* device = first_device; device;) {
+	for(DEVICE* device = first_device; device;)
+	{
 		DEVICE *next_device = device->next_device;
 		device->release();
 		delete device;
 		device = next_device;
 	}
-	*/
 }
 
 DEVICE* VM::get_device(int id)
 {
-	/*
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(device->this_device_id == id) {
+	for(DEVICE* device = first_device; device; device = device->next_device)
+	{
+		if(device->this_device_id == id)
+		{
 			return device;
 		}
 	}
-	*/
 	return NULL;
 }
 
@@ -98,19 +94,16 @@ DEVICE* VM::get_device(int id)
 
 void VM::reset()
 {
-	/*
 	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
+	for(DEVICE* device = first_device; device; device = device->next_device)
+	{
 		device->reset();
 	}
-	*/
 }
 
 void VM::run()
 {
-	/*
 	event->drive();
-	*/
 }
 
 // ----------------------------------------------------------------------------
@@ -120,11 +113,10 @@ void VM::run()
 #ifdef USE_DEBUGGER
 DEVICE *VM::get_cpu(int index)
 {
-	/*
-	if(index == 0) {
+	if(index == 0)
+	{
 		return cpu;
 	}
-	*/
 	return NULL;
 }
 #endif
@@ -135,9 +127,7 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
-	/*
 	vdp->draw_screen();
-	*/
 }
 
 // ----------------------------------------------------------------------------
@@ -146,13 +136,11 @@ void VM::draw_screen()
 
 void VM::initialize_sound(int rate, int samples)
 {
-	/*
 	// init sound manager
 	event->initialize_sound(rate, samples);
 
 	// init sound gen
 	sound->initialize_sound(rate);
-	*/
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
@@ -178,7 +166,8 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 
 void VM::open_cart(int drv, const _TCHAR* file_path)
 {
-	if(drv == 0) {
+	if(drv == 0)
+	{
 		memory->open_cart(file_path);
 		reset();
 	}
@@ -186,7 +175,8 @@ void VM::open_cart(int drv, const _TCHAR* file_path)
 
 void VM::close_cart(int drv)
 {
-	if(drv == 0) {
+	if(drv == 0)
+	{
 		memory->close_cart();
 		reset();
 	}
@@ -194,9 +184,12 @@ void VM::close_cart(int drv)
 
 bool VM::is_cart_inserted(int drv)
 {
-	if(drv == 0) {
+	if(drv == 0)
+	{
 		return memory->is_cart_inserted();
-	} else {
+	}
+	else
+	{
 		return false;
 	}
 }
@@ -208,7 +201,8 @@ bool VM::is_frame_skippable()
 
 void VM::update_config()
 {
-	for(DEVICE* device = first_device; device; device = device->next_device) {
+	for(DEVICE* device = first_device; device; device = device->next_device)
+	{
 		device->update_config();
 	}
 }
@@ -218,23 +212,46 @@ void VM::update_config()
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
 	/*
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+	// TODO_MM
+	if(!state_fio->StateCheckUint32(STATE_VERSION))
+	{
 		return false;
 	}
-	for(DEVICE* device = first_device; device; device = device->next_device) {
+	for(DEVICE* device = first_device; device; device = device->next_device)
+	{
+		device->get_device_name();
 		const char *name = typeid(*device).name() + 6; // skip "class "
 		int len = strlen(name);
 
-		if(!state_fio->StateCheckInt32(len)) {
+		if(!state_fio->StateCheckInt32(len))
+		{
 			return false;
 		}
-		if(!state_fio->StateCheckBuffer(name, len, 1)) {
+		if(!state_fio->StateCheckBuffer(name, len, 1))
+		{
 			return false;
 		}
-		if(!device->process_state(state_fio, loading)) {
+		if(!device->process_state(state_fio, loading))
+		{
 			return false;
 		}
 	}
 	*/
+
 	return true;
+}
+
+bool VM::is_bios_found()
+{
+	return memory->is_bios_found();
+}
+
+bool VM::is_bios_present()
+{
+	return memory->is_bios_present();
+}
+
+bool VM::is_bios_ok()
+{
+	return memory->is_bios_ok();
 }

@@ -13,7 +13,9 @@
 void IO::initialize()
 {
 	key = emu->get_key_buffer();
+#ifdef USE_JOYSTICK
 	joy = emu->get_joy_buffer();
+#endif
 }
 
 void IO::reset()
@@ -51,6 +53,7 @@ uint32_t IO::read_io8(uint32_t addr)
 	case P_A:
 		return pa;
 	case P_B:
+#ifdef USE_JOYSTICK
 		if(!(pa & 0x01)) {
 			if(joy[0] & 0x04) val &= ~0x01;	// P1-L
 			if(joy[0] & 0x01) val &= ~0x02;	// P1-U
@@ -59,6 +62,8 @@ uint32_t IO::read_io8(uint32_t addr)
 			if(joy[1] & 0x01) val &= ~0x10;	// P2-U
 			if(joy[1] & 0x10) val &= ~0x20;	// P2-TR1
 		}
+#endif
+#ifdef USE_JOYSTICK
 		if(!(pa & 0x02)) {
 			if(joy[0] & 0x02) val &= ~0x01;	// P1-D
 			if(joy[0] & 0x08) val &= ~0x02;	// P1-R
@@ -67,6 +72,7 @@ uint32_t IO::read_io8(uint32_t addr)
 			if(joy[1] & 0x08) val &= ~0x10;	// P2-R
 			if(joy[1] & 0x20) val &= ~0x20;	// P2-TR2
 		}
+#endif
 		if(!(pa & 0x04)) {
 			if(key[0x30] || key[0x60]) val &= ~0x40;	// 0
 			if(key[0x31] || key[0x61]) val &= ~0x80;	// 1
@@ -110,6 +116,7 @@ uint32_t IO::read_io8(uint32_t addr)
 
 bool IO::process_state(FILEIO* state_fio, bool loading)
 {
+	/*
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
@@ -119,6 +126,7 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(pa);
 	state_fio->StateValue(pb);
 	state_fio->StateValue(pc);
+	*/
 	return true;
 }
 

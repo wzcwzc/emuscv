@@ -7,8 +7,8 @@
 	[ uPD1771C table ]
 */
 
-#ifndef _SOUND_TBL_H_
-#define _SOUND_TBL_H_
+#ifndef _EMUSCV_INC_VM_SCV_SOUND_TBL_H_
+#define _EMUSCV_INC_VM_SCV_SOUND_TBL_H_
 
 static const int timbre_table[8][256] = {
 	{ 48, 167, 212, 220, 231, 239, 245, 247, 250, 253, 253, 256, 256, 256, 256, 256,
@@ -193,5 +193,4 @@ static const double detune_rate[32] = {
 	 25.3, 22.3, 19.0, 15.9, 12.6,  9.4,  6.3,  3.2
 };
 
-#endif
-
+#endif	// _EMUSCV_INC_VM_SCV_SOUND_TBL_H_

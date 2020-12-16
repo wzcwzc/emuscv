@@ -34,17 +34,18 @@ void SOUND::reset()
 
 void SOUND::write_data8(uint32_t addr, uint32_t data)
 {
-	if(register_id != -1) {
+	if(register_id != -1)
 		return; // ignore new commands before return ack
-	}
-	if(!param_cnt) {
+	if(!param_cnt)
+	{
 		// new command
 		touch_sound();
-		switch(data) {
-		case 0x00: param_cnt = 1;         break; // note off
-		case 0x01: param_cnt = 10;        break; // noises & square
-		case 0x02: param_cnt = 4;         break; // tone
-		case 0x1f: param_cnt = MAX_PARAM; break; // pcm
+		switch(data)
+		{
+			case 0x00: param_cnt = 1;         break; // note off
+			case 0x01: param_cnt = 10;        break; // noises & square
+			case 0x02: param_cnt = 4;         break; // tone
+			case 0x1f: param_cnt = MAX_PARAM; break; // pcm
 		}
 		param_ptr = 0;
 		cmd_addr  = get_cpu_pc(0); // for patch
@@ -56,31 +57,36 @@ void SOUND::write_data8(uint32_t addr, uint32_t data)
 #ifdef SOUND_DEBUG
 	this->out_debug_log(_T("%2x "), data);
 #endif
-	if(param_cnt) {
+	if(param_cnt)
+	{
 		touch_sound();
 		params[param_ptr++] = data;
-		if(params[0] == 0x1f) {
+		if(params[0] == 0x1f)
+		{
 			// pcm command
-			if(param_ptr == 6) {
+			if(param_ptr == 6)
+			{
 				memset(pcm_table, 0, sizeof(pcm_table));
 				pcm_len = pcm.ptr = 0;
-			} else if(param_ptr >= 7) {
+			}
+			else if(param_ptr >= 7)
+			{
 				// 0xfe,0x00 : end of pcm, intf1 must not be done except star speeder
-				if(params[param_ptr - 2] == 0xfe && data == 0x00 && cmd_addr != 0xa765) {
+				if(params[param_ptr - 2] == 0xfe && data == 0x00 && cmd_addr != 0xa765)
 					param_cnt = 1;
-				} else {
+				else
 					process_pcm(params[param_ptr - 2]);
-				}
 			}
 		}
-		if(--param_cnt) {
-			if(register_id != -1) {
+		if(--param_cnt)
+		{
+			if(register_id != -1)
 				cancel_event(this, register_id);
-			}
 			register_event(this, 0, ACK_WAIT, false, &register_id);
 		}
 	}
-	if(!param_cnt) {
+	if(!param_cnt)
+	{
 		// process command
 		process_cmd();
 #ifdef SOUND_DEBUG
@@ -92,7 +98,8 @@ void SOUND::write_data8(uint32_t addr, uint32_t data)
 void SOUND::write_io8(uint32_t addr, uint32_t data)
 {
 	// PC3 : L->H
-	if(data & 0x08) {
+	if(data & 0x08)
+	{
 		// note off
 		touch_sound();
 		clear_channel(&tone);
@@ -101,34 +108,37 @@ void SOUND::write_io8(uint32_t addr, uint32_t data)
 		clear_channel(&square2);
 		clear_channel(&square3);
 
-		if(cmd_addr == 0x8402) {
-			// y2 monster land
-			bool pause = (get_cpu_pc(0) == 0x96c);
-			if(pause || !(params[0] == 0x1f && param_ptr > 5)) {
+		if(cmd_addr == 0x8402)
+		{
+// PATCH y2 monster land
+			bool pause = false;//(get_cpu_pc(0) == 0x96c);
+			if(pause || !(params[0] == 0x1f && param_ptr > 5))
+			{
 				// terminate command
-				if(register_id != -1) {
+				if(register_id != -1)
 					cancel_event(this, register_id);
-				}
 				memset(params, 0, sizeof(params));
 				param_cnt = param_ptr = 0;
 
 				// terminate pcm when pause
-				if(pause) {
+// PATCH y2 monster land
+//				if(pause)
 					clear_channel(&pcm);
-				}
 //			} else if(register_id == -1) {
 //				vm->register_callback(this, 0, 100, false, &register_id);
 			}
-		} else {
-			if(params[0]) {
+		}
+		else
+		{
+			if(params[0])
+			{
 				// terminate command
 				memset(params, 0, sizeof(params));
 				param_cnt = param_ptr = 0;
 //				clear_channel(&pcm);
 			}
-//			if(register_id == -1) {
+//			if(register_id == -1)
 //				vm->register_callback(this, 0, 100, false, &register_id);
-//			}
 		}
 #ifdef SOUND_DEBUG
 		this->out_debug_log(_T("PC3\n"));
@@ -138,13 +148,16 @@ void SOUND::write_io8(uint32_t addr, uint32_t data)
 
 void SOUND::event_callback(int event_id, int err)
 {
-	if(pcm.count && param_ptr == 5 && params[0] == 0x1f && params[1] == 0x04 && params[2] == 0x64) {
+	if(pcm.count && param_ptr == 5 && params[0] == 0x1f && params[1] == 0x04 && params[2] == 0x64)
+	{
 		// wait previous pcm
 		register_event(this, 0, ACK_WAIT, false, &register_id);
-		return;
 	}
-	d_cpu->write_signal(SIG_UPD7801_INTF1, 1, 1);
-	register_id = -1;
+	else
+	{
+		d_cpu->write_signal(SIG_UPD7801_INTF1, 1, 1);
+		register_id = -1;
+	}
 }
 
 void SOUND::initialize_sound(int rate)
@@ -158,16 +171,16 @@ void SOUND::initialize_sound(int rate)
 
 	// create volume table
 	double vol = MAX_TONE;
-	for(int i = 0; i < 32; i++) {
+	for(int i = 0; i < 32; i++)
+	{
 		volume_table[31 - i] = (int) vol;
 		vol /= 1.12201845439369;//1.258925412;
 	}
 	volume_table[0] = 0;
 
 	// create detune table
-	for(int i = 0; i < 32; i++) {
+	for(int i = 0; i < 32; i++)
 		detune_table[i] = (int) (detune_rate[i] * 256 / 100 + 0.5);
-	}
 
 	// reset device
 //	reset();
@@ -175,16 +188,17 @@ void SOUND::initialize_sound(int rate)
 
 void SOUND::process_cmd()
 {
-	if(params[0] == 0x00) {
-		// note off
+	if(params[0] == 0x00)	// note off
+	{
 		touch_sound();
 		clear_channel(&tone);
 		clear_channel(&noise);
 		clear_channel(&square1);
 		clear_channel(&square2);
 		clear_channel(&square3);
-	} else if(params[0] == 0x01) {
-		// noise & square
+	}
+	else if(params[0] == 0x01)	// noise & square
+	{
 		touch_sound();
 
 		noise.timbre = params[1] >> 5;
@@ -206,7 +220,9 @@ void SOUND::process_cmd()
 
 		// tone off
 		clear_channel(&tone);
-	} else if(params[0] == 0x02) { // note on : $02, timbre, period, volume ?
+	}
+	else if(params[0] == 0x02)	// note on : $02, timbre, period, volume ?
+	{
 		touch_sound();
 
 		tone.timbre = params[1] >> 5;
@@ -229,18 +245,26 @@ void SOUND::process_cmd()
 void SOUND::process_pcm(uint8_t data)
 {
 	// add pcm wave to buffer
-	pcm_table[pcm_len++] = (data & 0x80) ? MAX_PCM : 0;
-	pcm_table[pcm_len++] = (data & 0x40) ? MAX_PCM : 0;
-	pcm_table[pcm_len++] = (data & 0x20) ? MAX_PCM : 0;
-	pcm_table[pcm_len++] = (data & 0x10) ? MAX_PCM : 0;
-	pcm_table[pcm_len++] = (data & 0x08) ? MAX_PCM : 0;
-	pcm_table[pcm_len++] = (data & 0x04) ? MAX_PCM : 0;
-	pcm_table[pcm_len++] = (data & 0x02) ? MAX_PCM : 0;
-	pcm_table[pcm_len++] = (data & 0x01) ? MAX_PCM : 0;
+	if(pcm_len < ((MAX_PARAM-1) * 8)-8)
+	{
+		pcm_table[pcm_len++] = (data & 0x80) ? MAX_PCM : 0;
+		pcm_table[pcm_len++] = (data & 0x40) ? MAX_PCM : 0;
+		pcm_table[pcm_len++] = (data & 0x20) ? MAX_PCM : 0;
+		pcm_table[pcm_len++] = (data & 0x10) ? MAX_PCM : 0;
+		pcm_table[pcm_len++] = (data & 0x08) ? MAX_PCM : 0;
+		pcm_table[pcm_len++] = (data & 0x04) ? MAX_PCM : 0;
+		pcm_table[pcm_len++] = (data & 0x02) ? MAX_PCM : 0;
+		pcm_table[pcm_len++] = (data & 0x01) ? MAX_PCM : 0;
 
-	if(!pcm.count) {
-		pcm.count  = PCM_PERIOD;
-		pcm.output = pcm_table[pcm_len - 8];
+		if(!pcm.count)
+		{
+			pcm.count  = PCM_PERIOD;
+			pcm.output = pcm_table[pcm_len - 8];
+		}
+	}
+	else
+	{
+		bool stop = true;
 	}
 }
 
@@ -255,17 +279,23 @@ void SOUND::clear_channel(channel_t *ch)
 void SOUND::mix(int32_t* buffer, int cnt)
 {
 	// create sound buffer
-	for(int i = 0; i < cnt; i++) {
+	for(int i = 0; i < cnt; i++)
+	{
 		int vol = 0, vol_l, vol_r;
 		// mix pcm
-		if(pcm.count) {
+		if(pcm.count)
+		{
 			pcm.count -= pcm.diff;
-			while(pcm.count <= 0) {
+			while(pcm.count <= 0)
+			{
 				pcm.count += PCM_PERIOD;
 				// low-pass filter for the next sample
-				if(++pcm.ptr < pcm_len) {
+				if(++pcm.ptr < pcm_len)
+				{
 					pcm.output =  (pcm_table[pcm.ptr] + pcm_table[pcm.ptr + 1] + pcm_table[pcm.ptr + 2] + pcm_table[pcm.ptr + 3]) >> 2;
-				} else {
+				}
+				else
+				{
 					pcm.count = 0;
 					break;
 				}
@@ -273,20 +303,26 @@ void SOUND::mix(int32_t* buffer, int cnt)
 			vol = pcm.output;
 			vol_l = apply_volume(vol, pcm_volume_l);
 			vol_r = apply_volume(vol, pcm_volume_r);
-		} else {
+		}
+		else
+		{
 			// mix tone
-			if(tone.volume && tone.period) {
+			if(tone.volume && tone.period)
+			{
 				tone.count -= tone.diff;
-				while(tone.count <= 0) {
+				while(tone.count <= 0)
+				{
 					tone.count  += tone.period;
 					tone.ptr     = (tone.ptr + 1) & 0xff;
 					tone.output  = (timbre_table[tone.timbre][tone.ptr] * tone.volume) >> 8;
 				}
 				vol += tone.output;
 			}
-			if(noise.volume && noise.period) {
+			if(noise.volume && noise.period)
+			{
 				noise.count -= noise.diff;
-				while(noise.count <= 0) {
+				while(noise.count <= 0)
+				{
 					noise.count  += noise.period;
 					noise.ptr     = (noise.ptr + 1) & 0xff;
 //					noise.output  = (noise_table[noise.timbre][noise.ptr] * noise.volume) >> 8;
@@ -294,27 +330,33 @@ void SOUND::mix(int32_t* buffer, int cnt)
 				}
 				vol += noise.output;
 			}
-			if(square1.volume && square1.period) {
+			if(square1.volume && square1.period)
+			{
 				square1.count -= square1.diff;
-				while(square1.count <= 0) {
+				while(square1.count <= 0)
+				{
 					square1.count  += square1.period;
 					square1.ptr     = (square1.ptr + 1) & 0xff;
 					square1.output  = (square_table[square1.ptr] * square1.volume) >> 8;
 				}
 				vol += square1.output;
 			}
-			if(square2.volume && square2.period) {
+			if(square2.volume && square2.period)
+			{
 				square2.count -= square2.diff;
-				while(square2.count <= 0) {
+				while(square2.count <= 0)
+				{
 					square2.count  += square2.period;
 					square2.ptr     = (square2.ptr + 1) & 0xff;
 					square2.output  = (square_table[square2.ptr] * square2.volume) >> 8;
 				}
 				vol += square2.output;
 			}
-			if(square3.volume && square3.period) {
+			if(square3.volume && square3.period)
+			{
 				square3.count -= square3.diff;
-				while(square3.count <= 0) {
+				while(square3.count <= 0)
+				{
 					square3.count  += square3.period;
 					square3.ptr     = (square3.ptr + 1) & 0xff;
 					square3.output  = (square_table[square3.ptr] * square3.volume) >> 8;
@@ -331,17 +373,20 @@ void SOUND::mix(int32_t* buffer, int cnt)
 
 void SOUND::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	if(ch == 0) {
+	if(ch == 0)
+	{
 		psg_volume_l = decibel_to_volume(decibel_l);
 		psg_volume_r = decibel_to_volume(decibel_r);
-	} else if(ch == 1) {
+	}
+	else if(ch == 1)
+	{
 		pcm_volume_l = decibel_to_volume(decibel_l);
 		pcm_volume_r = decibel_to_volume(decibel_r);
 	}
 }
 
 #define STATE_VERSION	2
-
+/*
 void process_state_channel(channel_t* val, FILEIO* state_fio)
 {
 	state_fio->StateValue(val->count);
@@ -352,9 +397,10 @@ void process_state_channel(channel_t* val, FILEIO* state_fio)
 	state_fio->StateValue(val->output);
 	state_fio->StateValue(val->ptr);
 }
-
+*/
 bool SOUND::process_state(FILEIO* state_fio, bool loading)
 {
+/*
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
@@ -374,6 +420,6 @@ bool SOUND::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(param_ptr);
 	state_fio->StateValue(register_id);
 	state_fio->StateArray(params, sizeof(params), 1);
+*/
 	return true;
 }
-
