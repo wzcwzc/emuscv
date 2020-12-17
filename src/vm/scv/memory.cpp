@@ -392,8 +392,8 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 		_TCHAR   raw_md5[33];
 		FILEIO*  fionewcart				= new FILEIO();
 
-		// Set new cart file name
 		my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
+
 		if(len+4 > _MAX_PATH-1)
 		{
 			newcart_path[len-5] = _T('.');
