@@ -46,7 +46,7 @@
 // Final window
 #define WINDOW_COLORS				256*256*256	// 16 Millions of colors
 #define WINDOW_MODE_BASE			1
-#define WINDOW_ZOOM_MAX				8
+#define WINDOW_ZOOM_MAX				4
 
 #define WINDOW_WIDTH_EMUSCV			864	// Pixel perfect
 #define WINDOW_HEIGHT_EMUSCV		648	// Pixel perfect

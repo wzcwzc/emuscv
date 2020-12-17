@@ -1346,8 +1346,8 @@ cEmuSCV::cEmuSCV()
 //
 cEmuSCV::~cEmuSCV()
 {
-	// Log
-	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::~cEmuSCV()\n", EMUSCV_NAME);
+	// // Log
+	// RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::~cEmuSCV()\n", EMUSCV_NAME);
 
 	if (retro_game_loaded == TRUE)
 	{
@@ -1533,7 +1533,7 @@ void cEmuSCV::RetroSetInputState(retro_input_state_t cb)
 unsigned cEmuSCV::RetroGetApiVersion(void)
 {
 	// Log
-	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroApiVersion()\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroApiVersion() => %d\n", EMUSCV_NAME, RETRO_API_VERSION);
 
 	return RETRO_API_VERSION;
 }
@@ -1544,7 +1544,7 @@ unsigned cEmuSCV::RetroGetApiVersion(void)
 unsigned cEmuSCV::RetroGetVideoRegion(void)
 {
 	// Log
-	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetVideoRegion()\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetVideoRegion() => RETRO_REGION_PAL\n", EMUSCV_NAME);
 
 	return RETRO_REGION_PAL;
 }
@@ -1555,14 +1555,14 @@ unsigned cEmuSCV::RetroGetVideoRegion(void)
 void cEmuSCV::RetroGetSystemInfo(struct retro_system_info *info)
 {
 	// Log
-	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetSystemInfo()\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetSystemInfo()\n     library_name     = %s\n     library_version  = %s\n     valid_extensions = %s\n     need_fullpath    = false\n     block_extract    = true\n", EMUSCV_NAME, EMUSCV_NAME, EMUSCV_VERSION, EMUSCV_EXTENSIONS);
 
 	memset(info, 0, sizeof(*info));
 	info->library_name		= EMUSCV_NAME;
 	info->library_version	= EMUSCV_VERSION;
 	info->valid_extensions	= EMUSCV_EXTENSIONS;
-	info->need_fullpath		= FALSE;
-	info->block_extract		= TRUE;
+	info->need_fullpath		= false;
+	info->block_extract		= true;
 }
 
 // 
@@ -1571,7 +1571,7 @@ void cEmuSCV::RetroGetSystemInfo(struct retro_system_info *info)
 void cEmuSCV::RetroGetAudioVideoInfo(struct retro_system_av_info *info)
 {
 	// Log
-	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV:RetroGetAudioVideoInfo()\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV:RetroGetAudioVideoInfo()\n     timing.fps            = %f\n     timing.sample_rate    = 44100\n     geometry.base_width   = %d\n     geometry.base_height  = %d\n     geometry.max_width    = %d\n     geometry.max_height   = %d\n     geometry.aspect_ratio = %f\n", EMUSCV_NAME, config.window_fps, config.window_width, config.window_height, config.window_width * WINDOW_ZOOM_MAX, config.window_height * WINDOW_ZOOM_MAX, config.window_aspect_ratio);
 
 	memset(info, 0, sizeof(*info));
 	info->timing.fps            = config.window_fps;

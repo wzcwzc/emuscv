@@ -1,9 +1,9 @@
 TARGET_NAME := emuscv
 
 EMUSCV_VERSION_MAJOR := 0
-EMUSCV_VERSION_MINOR := 05
-#EMUSCV_VERSION_DATETIME := $(shell date -u +'%Y%m%d%H%M%S')
-EMUSCV_VERSION_DATETIME := '20201216000000'
+EMUSCV_VERSION_MINOR := 06
+EMUSCV_VERSION_DATETIME := $(shell date -u +'%Y%m%d%H%M%S')
+#EMUSCV_VERSION_DATETIME := '20201216000000'
 EMUSCV_VERSION := $(EMUSCV_VERSION_MAJOR).$(EMUSCV_VERSION_MINOR).$(EMUSCV_VERSION_DATETIME)
 
 DEBUG = 1
@@ -73,7 +73,7 @@ ifneq (,$(findstring unix,$(platform)))
 	ifneq (,$(findstring Haiku,$(shell uname -s)))
 		LDFLAGS += -lnetwork -lroot
 	endif
-	CC = clang
+	CC = gcc
 	CXX = gcc
 	LDFLAGS += -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu -lSDL2
 	CFLAGS += -I/usr/include/SDL2 `sdl2-config --cflags`

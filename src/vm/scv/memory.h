@@ -66,33 +66,33 @@ private:
 	// New EmuSCV version
 	struct
 	{
-		char     id[10];	// "EmuSCV...."" (0x45, 0x6D , 0x75, 0x53, 0x43, 0x56, 0x19, 0x84, 0x07, 0x17) => 17th july 1984 :-)
-		char     type[4];	// "CART" or "SRAM"
-		uint8_t  version;	// File format version = 1
-		uint8_t  nb_block;	// Number of blocks (4 max. used for genuine carts)
-		uint16_t block[6];	// For each block of data you can indicate a combination of HEADER_SIZE_xxx + HEADER_TYPE_xxx + HEADER_BANK_xxx + HEADER_ADDR_xxx
-		uint32_t crc32;		// CRC32 of the data in memory
+		char     id[10];		// "EmuSCV...."" (0x45, 0x6D , 0x75, 0x53, 0x43, 0x56, 0x19, 0x84, 0x07, 0x17) => 17th july 1984 :-)
+		char     type[4];		// "CART" or "SRAM"
+		uint8_t  version;		// File format version = 1
+		uint8_t  nb_block;		// Number of blocks (4 max. used for genuine carts)
+		uint16_t block[6];		// For each block of data you can indicate a combination of HEADER_SIZE_xxx + HEADER_TYPE_xxx + HEADER_BANK_xxx + HEADER_ADDR_xxx
+		char     game_tag[4];	// Tag identifier for the game (used to link the .CART to the .SAVE file)
 	} cart_header, ram_header;
 
-	bool bios_found;		// Is the BIOS file found?
-	bool bios_present;		// Is the BIOS present in memory?
-	bool bios_ok;			// Is the BIOS controlled OK? (if not correct the BIOS will be automatically unloaded)
+	bool bios_found;			// Is the BIOS file found?
+	bool bios_present;			// Is the BIOS present in memory?
+	bool bios_ok;				// Is the BIOS controlled OK? (if not correct the BIOS will be automatically unloaded)
 
-	bool cart_found;		// Is the cart file found?
-	bool cart_inserted;		// Is a cart inserted?
-	bool cart_ok;			// Is cart controlled OK? (if not correct the cart will be automatically ejected)
+	bool cart_found;			// Is the cart file found?
+	bool cart_inserted;			// Is a cart inserted?
+	bool cart_ok;				// Is cart controlled OK? (if not correct the cart will be automatically ejected)
 
 	_TCHAR 	 ram_path[_MAX_PATH];
-	uint16_t ram_block;		// VRAM/SRAM block
-	bool     ram_used;		// Is VRAM or SRAM used?
-	bool     ram_save;		// Is VRAM ? (saved with battery in genuine carts)
-	bool	 ram_bank0;		// Is VRAM/SRAM using bank 0? (PC5 = 0 / PC6 = 0)
-	bool	 ram_bank1;		// Is VRAM/SRAM using bank 1? (PC5 = 1 / PC6 = 0)
-	bool	 ram_bank2;		// Is VRAM/SRAM using bank 2? (PC5 = 0 / PC6 = 1)
-	bool	 ram_bank3;		// Is VRAM/SRAM using bank 3? (PC5 = 1 / PC6 = 1)
-	uint16_t ram_offset;	// VRAM/SRAM offset in block
-	uint16_t ram_size;		// VRAM/SRAM size
-	uint32_t ram_crc32;		// VRAM/SRAM CRC32
+	uint16_t ram_block;			// VRAM/SRAM block
+	bool     ram_used;			// Is VRAM or SRAM used?
+	bool     ram_save;			// Is VRAM ? (saved with battery in genuine carts)
+	bool	 ram_bank0;			// Is VRAM/SRAM using bank 0? (PC5 = 0 / PC6 = 0)
+	bool	 ram_bank1;			// Is VRAM/SRAM using bank 1? (PC5 = 1 / PC6 = 0)
+	bool	 ram_bank2;			// Is VRAM/SRAM using bank 2? (PC5 = 0 / PC6 = 1)
+	bool	 ram_bank3;			// Is VRAM/SRAM using bank 3? (PC5 = 1 / PC6 = 1)
+	uint16_t ram_offset;		// VRAM/SRAM offset in block
+	uint16_t ram_size;			// VRAM/SRAM size
+	uint32_t ram_crc32;			// VRAM/SRAM CRC32
 
 	uint8_t *wbank[0x200];	// 1 x 512B
 	uint8_t *rbank[0x200];	// 1 x 512B

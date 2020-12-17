@@ -1056,7 +1056,17 @@ void DLL_PREFIX set_libretro_save_directory(const _TCHAR *save_directory)
 		libretro_save_directory[len + 1] = '\0';
 	}
 }
-#endif
+
+const _TCHAR *DLL_PREFIX get_libretro_system_directory()
+{
+	return libretro_system_directory;
+}
+
+const _TCHAR *DLL_PREFIX get_libretro_save_directory()
+{
+	return libretro_save_directory;
+}
+#endif	// #if defined(_LIBRETRO)
 
 const _TCHAR *DLL_PREFIX get_application_path()
 {
@@ -1219,7 +1229,49 @@ bool DLL_PREFIX check_file_extension(const _TCHAR *file_path, const _TCHAR *ext)
 #endif
 }
 
-const _TCHAR *DLL_PREFIX get_file_path_without_extensiton(const _TCHAR *file_path)
+// Return the directory part from file path
+const _TCHAR *DLL_PREFIX get_file_path_directory(const _TCHAR *file_path)
+{
+	static _TCHAR path[8][_MAX_PATH];
+	static unsigned int table_index = 0;
+	unsigned int output_index = (table_index++) & 7;
+
+	uint8_t path_len = strlen(file_path);
+	while(path_len > 0 && file_path[path_len] != _T('/') && file_path[path_len] != _T('\\'))
+		path_len--;
+	if(path_len > 0 && (file_path[path_len] == _T('/') || file_path[path_len] == _T('\\')))
+		path_len++;
+
+	memset(path[output_index], 0, _MAX_PATH);
+	if(path_len > 0)
+		strncpy(path[output_index], file_path, path_len);
+
+	return (const _TCHAR *)path[output_index];
+}
+
+// Return the file part from file path (with extension)
+const _TCHAR *DLL_PREFIX get_file_path_file(const _TCHAR *file_path)
+{
+	static _TCHAR path[8][_MAX_PATH];
+	static unsigned int table_index = 0;
+	unsigned int output_index = (table_index++) & 7;
+
+	uint8_t path_len = strlen(file_path);
+	while(path_len > 0 && file_path[path_len] != _T('/') && file_path[path_len] != _T('\\'))
+		path_len--;
+	if(path_len > 0 && (file_path[path_len] == _T('/') || file_path[path_len] == _T('\\')))
+		path_len++;
+
+	uint8_t file_len = strlen(file_path) - path_len;
+
+	memset(path[output_index], 0, _MAX_PATH);
+	if(file_len > 0)
+		strncpy(path[output_index], file_path+path_len, file_len);
+
+	return (const _TCHAR *)path[output_index];
+}
+
+const _TCHAR *DLL_PREFIX get_file_path_without_extension(const _TCHAR *file_path)
 {
 	static _TCHAR path[8][_MAX_PATH];
 	static unsigned int table_index = 0;

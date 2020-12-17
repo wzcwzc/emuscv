@@ -351,6 +351,14 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	_TCHAR   newcart_path[_MAX_PATH];
 	memset(&newcart_path, 0, sizeof(newcart_path));
 
+/*
+	_TCHAR save_path[_MAX_PATH];
+ #if defined(_LIBRETRO)
+ 	strncpy(save_path, get_libretro_save_directory(), _MAX_PATH);
+ #elif
+	strncpy(save_path, get_file_path_directory(file_path), _MAX_PATH);
+ #endif
+*/
 
 	// Close cart and initialize memory
 	close_cart();
@@ -385,14 +393,18 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	|| (file_path[len - 2] != _T('r') && file_path[len - 2] != _T('R'))
 	|| (file_path[len - 1] != _T('t') && file_path[len - 1] != _T('T')))
 	{
-		bool     raw_ok					= false;
-		uint8_t	 raw[0x20000];
-		uint8_t	 cart_data[0x20000];
-		uint32_t cart_size				= 0;
-		_TCHAR   raw_md5[33];
-		FILEIO*  fionewcart				= new FILEIO();
-
-		my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
+		bool          raw_ok				= false;
+		uint8_t	      raw[0x20000];
+		uint8_t	      cart_data[0x20000];
+		uint32_t      cart_size				= 0;
+		_TCHAR        raw_md5[33];
+		FILEIO       *fionewcart			= new FILEIO();
+		const _TCHAR *file_name				= get_file_path_file(file_path);
+/*
+strncpy(newcart_path, save_path, _MAX_PATH);
+strncpy(newcart_path+strlen(save_path), file_name, strlen(file_name));
+*/
+my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 
 		if(len+4 > _MAX_PATH-1)
 		{
@@ -930,22 +942,25 @@ lbl_nextfile_end:
 		if(raw_ok)
 		{
 			// Standard .CART file header
-			cart_header.id[0]    = 'E';
-			cart_header.id[1]    = 'm';
-			cart_header.id[2]    = 'u';
-			cart_header.id[3]    = 'S';
-			cart_header.id[4]    = 'C';
-			cart_header.id[5]    = 'V';
-			cart_header.id[6]    = 0x19;
-			cart_header.id[7]    = 0x84;
-			cart_header.id[8]    = 0x07;
-			cart_header.id[9]    = 0x17;
-			cart_header.type[0]  = 'C';
-			cart_header.type[1]  = 'A';
-			cart_header.type[2]  = 'R';
-			cart_header.type[3]  = 'T';
-			cart_header.version  = 1;
-			cart_header.crc32    = 0;	// CRC32 will be calculated later
+			cart_header.id[0]		= 'E';
+			cart_header.id[1]		= 'm';
+			cart_header.id[2]		= 'u';
+			cart_header.id[3]		= 'S';
+			cart_header.id[4]		= 'C';
+			cart_header.id[5]		= 'V';
+			cart_header.id[6]		= 0x19;
+			cart_header.id[7]		= 0x84;
+			cart_header.id[8]		= 0x07;
+			cart_header.id[9]		= 0x17;
+			cart_header.type[0]		= 'C';
+			cart_header.type[1]		= 'A';
+			cart_header.type[2]		= 'R';
+			cart_header.type[3]		= 'T';
+			cart_header.version		= 1;
+			cart_header.game_tag[0]	= ' ';
+			cart_header.game_tag[1]	= ' ';
+			cart_header.game_tag[2]	= ' ';
+			cart_header.game_tag[0]	= ' ';
 
 			// Create new .CART file
 			if(!fionewcart->Fopen(newcart_path, FILEIO_WRITE_BINARY))
@@ -1180,7 +1195,7 @@ lbl_newcart_end:
 	}
 
 	cart_inserted = true;
-
+/*
 	// Check CRC32
 	crc32 = get_crc32(cart, sizeof(cart));
 	if(cart_header.crc32 == 0)	// If CRC32 don't exists we create it
@@ -1192,7 +1207,7 @@ lbl_newcart_end:
 	}
 	else if(cart_header.crc32 != crc32)	// Check existing CRC32
 		goto lbl_rom_error;
-
+*/
 	cart_ok = true;
 
 	// Try to load SRAM/VRAM save
@@ -1262,7 +1277,7 @@ lbl_newcart_end:
 
 			// Read backup
 			fioram->Fread(&data, ram_size, 1);
-
+/*
 			// Check CRC32
 			ram_crc32 = get_crc32(data, ram_size);
 			if(ram_header.crc32 == 0)
@@ -1280,7 +1295,7 @@ lbl_newcart_end:
 			}
 			else if(ram_header.crc32 != ram_crc32)
 				goto lbl_ram_close;
-
+*/
 			memcpy(data, sram, ram_size);
 
 lbl_ram_close:
@@ -1322,7 +1337,7 @@ void MEMORY::close_cart()
 	if(cart_inserted && ram_used && ram_save)
 	{
 		ram_crc32 = get_crc32(sram, ram_size);
-		ram_header.crc32	= ram_crc32;
+//		ram_header.crc32	= ram_crc32;
 		FILEIO* fiorw = new FILEIO();
 		if(fiorw->Fopen(ram_path, FILEIO_WRITE_BINARY))
 		{

@@ -2,10 +2,17 @@
 Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ===========================================================
 
+
 ***********************************************************
 * To do list
 ***********************************************************
-- To test on Raspberry Pi
+- To test on Raspberry Pi (Recalbox)
+
+
+***********************************************************
+* Libretro-EmuSCV v0.06.YYYYMMDDhhmmss
+***********************************************************
+- Corrected MD5 function
 
 
 ***********************************************************
@@ -22,6 +29,7 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 - Added support of power Off whith TV static noise (possibility to re-power On)
 - Added EmuSCV logo atstartup
 - Tested with RetroArch on windows 10, Mac OS X 10.10, Linuxmint 20
+- Compiled on Raspberry PI (Recalbox).. not tested yet
 
 
 ***********************************************************
@@ -29,6 +37,7 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ***********************************************************
 - Addded support of changing resolution and changing fps
 - Added support of power off  
+
 
 ***********************************************************
 * Libretro-EmuSCV v0.03.20200325000000
@@ -45,6 +54,7 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 - Makefile modified
 - Tested on Windows 10 and Linux Mint 19
 
+
 ***********************************************************
 * Libretro-EmuSCV v0.02.20200226000000
 ***********************************************************
@@ -52,12 +62,14 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 - Makefile modified to permit embedding binary files with bin2c tool
 - Tested on Windows 10 and Linux Mint 19 and OS X 10.9
 
+
 ***********************************************************
 * Libretro-EmuSCV v0.01.20200214000000
 ***********************************************************
 - Add libretro core
 - Add eSCV code (with all code specific to Windows commented -> to rewrite with crossplatform code)
 - Tested on Windows 10 and Linux Mint 19
+
 
 ***********************************************************
 * Libretro-EmuSCV v0.00.20191205000000
