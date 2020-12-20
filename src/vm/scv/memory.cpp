@@ -337,28 +337,23 @@ void MEMORY::set_bank(uint8_t bank)
 
 void MEMORY::open_cart(const _TCHAR* file_path)
 {
-	uint8_t  index			= 0;
-	uint16_t size			= 0x0000;
-	uint16_t type			= 0;
-	uint16_t bank			= 0;
-	uint16_t offset			= 0x0000;
-	uint32_t crc32			= 0;
-	uint8_t  len			= 0;
-	FILEIO*  fiocart		= new FILEIO();
-	uint8_t  data[0x8000];
+	uint8_t		  index			= 0;
+	uint16_t	  size			= 0x0000;
+	uint16_t	  type			= 0;
+	uint16_t	  bank			= 0;
+	uint16_t	  offset		= 0x0000;
+	uint32_t	  cart_crc32	= 0;
+	uint8_t		  len			= 0;
+	FILEIO		 *fiocart		= new FILEIO();
+	uint8_t		  data[0x8000];
+	_TCHAR		  newcart_path[_MAX_PATH];
+	_TCHAR		  save_file_path[_MAX_PATH];
+	_TCHAR		  rom_file_path[_MAX_PATH];
+	const _TCHAR *file_name		= get_file_path_file(file_path);
+	bool   cart_in_memory		= false;
+	uint16_t	  data_index	= 0;
+	uint8_t	      cart_data[0x20000];
 
-	bool     newcart_open	= false;
-	_TCHAR   newcart_path[_MAX_PATH];
-	memset(&newcart_path, 0, sizeof(newcart_path));
-
-/*
-	_TCHAR save_path[_MAX_PATH];
- #if defined(_LIBRETRO)
- 	strncpy(save_path, get_libretro_save_directory(), _MAX_PATH);
- #elif
-	strncpy(save_path, get_file_path_directory(file_path), _MAX_PATH);
- #endif
-*/
 
 	// Close cart and initialize memory
 	close_cart();
@@ -381,30 +376,36 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	memset(&ram_header, 0, sizeof(ram_header));
 	memset(cart, 0xFF, sizeof(cart));
 	memset(sram, 0xFF, sizeof(sram));
-	
+	memset(rom_file_path, 0, _MAX_PATH);
+	strncpy(rom_file_path, file_path, strlen(file_path));
+	memset(&newcart_path, 0, sizeof(newcart_path));
+ #if defined(_LIBRETRO)
+ 	strncpy(save_file_path, get_libretro_save_directory(), _MAX_PATH);
+ #elif
+	strncpy(save_file_path, get_file_path_directory(rom_file_path), _MAX_PATH);
+ #endif
+	memset(cart_data, 0xFF, sizeof(data));
+
 	// Check file path
-	len = _tcslen(file_path);
+	len = _tcslen(rom_file_path);
 	if(len == 0)
 		goto lbl_rom_error;	// Fatal error
 
-	if(file_path[len - 5] != _T('.')
-	|| (file_path[len - 4] != _T('c') && file_path[len - 4] != _T('C'))
-	|| (file_path[len - 3] != _T('a') && file_path[len - 3] != _T('A'))
-	|| (file_path[len - 2] != _T('r') && file_path[len - 2] != _T('R'))
-	|| (file_path[len - 1] != _T('t') && file_path[len - 1] != _T('T')))
+	if(rom_file_path[len - 5] != _T('.')
+	|| (rom_file_path[len - 4] != _T('c') && rom_file_path[len - 4] != _T('C'))
+	|| (rom_file_path[len - 3] != _T('a') && rom_file_path[len - 3] != _T('A'))
+	|| (rom_file_path[len - 2] != _T('r') && rom_file_path[len - 2] != _T('R'))
+	|| (rom_file_path[len - 1] != _T('t') && rom_file_path[len - 1] != _T('T')))
 	{
-		bool          raw_ok				= false;
 		uint8_t	      raw[0x20000];
-		uint8_t	      cart_data[0x20000];
 		uint32_t      cart_size				= 0;
 		_TCHAR        raw_md5[33];
 		FILEIO       *fionewcart			= new FILEIO();
-		const _TCHAR *file_name				= get_file_path_file(file_path);
-/*
-strncpy(newcart_path, save_path, _MAX_PATH);
-strncpy(newcart_path+strlen(save_path), file_name, strlen(file_name));
-*/
-my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
+		size_t        file_size;
+		size_t        read_size;
+
+		strncpy(newcart_path, save_file_path, _MAX_PATH);
+		strncpy(newcart_path+strlen(save_file_path), file_name, strlen(file_name));
 
 		if(len+4 > _MAX_PATH-1)
 		{
@@ -414,10 +415,10 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 			newcart_path[len-2] = _T('r');
 			newcart_path[len-1] = _T('t');
 		}
-		else if(file_path[len - 4] == _T('.')
-		&& (file_path[len - 3] != _T('b') || file_path[len - 3] != _T('B') || file_path[len - 3] != _T('r') || file_path[len - 3] != _T('R'))
-		&& (file_path[len - 2] != _T('i') || file_path[len - 2] != _T('I') || file_path[len - 2] != _T('o') || file_path[len - 2] != _T('O'))
-		&& (file_path[len - 1] != _T('n') || file_path[len - 1] != _T('N') || file_path[len - 1] != _T('m') || file_path[len - 1] != _T('M')))
+		else if(rom_file_path[len - 4] == _T('.')
+		&& (rom_file_path[len - 3] != _T('b') || rom_file_path[len - 3] != _T('B') || rom_file_path[len - 3] != _T('r') || rom_file_path[len - 3] != _T('R'))
+		&& (rom_file_path[len - 2] != _T('i') || rom_file_path[len - 2] != _T('I') || rom_file_path[len - 2] != _T('o') || rom_file_path[len - 2] != _T('O'))
+		&& (rom_file_path[len - 1] != _T('n') || rom_file_path[len - 1] != _T('N') || rom_file_path[len - 1] != _T('m') || rom_file_path[len - 1] != _T('M')))
 		{
 			newcart_path[len-4] = _T('.');
 			newcart_path[len-3] = _T('c');
@@ -425,7 +426,7 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 			newcart_path[len-1] = _T('r');
 			newcart_path[len]   = _T('t');
 		}
-		else if(file_path[len-2] == _T('.') && file_path[len-1] == _T('0'))
+		else if(rom_file_path[len-2] == _T('.') && rom_file_path[len-1] == _T('0'))
 		{
 			newcart_path[len-2] = _T('.');
 			newcart_path[len-1] = _T('c');
@@ -442,114 +443,112 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 			newcart_path[len+4] = _T('t');				
 		}
 
-		// Check if the .CART file already exists
-		// If the file exists -> nothing to do
+		// Delete existing .CART file
 		if(fionewcart->IsFileExisting(newcart_path))
-		{
-			newcart_open = true;
-			goto lbl_newcart_end;
-		}
-
-		// Init cart data
-		memset(cart_data, 0xFF, sizeof(data));
+			fionewcart->RemoveFile(newcart_path);
 
 		// Open raw file
-		if(!fiocart->Fopen(file_path, FILEIO_READ_BINARY))
+		if(!fiocart->Fopen(rom_file_path, FILEIO_READ_BINARY))
 			goto lbl_rom_end;	// Fatal error
+		// Can read 128Ko max only
+		file_size = fiocart->FileLength();
+		if(file_size > sizeof(raw))
+			goto lbl_rom_error;	// Fatal error
 
 		// Read raw file
 		memset(raw, 0, sizeof(raw));
-		fiocart->Fread(&raw, sizeof(raw), 1);
+		// First chance
+		read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+		if(read_size > 0)
+		{
+			// Second chance
+			read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+			if(read_size > 0)
+				goto lbl_rom_error;	// Fatal error
+		}
 
 		// Get MD5
 		memset(raw_md5, 0, sizeof(raw_md5));
-		strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+		strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
 		// Different type of cart
 		// 
 		// === Single file =================================================================================
 		// 
-		if(strcmp(raw_md5, _T("7f29b26a63a18ba6329445b08c8e4bb0")) == 0		// ASTRO WARS (1 file of 8KB)
-		|| strcmp(raw_md5, _T("f870601241b733e89fcf9df3a9bf2bfc")) == 0)	// ASTRO WARS II (1 file of 8KB)
+		if(strcmp(raw_md5, _T("5c0a8b9e0ae3bdc62cf758c8de3c621c")) == 0		// ASTRO WARS (1 file of 8KB)
+		|| strcmp(raw_md5, _T("28b41f62cefae2524f6ae1b980d054d7")) == 0)	// ASTRO WARS II (1 file of 8KB)
 		{
 			cart_header.nb_block = 1;
 			cart_header.block[0] = BLOCK_SIZE_8KB|BLOCK_TYPE_ROM|BLOCK_BANK_0123|BLOCK_ADDR_8000;
 			cart_size = 0x2000;
 			memcpy(cart_data, raw, cart_size);
-			raw_ok = true;
 		}
-		else if(strcmp(raw_md5, _T("26cebb31b131bd6efb92943a01c72a0c")) == 0	// SUPER BASEBALL (1 file of 16KB)
-		|| strcmp(raw_md5, _T("634f57525ced404cb8bd8b9e8ae0a1ff")) == 0			// BOULDER DASH (Japan) (1 file of 16KB)
-		|| strcmp(raw_md5, _T("1513f25787c40794da6edbe0f2593012")) == 0			// BOULDER DASH (Europe) (1 file of 16KB)
-		|| strcmp(raw_md5, _T("8541d99675490863240eceb866b342bf")) == 0			// COMIC CIRCUS (1 file of 16KB)
-		|| strcmp(raw_md5, _T("1d40d3bdb152ecbe212357bd87799dfc")) == 0			// ELEVATOR FIGHT (1 file of 16KB)
-		|| strcmp(raw_md5, _T("61e8cabac9d01b1ecd7c39bab3a88080")) == 0			// LUPIN III (1 file of 16KB)
-		|| strcmp(raw_md5, _T("b7832d2f905f9d8a43863a5098013b89")) == 0			// MINER 2049ER (1 file of 16KB)
-		|| strcmp(raw_md5, _T("572faa17c09d325b972fe3a4fb12fe3b")) == 0			// NEBULA (Japan) (1 file of 16KB)
-		|| strcmp(raw_md5, _T("50d984715f9cf35ab747210e95630992")) == 0			// NEBULA (Europe) (1 file of 16KB)
-		|| strcmp(raw_md5, _T("5c122b1294b6d87d355af9b86a9511f9")) == 0			// PUNCH BOY (1 file of 16KB)
-		|| strcmp(raw_md5, _T("6fec936c4d2511a6f6022721f75abb41")) == 0			// REAL MAHJONG (1 file of 16KB)
-		|| strcmp(raw_md5, _T("48271d8cdb1c53e536ebe057ec495a2f")) == 0			// SUPER SOCCER (Japan) (1 file of 16KB)
-		|| strcmp(raw_md5, _T("3dc5b1ade9801d7f1284e6f8358134db")) == 0			// SUPER SOCCER (Europe) (1 file of 16KB)
-		|| strcmp(raw_md5, _T("f22e632d58bcff9d9c1600a2933f1a09")) == 0			// SUPER GOLF (1 file of 16KB)
-		|| strcmp(raw_md5, _T("74e4477c3fa6892527760af4a9c17fc6")) == 0			// TON TON BALL (1 file of 16KB)
-		|| strcmp(raw_md5, _T("e99a00541da2778e881e7c775be8e6a4")) == 0)		// WHEELY RACER (1 file of 16KB)
+		else if(strcmp(raw_md5, _T("c800d70c4a1f9600407d8392b9455015")) == 0	// SUPER BASEBALL (1 file of 16KB)
+		|| strcmp(raw_md5, _T("4471a0938102c21a49635d3e4efb61bc")) == 0			// BOULDER DASH (Japan) (1 file of 16KB)
+		|| strcmp(raw_md5, _T("21b1f2432b4ea67dc7162630100b2cd5")) == 0			// BOULDER DASH (Europe) (1 file of 16KB)
+		|| strcmp(raw_md5, _T("ec261a6208094fceb7a4f8cc60db24b4")) == 0			// COMIC CIRCUS (1 file of 16KB)
+		|| strcmp(raw_md5, _T("3ac6b89ba13e57100d522921abb7319c")) == 0			// ELEVATOR FIGHT (1 file of 16KB)
+		|| strcmp(raw_md5, _T("e1547118cf5a9e88825408f12550b890")) == 0			// LUPIN III (1 file of 16KB)
+		|| strcmp(raw_md5, _T("f4a3f4f5a08a15ec62a32e959a528eac")) == 0			// MINER 2049ER (1 file of 16KB)
+		|| strcmp(raw_md5, _T("e86aab083fc9722f8a44b356139522c2")) == 0			// NEBULA (Japan) (1 file of 16KB)
+		|| strcmp(raw_md5, _T("ac629947980bbd14478c29c1645efa41")) == 0			// NEBULA (Europe) (1 file of 16KB)
+		|| strcmp(raw_md5, _T("7c10f8df512ce0bbfad7505ccca88827")) == 0			// PUNCH BOY (1 file of 16KB)
+		|| strcmp(raw_md5, _T("c9e1042402b5a0ff6f75b737fec8a08a")) == 0			// REAL MAHJONG (1 file of 16KB)
+		|| strcmp(raw_md5, _T("5cd60ad0a9bfb818db9c4e5accc05537")) == 0			// SUPER SOCCER (Japan) (1 file of 16KB)
+		|| strcmp(raw_md5, _T("dd60e91b361fdc8bc8ead3d76c45897c")) == 0			// SUPER SOCCER (Europe) (1 file of 16KB)
+		|| strcmp(raw_md5, _T("734091f00d410fc4251f0aae7d47e4c1")) == 0			// SUPER GOLF (1 file of 16KB)
+		|| strcmp(raw_md5, _T("622cbb0451fbf82b9b7834c5ca589443")) == 0			// TON TON BALL (1 file of 16KB)
+		|| strcmp(raw_md5, _T("ef4ab0300b9e056d1ba9873b63a1b6cf")) == 0)		// WHEELY RACER (1 file of 16KB)
 		{
 			cart_header.nb_block = 1;
 			cart_header.block[0] = BLOCK_SIZE_16KB|BLOCK_TYPE_ROM|BLOCK_BANK_0123|BLOCK_ADDR_8000;
 			cart_size = 0x4000;
 			memcpy(cart_data, raw, cart_size);
-			raw_ok = true;
 		}
-		else if(strcmp(raw_md5, _T("511b2bcf7ec0d0c7fed72a53bfc3c49d")) == 0	// MAPPY (1 file of 32KB)
-		|| strcmp(raw_md5, _T("4609c190580abd137ff4f9a69b3970e5")) == 0			// MILKY PRINCESS (1 file of 32KB)
-		|| strcmp(raw_md5, _T("85d692f106f37390a9c2e565e368b5c4")) == 0)		// SUPER SANSUPYUTA (1 file of 32KB)
+		else if(strcmp(raw_md5, _T("801619e946eb962fe13f4582751c7588")) == 0	// MAPPY (1 file of 32KB)
+		|| strcmp(raw_md5, _T("9449bddc1056d51c7147dc2e6329d2ed")) == 0			// MILKY PRINCESS (1 file of 32KB)
+		|| strcmp(raw_md5, _T("05f2b3b1a5e450c8ead224c3ebf5b75f")) == 0)		// SUPER SANSUPYUTA (1 file of 32KB)
 		{
 			cart_header.nb_block = 1;
 			cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_0123|BLOCK_ADDR_8000;
 			cart_size = 0x8000;
 			memcpy(cart_data, raw, cart_size);
-			raw_ok = true;
 		}
-		else if(strcmp(raw_md5, _T("a82ab36b652e8370c6e24f3dde39026b")) == 0	// BASIC NYUMON (1 file of 32KB)
-		|| strcmp(raw_md5, _T("e96a36f183913faa2c6d3c602e9f5ce3")) == 0			// DRAGON SLAYER (1 file of 32KB)
-		|| strcmp(raw_md5, _T("5a8bea76fdcce04196ddb7dd06afdb2d")) == 0)		// POP & CHIPS (1 file of 32KB)
+		else if(strcmp(raw_md5, _T("6da4e79f9dd60abe222ae8f95023ad48")) == 0	// BASIC NYUMON (1 file of 32KB)
+		|| strcmp(raw_md5, _T("9c688c8f43b142a84b90181d717df6d2")) == 0			// DRAGON SLAYER (1 file of 32KB)
+		|| strcmp(raw_md5, _T("e2488c33d92ef9985e6b62b45644303c")) == 0)		// POP & CHIPS (1 file of 32KB)
 		{
 			cart_header.nb_block = 2;
 			cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_0123|BLOCK_ADDR_8000;
 			cart_header.block[1] = BLOCK_SIZE_8KB|BLOCK_TYPE_SRAM|BLOCK_BANK_13|BLOCK_ADDR_E000;
 			cart_size = 0x8000;
 			memcpy(cart_data, raw, cart_size);
-			raw_ok = true;
 		}
-		else if(strcmp(raw_md5, _T("be926511d88c0c6f45162513ba997351")) == 0)	// SHOGI (1 file of 32KB)
+		else if(strcmp(raw_md5, _T("b248fff8526d5c3cfba82a6e036815ca")) == 0)	// SHOGI (1 file of 32KB)
 		{
 			cart_header.nb_block = 2;
 			cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_0123|BLOCK_ADDR_8000;
 			cart_header.block[1] = BLOCK_SIZE_8KB|BLOCK_TYPE_VRAM|BLOCK_BANK_13|BLOCK_ADDR_E000;
 			cart_size = 0x8000;
 			memcpy(cart_data, raw, cart_size);
-			raw_ok = true;
 		}
-		else if(strcmp(raw_md5, _T("bfc976cefbd328fb4cf6d626ef81c2bc")) == 0	// KUNG-FU ROAD (1 file of 40KB)
-		|| strcmp(raw_md5, _T("03ef1011b3f397eb13d5bae895a5747b")) == 0)		// STAR SPEEDER (1 file of 40KB)
+		else if(strcmp(raw_md5, _T("fa05cb7422744b0d8a73125db576708f")) == 0	// KUNG-FU ROAD (1 file of 40KB)
+		|| strcmp(raw_md5, _T("3a4e3634b4390241beda0a94fa69564d")) == 0)		// STAR SPEEDER (1 file of 40KB)
 		{
 			cart_header.nb_block = 2;
 			cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_0123|BLOCK_ADDR_8000;
 			cart_header.block[1] = BLOCK_SIZE_8KB|BLOCK_TYPE_ROM|BLOCK_BANK_13|BLOCK_ADDR_E000;
 			cart_size = 0xA000;
 			memcpy(cart_data, raw, cart_size);
-			raw_ok = true;
 		}
-		else if(strcmp(raw_md5, _T("c80cb2edf47a578b8be10f68402df597")) == 0	// DORAEMON (1 file of 64KB)
-		|| strcmp(raw_md5, _T("af5ee1af51614a804ccb71be987e1065")) == 0)		// SKY KID (1 file of 64KB)
+		else if(strcmp(raw_md5, _T("e93f06b2ccbafa753a2eac14f92070c2")) == 0	// DORAEMON (1 file of 64KB)
+		|| strcmp(raw_md5, _T("9b6dd35dd278bcfaa98d4ecf531654cf")) == 0)		// SKY KID (1 file of 64KB)
 		{
 			cart_header.nb_block = 2;
 			cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_02|BLOCK_ADDR_8000;
 			cart_header.block[1] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_13|BLOCK_ADDR_8000;
 			cart_size = 0x10000;
 			memcpy(cart_data, raw, cart_size);
-			raw_ok = true;
 		}
 		else if(strcmp(raw_md5, _T("6d11d49390d0946501b39d9f9688ae9d")) == 0)	// DRAGON BALL (1 file of 128KB)
 		{
@@ -559,7 +558,6 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 			cart_header.block[2] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_3|BLOCK_ADDR_8000;
 			cart_size = 0x18000;
 			memcpy(cart_data, raw+0x8000, cart_size);
-			raw_ok = true;
 		}
 		else if(strcmp(raw_md5, _T("44d432cb0093a1992beb806a68e7aaad")) == 0	// PROFESSIONAL WRESTLING (1 file of 128KB)
 		|| strcmp(raw_md5, _T("64d6268aebabedb1552c2cd565ec32a7")) == 0)		// Y2 MONSTER LAND (1 file of 128KB)
@@ -571,7 +569,6 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 			cart_header.block[3] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_3|BLOCK_ADDR_8000;
 			cart_size = 0x20000;
 			memcpy(cart_data, raw, cart_size);
-			raw_ok = true;
 		}
 		else if(strcmp(raw_md5, _T("78249cfb10962347a8001ba102992503")) == 0)	// POLE POSITION II (1 file of 128KB)
 		{
@@ -582,23 +579,25 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 			cart_header.block[3] = BLOCK_SIZE_4KB|BLOCK_TYPE_VRAM|BLOCK_BANK_23|BLOCK_ADDR_F000;
 			cart_size = 0x18000;
 			memcpy(cart_data, raw+0x8000, cart_size);
-			raw_ok = true;
 		}
-		else if(file_path[len - 1] == _T('0'))
+		else if(rom_file_path[len - 1] == _T('0'))
 		{
 			// 
 			// === Multiple files =================================================================================
 			// 
-			_TCHAR next_file_path[_MAX_PATH];
-			memset(&next_file_path, 0, sizeof(next_file_path));
-			my_tcscpy_s(next_file_path, _MAX_PATH, file_path);
-			next_file_path[len - 1] = _T('1');
-			
+			_TCHAR next_rom_file_path[_MAX_PATH];
+			memset(&next_rom_file_path, 0, sizeof(next_rom_file_path));
+			my_tcscpy_s(next_rom_file_path, _MAX_PATH, rom_file_path);
 			fiocart->Fclose();
-			if(!fiocart->Fopen(next_file_path, FILEIO_READ_BINARY))
-				goto lbl_nextfile_end;	// Fatal error
+			next_rom_file_path[len - 1] = _T('1');			
+			if(!fiocart->Fopen(next_rom_file_path, FILEIO_READ_BINARY))
+				goto lbl_rom_error;	// Fatal error
+			// Can read 128Ko max only
+			file_size = fiocart->FileLength();
+			if(file_size > sizeof(raw))
+				goto lbl_rom_error;	// Fatal error
 
-			if(strcmp(raw_md5, _T("c0e0d29c2da0d2bb82d18728355a575c")) == 0)	// KUNG-FU ROAD (2 files of 32KB and 8KB) File 0 of 32KB
+			if(strcmp(raw_md5, _T("364c7dae2b5ee1d0525906c501b276a5")) == 0)	// KUNG-FU ROAD (2 files of 32KB and 8KB) File 0 of 32KB
 			{
 				cart_header.nb_block = 2;
 				cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_0123|BLOCK_ADDR_8000;
@@ -608,19 +607,26 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("8eaf39879871eb2d8ea1422b22bdbfed")) != 0)	// File 1 of 8KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("4b2f0e32943ed64561a03e267d6f3fd9")) != 0)	// File 1 of 8KB
+					goto lbl_rom_error;	// Fatal error
 				
 				memcpy(cart_data+0x8000, raw, 0x2000);
-				raw_ok = true;
 			}
-			else if(strcmp(raw_md5, _T("3c156476be42eae154b8c311cf42b934")) == 0)	// STAR SPEEDER (2 files of 32KB and 8KB) File 0 of 32KB
+			else if(strcmp(raw_md5, _T("3060d95c563115bde239375518ee6b1d")) == 0)	// STAR SPEEDER (2 files of 32KB and 8KB) File 0 of 32KB
 			{
 				cart_header.nb_block = 2;
 				cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_0123|BLOCK_ADDR_8000;
@@ -630,19 +636,26 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("3112f2a0a3728d37968354b22db2cba6")) != 0)	// File 1 of 8KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("19c339d88cef61bde7048409828a42e7")) != 0)	// File 1 of 8KB
+					goto lbl_rom_error;	// Fatal error
 				
 				memcpy(cart_data+0x8000, raw, 0x2000);
-				raw_ok = true;
 			}
-			else if(strcmp(raw_md5, _T("33211e8405ff9ef3c7ff82ea35a695f1")) == 0)	// DORAEMON (2 files of 32KB) File 0 of 32KB
+			else if(strcmp(raw_md5, _T("8928d34618d98384119ffa351d0293cf")) == 0)	// DORAEMON (2 files of 32KB) File 0 of 32KB
 			{
 				cart_header.nb_block = 2;
 				cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_02|BLOCK_ADDR_8000;
@@ -652,19 +665,26 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("fe7e9c44fca1b7ee6e412b0d3287d423")) != 0)	// File 1 of 32KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("3ac9c39b019a81fabb1e26f75292827c")) != 0)	// File 1 of 32KB
+					goto lbl_rom_error;	// Fatal error
 
 				memcpy(cart_data+0x8000, raw, 0x8000);
-				raw_ok = true;
 			}
-			else if(strcmp(raw_md5, _T("77ce7a225767e6a484533b32ed05703f")) == 0)	// SKY KID (2 files of 32KB) File 0 of 32KB
+			else if(strcmp(raw_md5, _T("9fa449f97ed26b328793a2ae7c3a7d51")) == 0)	// SKY KID (2 files of 32KB) File 0 of 32KB
 			{
 				cart_header.nb_block = 2;
 				cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_02|BLOCK_ADDR_8000;
@@ -674,19 +694,26 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("8800ab30c7c2e6b2ffcf6cd60d2457b7")) != 0)	// File 1 of 32KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("a6f81f3b8351771ed7ba3b2f7e987d65")) != 0)	// File 1 of 32KB
+					goto lbl_rom_error;	// Fatal error
 
 				memcpy(cart_data+0x8000, raw, 0x8000);
-				raw_ok = true;
 			}
-			else if(strcmp(raw_md5, _T("93c387242f2c99b5b791314844598f43")) == 0)	// DRAGON BALL (4 files of 32KB) File 0 of 32KB
+			else if(strcmp(raw_md5, _T("61a6f0c4ef26db9d073b71b21ef957ea")) == 0)	// DRAGON BALL (4 files of 32KB) File 0 of 32KB
 			{
 				cart_header.nb_block = 3;
 				cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_01|BLOCK_ADDR_8000;
@@ -697,57 +724,88 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("93c387242f2c99b5b791314844598f43")) != 0)	// File 1 of 32KB (same data as file 0)
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("61a6f0c4ef26db9d073b71b21ef957ea")) != 0)	// File 1 of 32KB (same data as file 0)
+					goto lbl_rom_error;	// Fatal error
 				
 				// Data ignored here because same as file 0
 
 				// Open next file
-				next_file_path[len - 1] = _T('2');
 				fiocart->Fclose();
-				if(!fiocart->Fopen(next_file_path, FILEIO_READ_BINARY))
-					goto lbl_nextfile_end;	// Fatal error
+				next_rom_file_path[len - 1] = _T('2');
+				if(!fiocart->Fopen(next_rom_file_path, FILEIO_READ_BINARY))
+					goto lbl_rom_error;	// Fatal error
+				// Can read 128Ko max only
+				file_size = fiocart->FileLength();
+				if(file_size > sizeof(raw))
+					goto lbl_rom_error;	// Fatal error
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("aa65f12527a2dea288dd79171ad405f9")) != 0)	// File 2 of 32KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("122398143f8e538b26b0bd1356431022")) != 0)	// File 2 of 32KB
+					goto lbl_rom_error;	// Fatal error
 				
 				memcpy(cart_data+0x8000, raw, 0x8000);
 
 				// Open next file
-				next_file_path[len - 1] = _T('3');
 				fiocart->Fclose();
-				if(!fiocart->Fopen(next_file_path, FILEIO_READ_BINARY))
-					goto lbl_nextfile_end;	// Fatal error
+				next_rom_file_path[len - 1] = _T('3');
+				if(!fiocart->Fopen(next_rom_file_path, FILEIO_READ_BINARY))
+					goto lbl_rom_error;	// Fatal error
+				// Can read 128Ko max only
+				file_size = fiocart->FileLength();
+				if(file_size > sizeof(raw))
+					goto lbl_rom_error;	// Fatal error
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("79c99377f1d30ea84d1d37a816c8c3a4")) != 0)	// File 3 of 32sKB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("087179b0a06f30fe5b35a82dc45a6df9")) != 0)	// File 3 of 32sKB
+					goto lbl_rom_error;	// Fatal error
 
 				memcpy(cart_data+0x10000, raw, 0x8000);
-				raw_ok = true;
 			}
-			else if(strcmp(raw_md5, _T("964c760d49a487f9d98054e6abf4648d")) == 0)	// PROFESSIONAL WRESTLING (4 files of 32KB) File 0 of 32KB
+			else if(strcmp(raw_md5, _T("f5020cfd5fa59a06be927540638c5444")) == 0)	// PROFESSIONAL WRESTLING (4 files of 32KB) File 0 of 32KB
 			{
 				cart_header.nb_block = 4;
 				cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_0|BLOCK_ADDR_8000;
@@ -759,57 +817,88 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("ec9baea41e54615e2df3cc0d6c96bcff")) != 0)	// File 1 of 32KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("8d1269381114d330757f91fb07e2d76d")) != 0)	// File 1 of 32KB
+					goto lbl_rom_error;	// Fatal error
 				
 				memcpy(cart_data+0x8000, raw, 0x8000);
 
 				// Open next file
-				next_file_path[len - 1] = _T('2');
 				fiocart->Fclose();
-				if(!fiocart->Fopen(next_file_path, FILEIO_READ_BINARY))
-					goto lbl_nextfile_end;	// Fatal error
+				next_rom_file_path[len - 1] = _T('2');
+				if(!fiocart->Fopen(next_rom_file_path, FILEIO_READ_BINARY))
+					goto lbl_rom_error;	// Fatal error
+				// Can read 128Ko max only
+				file_size = fiocart->FileLength();
+				if(file_size > sizeof(raw))
+					goto lbl_rom_error;	// Fatal error
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("070701dc0891ad7838adb43d7e470bd5")) != 0)	// File 2 of 32KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("f8328107cb60e3341e9c25c14af239a4")) != 0)	// File 2 of 32KB
+					goto lbl_rom_error;	// Fatal error
 				
 				memcpy(cart_data+0x10000, raw, 0x8000);
 
 				// Open next file
-				next_file_path[len - 1] = _T('3');
 				fiocart->Fclose();
-				if(!fiocart->Fopen(next_file_path, FILEIO_READ_BINARY))
-					goto lbl_nextfile_end;	// Fatal error
+				next_rom_file_path[len - 1] = _T('3');
+				if(!fiocart->Fopen(next_rom_file_path, FILEIO_READ_BINARY))
+					goto lbl_rom_error;	// Fatal error
+				// Can read 128Ko max only
+				file_size = fiocart->FileLength();
+				if(file_size > sizeof(raw))
+					goto lbl_rom_error;	// Fatal error
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("3314d7c12aeecea8fe3c6794f500da96")) != 0)	// File 3 of 32sKB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("a3556d2c9ec743085590645b9bbbe885")) != 0)	// File 3 of 32sKB
+					goto lbl_rom_error;	// Fatal error
 
 				memcpy(cart_data+0x18000, raw, 0x8000);
-				raw_ok = true;
 			}
-			else if(strcmp(raw_md5, _T("983c1dc78d39442c73716957698f5537")) == 0)	// Y2 MONSTER LAND (4 files of 32KB) File 0 of 32KB
+			else if(strcmp(raw_md5, _T("c6baa36261ff82e8c454e59714ab4771")) == 0)	// Y2 MONSTER LAND (4 files of 32KB) File 0 of 32KB
 			{
 				cart_header.nb_block = 4;
 				cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_0|BLOCK_ADDR_8000;
@@ -821,57 +910,88 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("4d2b9ea5158f07ad0078393bc3ab0e3b")) != 0)	// File 1 of 32KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("bfe6c003f5652ebe344139e3c2ed8052")) != 0)	// File 1 of 32KB
+					goto lbl_rom_error;	// Fatal error
 				
 				memcpy(cart_data+0x8000, raw, 0x8000);
 
 				// Open next file
-				next_file_path[len - 1] = _T('2');
 				fiocart->Fclose();
-				if(!fiocart->Fopen(next_file_path, FILEIO_READ_BINARY))
-					goto lbl_nextfile_end;	// Fatal error
+				next_rom_file_path[len - 1] = _T('2');
+				if(!fiocart->Fopen(next_rom_file_path, FILEIO_READ_BINARY))
+					goto lbl_rom_error;	// Fatal error
+				// Can read 128Ko max only
+				file_size = fiocart->FileLength();
+				if(file_size > sizeof(raw))
+					goto lbl_rom_error;	// Fatal error
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("2df87cda6b91374117ee9681563cc044")) != 0)	// File 2 of 32KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("533e823555bc42d1c0547068a03f845e")) != 0)	// File 2 of 32KB
+					goto lbl_rom_error;	// Fatal error
 				
 				memcpy(cart_data+0x10000, raw, 0x8000);
 
 				// Open next file
-				next_file_path[len - 1] = _T('3');
 				fiocart->Fclose();
-				if(!fiocart->Fopen(next_file_path, FILEIO_READ_BINARY))
-					goto lbl_nextfile_end;	// Fatal error
+				next_rom_file_path[len - 1] = _T('3');
+				if(!fiocart->Fopen(next_rom_file_path, FILEIO_READ_BINARY))
+					goto lbl_rom_error;	// Fatal error
+				// Can read 128Ko max only
+				file_size = fiocart->FileLength();
+				if(file_size > sizeof(raw))
+					goto lbl_rom_error;	// Fatal error
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("b860b03a486c5b898dcd34ef6a9f2259")) != 0)	// File 3 of 32sKB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("465f41fc3d3b3a689856b108dbf229a7")) != 0)	// File 3 of 32sKB
+					goto lbl_rom_error;	// Fatal error
 				
 				memcpy(cart_data+0x18000, raw, 0x8000);
-				raw_ok = true;
 			}
-			else if(strcmp(raw_md5, _T("1ce49a4f529489bb76afdfb198ddb57a")) == 0)	// POLE POSITION II (4 files of 32KB) File 0 of 32KB filled with 0xFF
+			else if(strcmp(raw_md5, _T("3df7b33399422731e8e5615785c0536d")) == 0)	// POLE POSITION II (4 files of 32KB) File 0 of 32KB filled with 0xFF
 			{
 				cart_header.nb_block = 4;
 				cart_header.block[0] = BLOCK_SIZE_32KB|BLOCK_TYPE_ROM|BLOCK_BANK_1|BLOCK_ADDR_8000;
@@ -884,179 +1004,194 @@ my_tcscpy_s(newcart_path, _MAX_PATH, file_path);
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("520132da5fd078ce6944845f8d50064d")) != 0)	// File 1 of 32KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("4a6d816aa720a8d921b0e38116d205e7")) != 0)	// File 1 of 32KB
+					goto lbl_rom_error;	// Fatal error
 				
 				memcpy(cart_data, raw, 0x8000);
 
 				// Open next file
-				next_file_path[len - 1] = _T('2');
 				fiocart->Fclose();
-				if(!fiocart->Fopen(next_file_path, FILEIO_READ_BINARY))
-					goto lbl_nextfile_end;	// Fatal error
+				next_rom_file_path[len - 1] = _T('2');
+				if(!fiocart->Fopen(next_rom_file_path, FILEIO_READ_BINARY))
+					goto lbl_rom_error;	// Fatal error
+				// Can read 128Ko max only
+				file_size = fiocart->FileLength();
+				if(file_size > sizeof(raw))
+					goto lbl_rom_error;	// Fatal error
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("ed2c14fd62a7e04d2c72b3dd07ac189a")) != 0)	// File 2 of 32KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("b1c2355e6c5f5eb48ee0d446223149e1")) != 0)	// File 2 of 32KB
+					goto lbl_rom_error;	// Fatal error
 				
 				memcpy(cart_data+0x8000, raw, 0x8000);
 
 				// Open next file
-				next_file_path[len - 1] = _T('3');
 				fiocart->Fclose();
-				if(!fiocart->Fopen(next_file_path, FILEIO_READ_BINARY))
-					goto lbl_nextfile_end;	// Fatal error
+				next_rom_file_path[len - 1] = _T('3');
+				if(!fiocart->Fopen(next_rom_file_path, FILEIO_READ_BINARY))
+					goto lbl_rom_error;	// Fatal error
+				// Can read 128Ko max only
+				file_size = fiocart->FileLength();
+				if(file_size > sizeof(raw))
+					goto lbl_rom_error;	// Fatal error
 
 				// Read raw file
 				memset(raw, 0, sizeof(raw));
-				fiocart->Fread(&raw, sizeof(raw), 1);
+				// First chance
+				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
+				if(read_size > 0)
+				{
+					// Second chance
+					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
+					if(read_size > 0)
+						goto lbl_rom_error;	// Fatal error
+				}
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, sizeof(raw)), sizeof(raw_md5));
+				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
 
-				if(strcmp(raw_md5, _T("2c502ccd404194370f094aacf958595f")) != 0)	// File 3 of 32KB
-					goto lbl_nextfile_end;	// Fatal error
+				if(strcmp(raw_md5, _T("7c3cb94c676502b8b149afdbf6fbd3f0")) != 0)	// File 3 of 32KB
+					goto lbl_rom_error;	// Fatal error
 				
 				memcpy(cart_data+0x10000, raw, 0x8000);
-				raw_ok = true;
+			}
+			else	// Unknown ROM
+			{
+				goto lbl_rom_error;	// Fatal error
 			}
 		}
-
-lbl_nextfile_end:
-
-		// Raw file(s) is(are) ok -> create .CART file
-		if(raw_ok)
+		else	// Unknown ROM
 		{
-			// Standard .CART file header
-			cart_header.id[0]		= 'E';
-			cart_header.id[1]		= 'm';
-			cart_header.id[2]		= 'u';
-			cart_header.id[3]		= 'S';
-			cart_header.id[4]		= 'C';
-			cart_header.id[5]		= 'V';
-			cart_header.id[6]		= 0x19;
-			cart_header.id[7]		= 0x84;
-			cart_header.id[8]		= 0x07;
-			cart_header.id[9]		= 0x17;
-			cart_header.type[0]		= 'C';
-			cart_header.type[1]		= 'A';
-			cart_header.type[2]		= 'R';
-			cart_header.type[3]		= 'T';
-			cart_header.version		= 1;
-			cart_header.game_tag[0]	= ' ';
-			cart_header.game_tag[1]	= ' ';
-			cart_header.game_tag[2]	= ' ';
-			cart_header.game_tag[0]	= ' ';
+			goto lbl_rom_error;	// Fatal error
+		}
+		
+		fionewcart->Fclose();
 
-			// Create new .CART file
-			if(!fionewcart->Fopen(newcart_path, FILEIO_WRITE_BINARY))
-				goto lbl_newcart_close;
+		// Standard .CART file header
+		cart_header.id[0]		= 'E';
+		cart_header.id[1]		= 'm';
+		cart_header.id[2]		= 'u';
+		cart_header.id[3]		= 'S';
+		cart_header.id[4]		= 'C';
+		cart_header.id[5]		= 'V';
+		cart_header.id[6]		= 0x19;
+		cart_header.id[7]		= 0x84;
+		cart_header.id[8]		= 0x07;
+		cart_header.id[9]		= 0x17;
+		cart_header.type[0]		= 'C';
+		cart_header.type[1]		= 'A';
+		cart_header.type[2]		= 'R';
+		cart_header.type[3]		= 'T';
+		cart_header.version		= 1;
+		cart_header.crc32		= 0;	// Willbe calculed later
 
+		// Create new .CART file
+		if(fionewcart->Fopen(newcart_path, FILEIO_WRITE_BINARY))
+		{
 			// Save cart header
 			fionewcart->Fwrite(&cart_header, sizeof(cart_header), 1);
 
 			// Save cart data
 			fionewcart->Fwrite(&cart_data, cart_size, 1);
 			
-			newcart_open = true;
-
-lbl_newcart_close:
 			fionewcart->Fclose();
 		}
-/*
-		else
-		{
-			_TCHAR md5_path[_MAX_PATH];
 
-			memset(&md5_path, 0, sizeof(md5_path));
-			my_tcscpy_s(md5_path, _MAX_PATH, file_path);
-			md5_path[len] = _T('.');
-			md5_path[len+1] = _T('t');
-			md5_path[len+2] = _T('x');
-			md5_path[len+3] = _T('t');
+		strncpy(rom_file_path, newcart_path, _MAX_PATH);
+		len = _tcslen(rom_file_path);
 
-			FILEIO* fiomd5 = new FILEIO();
-			fiomd5->Fopen(md5_path, FILEIO_WRITE_BINARY);
-			fiomd5->Fwrite(&raw_md5, sizeof(raw_md5)-1, 1);
-			fiomd5->Fclose();
-			delete(fiomd5);
-		}
-*/
-
-lbl_newcart_end:
-		delete(fionewcart);
-		goto lbl_rom_close;	// Fatal error
+		cart_in_memory = true;
 	}
 
 	// Get save file path
-	my_tcscpy_s(ram_path, _MAX_PATH, file_path);
-	ram_path[len - 4] = (file_path[len - 4] == _T('c') ? _T('s') : _T('S'));
-	ram_path[len - 3] = (file_path[len - 3] == _T('a') ? _T('a') : _T('A'));
-	ram_path[len - 2] = (file_path[len - 2] == _T('r') ? _T('v') : _T('V'));
-	ram_path[len - 1] = (file_path[len - 1] == _T('t') ? _T('e') : _T('E'));
+	strncpy(ram_path, save_file_path, _MAX_PATH);
+	strncpy(ram_path+strlen(save_file_path), file_name, strlen(file_name));
+	ram_path[len - 4] = (rom_file_path[len - 4] == _T('c') ? _T('s') : _T('S'));
+	ram_path[len - 3] = (rom_file_path[len - 3] == _T('a') ? _T('a') : _T('A'));
+	ram_path[len - 2] = (rom_file_path[len - 2] == _T('r') ? _T('v') : _T('V'));
+	ram_path[len - 1] = (rom_file_path[len - 1] == _T('t') ? _T('e') : _T('E'));
 	
 	// Open .CART file
-	if(!fiocart->Fopen(file_path, FILEIO_READ_WRITE_BINARY))
+	if(!fiocart->Fopen(rom_file_path, FILEIO_READ_WRITE_BINARY) && !cart_in_memory)
 		goto lbl_rom_end;	// Fatal error
 	
 	cart_found = true;
 
 	// Load header
-	fiocart->Fread(&cart_header, sizeof(cart_header), 1);
+	if(!cart_in_memory)
+	{
+		fiocart->Fread(&cart_header, sizeof(cart_header), 1);
 
-	// Check format identifier
-	if(cart_header.id[0] != 'E' || cart_header.id[1] != 'm' || cart_header.id[2] != 'u' || cart_header.id[3] != 'S' || cart_header.id[4] != 'C' || cart_header.id[5] != 'V' || (uint8_t)cart_header.id[6] != 0x19 || (uint8_t)cart_header.id[7] != 0x84 || (uint8_t)cart_header.id[8] != 0x07 || (uint8_t)cart_header.id[9] != 0x17)
-		goto lbl_rom_error;	// Fatal error
-	
-	// Check file type
-	if(cart_header.type[0] != 'C' || cart_header.type[1] != 'A' || cart_header.type[2] != 'R' || cart_header.type[3] != 'T')
-		goto lbl_rom_error;	// Fatal error
+		// Check format identifier
+		if(cart_header.id[0] != 'E' || cart_header.id[1] != 'm' || cart_header.id[2] != 'u' || cart_header.id[3] != 'S' || cart_header.id[4] != 'C' || cart_header.id[5] != 'V' || (uint8_t)cart_header.id[6] != 0x19 || (uint8_t)cart_header.id[7] != 0x84 || (uint8_t)cart_header.id[8] != 0x07 || (uint8_t)cart_header.id[9] != 0x17)
+			goto lbl_rom_error;	// Fatal error
+		
+		// Check file type
+		if(cart_header.type[0] != 'C' || cart_header.type[1] != 'A' || cart_header.type[2] != 'R' || cart_header.type[3] != 'T')
+			goto lbl_rom_error;	// Fatal error
 
-	// Check format version
-	if(cart_header.version != 1)
-		goto lbl_rom_error;	// Fatal error
+		// Check format version
+		if(cart_header.version != 1)
+			goto lbl_rom_error;	// Fatal error
 
-	// Check number of blocks (6 max, only 4 used by genuine carts)
-	if(cart_header.nb_block > 6)
-		goto lbl_rom_error;	// Fatal error
+		// Check number of blocks (6 max, only 4 used by genuine carts)
+		if(cart_header.nb_block > 6)
+			goto lbl_rom_error;	// Fatal error
 
-	// Check blocks
-	// Block 1 is needed
-	if(cart_header.block[0] == BLOCK_VOID)
-		goto lbl_rom_error;	// Fatal error
-	// Avoid hole in blocks sequence
-	if(cart_header.block[1] == BLOCK_VOID && (cart_header.nb_block >= 2 || cart_header.block[2] != BLOCK_VOID || cart_header.block[3] != BLOCK_VOID || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
-		goto lbl_rom_error;	// Fatal error
-	if(cart_header.block[1] != BLOCK_VOID && cart_header.nb_block < 2)
-		goto lbl_rom_error;	// Fatal error
-	if(cart_header.block[2] == BLOCK_VOID && (cart_header.nb_block >= 3 || cart_header.block[3] != BLOCK_VOID || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
-		goto lbl_rom_error;	// Fatal error
-	if(cart_header.block[2] != BLOCK_VOID && cart_header.nb_block < 3)
-		goto lbl_rom_error;	// Fatal error
-	if(cart_header.block[3] == BLOCK_VOID && (cart_header.nb_block >= 4 || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
-		goto lbl_rom_error;	// Fatal error
-	if(cart_header.block[3] != BLOCK_VOID && cart_header.nb_block < 4)
-		goto lbl_rom_error;	// Fatal error
-	if(cart_header.block[4] == BLOCK_VOID && (cart_header.nb_block >= 5 || cart_header.block[5] != BLOCK_VOID))
-		goto lbl_rom_error;	// Fatal error
-	if(cart_header.block[4] != BLOCK_VOID && cart_header.nb_block < 5)
-		goto lbl_rom_error;	// Fatal error
-	if(cart_header.block[5] != BLOCK_VOID && cart_header.nb_block < 6)
-		goto lbl_rom_error;	// Fatal error
+		// Check blocks
+		// Block 1 is needed
+		if(cart_header.block[0] == BLOCK_VOID)
+			goto lbl_rom_error;	// Fatal error
+		// Avoid hole in blocks sequence
+		if(cart_header.block[1] == BLOCK_VOID && (cart_header.nb_block >= 2 || cart_header.block[2] != BLOCK_VOID || cart_header.block[3] != BLOCK_VOID || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
+			goto lbl_rom_error;	// Fatal error
+		if(cart_header.block[1] != BLOCK_VOID && cart_header.nb_block < 2)
+			goto lbl_rom_error;	// Fatal error
+		if(cart_header.block[2] == BLOCK_VOID && (cart_header.nb_block >= 3 || cart_header.block[3] != BLOCK_VOID || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
+			goto lbl_rom_error;	// Fatal error
+		if(cart_header.block[2] != BLOCK_VOID && cart_header.nb_block < 3)
+			goto lbl_rom_error;	// Fatal error
+		if(cart_header.block[3] == BLOCK_VOID && (cart_header.nb_block >= 4 || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
+			goto lbl_rom_error;	// Fatal error
+		if(cart_header.block[3] != BLOCK_VOID && cart_header.nb_block < 4)
+			goto lbl_rom_error;	// Fatal error
+		if(cart_header.block[4] == BLOCK_VOID && (cart_header.nb_block >= 5 || cart_header.block[5] != BLOCK_VOID))
+			goto lbl_rom_error;	// Fatal error
+		if(cart_header.block[4] != BLOCK_VOID && cart_header.nb_block < 5)
+			goto lbl_rom_error;	// Fatal error
+		if(cart_header.block[5] != BLOCK_VOID && cart_header.nb_block < 6)
+			goto lbl_rom_error;	// Fatal error
+	}
 
 	// Load blocks
 	for(index = 0; index < cart_header.nb_block; index++)
@@ -1064,9 +1199,6 @@ lbl_newcart_end:
 		// Init data
 		memset(data, 0xff, sizeof(data));
 
-		// Reorder bytes
-		//cart_header.block[index] = EndianToBig_WORD(cart_header.blockindex0]);
-		
 		// Get block size
 		switch(cart_header.block[index] & BLOCK_SIZE_MASK)
 		{
@@ -1154,7 +1286,13 @@ lbl_newcart_end:
 		{
 			case BLOCK_TYPE_ROM:
 				// Read data from file
-				fiocart->Fread(&data, size, 1);
+				if(!cart_in_memory)
+					fiocart->Fread(&data, size, 1);
+				else
+				{
+					memcpy(&data, &cart_data+data_index, size);
+					data_index += size;
+				}
 
 				// Assign block of data to banks
 				if(bank & BLOCK_BANK_0)	// PC5=0, PC6=0
@@ -1195,108 +1333,149 @@ lbl_newcart_end:
 	}
 
 	cart_inserted = true;
-/*
-	// Check CRC32
-	crc32 = get_crc32(cart, sizeof(cart));
-	if(cart_header.crc32 == 0)	// If CRC32 don't exists we create it
+
+	// Save CRC32 if required
+	// else control CRC32 if it's set
+	cart_crc32 = get_crc32(cart, sizeof(cart));
+	if(cart_header.crc32 == 0)
 	{
-		cart_header.crc32 = crc32;
-		// Save CRC32
+		cart_header.crc32 = cart_crc32;
 		fiocart->Fseek(sizeof(cart_header)-sizeof(cart_header.crc32), FILEIO_SEEK_SET);
 		fiocart->Fwrite(&cart_header.crc32, sizeof(cart_header.crc32), 1);
 	}
-	else if(cart_header.crc32 != crc32)	// Check existing CRC32
+	else if(cart_header.crc32 != cart_crc32)
 		goto lbl_rom_error;
-*/
+
 	cart_ok = true;
 
 	// Try to load SRAM/VRAM save
 	if(ram_used)
 	{
-		memset(sram, 0x00, sizeof(ram_size));
+		memset(sram, 0, sizeof(ram_size));
 		if(ram_save)
 		{
 			FILEIO* fioram = new FILEIO();
 
+			// Init RAM
+			memset(data, 0, ram_size);
+			if(ram_size > 0)
+				memset(data+ram_size, 0xFF, sizeof(data)-ram_size);
+
 			// load saved sram
 			if(!fioram->Fopen(ram_path, FILEIO_READ_WRITE_BINARY))
-			{
-				memset(&ram_header, 0, sizeof(ram_header));
-				ram_header.id[0]	= 'E';
-				ram_header.id[1]	= 'm';
-				ram_header.id[2]	= 'u';
-				ram_header.id[3]	= 'S';
-				ram_header.id[4]	= 'C';
-				ram_header.id[5]	= 'V';
-				ram_header.id[6]	= 0x19;
-				ram_header.id[7]	= 0x84;
-				ram_header.id[8]	= 0x07;
-				ram_header.id[9]	= 0x17;
-				ram_header.type[0]	= 'S';
-				ram_header.type[1]	= 'A';
-				ram_header.type[2]	= 'V';
-				ram_header.type[3]	= 'E';
-				ram_header.version	= 1;
-				ram_header.nb_block	= 1;
-				ram_header.block[0]	= ram_block;
-
-				goto lbl_ram_end;	// Fatal error
-			}
-
+				goto lbl_ram_error;	// Fatal error
+			
 			// Load header
 			fioram->Fread(&ram_header, sizeof(ram_header), 1);
-
+			
 			// Check format identifier
 			if(ram_header.id[0] != 'E' || ram_header.id[1] != 'm' || ram_header.id[2] != 'u' || ram_header.id[3] != 'S' || ram_header.id[4] != 'C' || ram_header.id[5] != 'V' || (uint8_t)ram_header.id[6] != 0x19 || (uint8_t)ram_header.id[7] != 0x84 || (uint8_t)ram_header.id[8] != 0x07 || (uint8_t)ram_header.id[9] != 0x17)
-				goto lbl_ram_close;	// Fatal error
+				goto lbl_ram_delete;	// Fatal error
 			
 			// Check file type
 			if(ram_header.type[0] != 'S' || ram_header.type[1] != 'A' || ram_header.type[2] != 'V' || ram_header.type[3] != 'E')
-				goto lbl_ram_close;	// Fatal error
+				goto lbl_ram_delete;	// Fatal error
 
 			// Check format version
 			if(ram_header.version != 1)
-				goto lbl_ram_close;	// Fatal error
+				goto lbl_ram_delete;	// Fatal error
 
 			// Check number of blocks
 			// Only one block for SRAM save
 			if(ram_header.nb_block > 1)
-				goto lbl_ram_close;	// Fatal error
+				goto lbl_ram_delete;	// Fatal error
 
 			// Block 1 is needed
 			if(ram_header.block[0] == BLOCK_VOID)
-				goto lbl_ram_close;	// Fatal error
+				goto lbl_ram_delete;	// Fatal error
 
-			// Compare SAVE block to CART bock
-			if(ram_header.block[0] != ram_block)
-				goto lbl_ram_close;	// Fatal error
-
-			// Init RAM
-			memset(data, 0x00, ram_size);
-			memset(data+ram_size, 0xFF, sizeof(data)-ram_size);
-
-			// Read backup
-			fioram->Fread(&data, ram_size, 1);
-/*
-			// Check CRC32
-			ram_crc32 = get_crc32(data, ram_size);
-			if(ram_header.crc32 == 0)
+			// Initi cart CRC32 if necessary
+			if(ram_header.cart_crc32 == 0)
 			{
-				// Save CRC32
+				ram_header.cart_crc32 = cart_header.crc32;
+
+				// Write cart CRC32
 				FILEIO* fiorw = new FILEIO();
 				if(fiorw->Fopen(ram_path, FILEIO_WRITE_BINARY))
 				{
-					fiorw->Fseek(sizeof(cart_header)-sizeof(cart_header.crc32), FILEIO_SEEK_SET);
-					fiorw->Fwrite(&ram_crc32, sizeof(ram_crc32), 1);
+					fiorw->Fseek(sizeof(ram_header)-sizeof(ram_header.save_crc32)-sizeof(ram_header.cart_crc32), FILEIO_SEEK_SET);
+					fiorw->Fwrite(&ram_header.cart_crc32, sizeof(ram_header.cart_crc32), 1);
+					fiorw->Fclose();
+				}
+				delete(fiorw);
+			}
+			else if(ram_header.cart_crc32 != cart_crc32)
+				goto lbl_ram_delete;	// Fatal error
+
+			// Compare SAVE block to CART bock
+			if(ram_header.block[0] != ram_block)
+				goto lbl_ram_delete;	// Fatal error
+
+			// Init RAM
+			memset(data, 0x00, ram_size);
+			if(ram_size > 0)
+				memset(data+ram_size, 0xFF, sizeof(data)-ram_size);
+
+			// Read backup
+			fioram->Fread(&data, ram_size, 1);
+
+			// Check ram CRC32
+			ram_crc32 = get_crc32(data, ram_size);
+			// Reinit save file on CRC32 error or save not corresponding to cart
+			if(ram_header.save_crc32 == 0)
+			{
+				ram_header.save_crc32 = ram_crc32;
+				// Write ram CRC32
+				FILEIO* fiorw = new FILEIO();
+				if(fiorw->Fopen(ram_path, FILEIO_WRITE_BINARY))
+				{
+					fiorw->Fseek(sizeof(ram_header)-sizeof(ram_header.save_crc32), FILEIO_SEEK_SET);
+					fiorw->Fwrite(&ram_header.save_crc32, sizeof(ram_header.save_crc32), 1);
 					fiorw->Fclose();
 				}
 				delete(fiorw);
 
 			}
-			else if(ram_header.crc32 != ram_crc32)
-				goto lbl_ram_close;
-*/
+			else if(ram_header.save_crc32 != ram_crc32)
+				goto lbl_ram_delete;
+
+			// Put data in RAM
 			memcpy(data, sram, ram_size);
+
+			goto lbl_ram_close;
+
+lbl_ram_delete:
+			fioram->Fclose();
+			fioram->RemoveFile(ram_path);
+
+lbl_ram_error:
+
+			memset(data, 0x00, ram_size);
+			if(ram_size > 0)
+				memset(data+ram_size, 0xFF, sizeof(data)-ram_size);
+
+			memset(&ram_header, 0, sizeof(ram_header));
+			ram_header.id[0]		= 'E';
+			ram_header.id[1]		= 'm';
+			ram_header.id[2]		= 'u';
+			ram_header.id[3]		= 'S';
+			ram_header.id[4]		= 'C';
+			ram_header.id[5]		= 'V';
+			ram_header.id[6]		= 0x19;
+			ram_header.id[7]		= 0x84;
+			ram_header.id[8]		= 0x07;
+			ram_header.id[9]		= 0x17;
+			ram_header.type[0]		= 'S';
+			ram_header.type[1]		= 'A';
+			ram_header.type[2]		= 'V';
+			ram_header.type[3]		= 'E';
+			ram_header.version		= 1;
+			ram_header.nb_block		= 1;
+			ram_header.block[0]		= ram_block;
+			ram_header.cart_crc32	= cart_header.crc32;
+			ram_header.save_crc32	= get_crc32(data, ram_size);
+
+			goto lbl_rom_end;
 
 lbl_ram_close:
 			fioram->Fclose();
@@ -1326,9 +1505,6 @@ lbl_rom_close:
 	fiocart->Fclose();
 lbl_rom_end:
 	delete fiocart;
-
-	if(newcart_open)
-		open_cart(newcart_path);
 }
 
 void MEMORY::close_cart()
@@ -1337,7 +1513,7 @@ void MEMORY::close_cart()
 	if(cart_inserted && ram_used && ram_save)
 	{
 		ram_crc32 = get_crc32(sram, ram_size);
-//		ram_header.crc32	= ram_crc32;
+		ram_header.save_crc32	= ram_crc32;
 		FILEIO* fiorw = new FILEIO();
 		if(fiorw->Fopen(ram_path, FILEIO_WRITE_BINARY))
 		{

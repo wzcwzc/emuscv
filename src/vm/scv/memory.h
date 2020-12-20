@@ -71,8 +71,19 @@ private:
 		uint8_t  version;		// File format version = 1
 		uint8_t  nb_block;		// Number of blocks (4 max. used for genuine carts)
 		uint16_t block[6];		// For each block of data you can indicate a combination of HEADER_SIZE_xxx + HEADER_TYPE_xxx + HEADER_BANK_xxx + HEADER_ADDR_xxx
-		char     game_tag[4];	// Tag identifier for the game (used to link the .CART to the .SAVE file)
-	} cart_header, ram_header;
+		uint32_t crc32;			// CRC32
+	} cart_header;
+	struct
+	{
+		char     id[10];		// "EmuSCV...."" (0x45, 0x6D , 0x75, 0x53, 0x43, 0x56, 0x19, 0x84, 0x07, 0x17) => 17th july 1984 :-)
+		char     type[4];		// "CART" or "SRAM"
+		uint8_t  version;		// File format version = 1
+		uint8_t  nb_block;		// Number of blocks (4 max. used for genuine carts)
+		uint16_t block[1];		// For each block of data you can indicate a combination of HEADER_SIZE_xxx + HEADER_TYPE_xxx + HEADER_BANK_xxx + HEADER_ADDR_xxx
+		uint8_t  reserved[6];	// Unused/reserved
+		uint32_t cart_crc32;	// CRC32
+		uint32_t save_crc32;	// CRC32
+	} ram_header;
 
 	bool bios_found;			// Is the BIOS file found?
 	bool bios_present;			// Is the BIOS present in memory?

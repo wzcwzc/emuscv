@@ -268,8 +268,9 @@ typedef struct {
 	#if defined(_LIBRETRO)
 		int scv_console;
 		int scv_display;
-		int scv_displayfull;
 		int scv_displayfps;
+		int scv_displayfull;
+		int scv_displayinputs;
 		int scv_langage;
 		int scv_checkbios;
 
