@@ -10,7 +10,7 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 
 
 ***********************************************************
-* Libretro-EmuSCV v0.06.20201220233000
+* Libretro-EmuSCV v0.06.20201221134700
 ***********************************************************
 - Corrected MD5 function (.bin .rom .0 didn't load)
 - Added some informations in logs (requested resolution, etc.)

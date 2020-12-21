@@ -351,7 +351,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	_TCHAR		  rom_file_path[_MAX_PATH];
 	const _TCHAR *file_name		= get_file_path_file(file_path);
 	bool   cart_in_memory		= false;
-	uint16_t	  data_index	= 0;
+	uint32_t	  data_index	= 0;
 	uint8_t	      cart_data[0x20000];
 
 
@@ -404,43 +404,45 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 		size_t        file_size;
 		size_t        read_size;
 
+		memset(newcart_path, 0, _tcslen(save_file_path));
 		strncpy(newcart_path, save_file_path, _MAX_PATH);
 		strncpy(newcart_path+strlen(save_file_path), file_name, strlen(file_name));
+		uint8_t newcart_path_len = _tcslen(newcart_path);
 
-		if(len+4 > _MAX_PATH-1)
+		if(newcart_path_len+4 > _MAX_PATH-1)
 		{
-			newcart_path[len-5] = _T('.');
-			newcart_path[len-4] = _T('c');
-			newcart_path[len-3] = _T('a');
-			newcart_path[len-2] = _T('r');
-			newcart_path[len-1] = _T('t');
+			newcart_path[newcart_path_len-5] = _T('.');
+			newcart_path[newcart_path_len-4] = _T('c');
+			newcart_path[newcart_path_len-3] = _T('a');
+			newcart_path[newcart_path_len-2] = _T('r');
+			newcart_path[newcart_path_len-1] = _T('t');
 		}
-		else if(rom_file_path[len - 4] == _T('.')
-		&& (rom_file_path[len - 3] != _T('b') || rom_file_path[len - 3] != _T('B') || rom_file_path[len - 3] != _T('r') || rom_file_path[len - 3] != _T('R'))
-		&& (rom_file_path[len - 2] != _T('i') || rom_file_path[len - 2] != _T('I') || rom_file_path[len - 2] != _T('o') || rom_file_path[len - 2] != _T('O'))
-		&& (rom_file_path[len - 1] != _T('n') || rom_file_path[len - 1] != _T('N') || rom_file_path[len - 1] != _T('m') || rom_file_path[len - 1] != _T('M')))
+		else if(newcart_path[newcart_path_len - 4] == _T('.')
+		&& (newcart_path[newcart_path_len - 3] != _T('b') || newcart_path[newcart_path_len - 3] != _T('B') || newcart_path[newcart_path_len - 3] != _T('r') || newcart_path[newcart_path_len - 3] != _T('R'))
+		&& (newcart_path[newcart_path_len - 2] != _T('i') || newcart_path[newcart_path_len - 2] != _T('I') || newcart_path[newcart_path_len - 2] != _T('o') || newcart_path[newcart_path_len - 2] != _T('O'))
+		&& (newcart_path[newcart_path_len - 1] != _T('n') || newcart_path[newcart_path_len - 1] != _T('N') || newcart_path[newcart_path_len - 1] != _T('m') || newcart_path[newcart_path_len - 1] != _T('M')))
 		{
-			newcart_path[len-4] = _T('.');
-			newcart_path[len-3] = _T('c');
-			newcart_path[len-2] = _T('a');
-			newcart_path[len-1] = _T('r');
-			newcart_path[len]   = _T('t');
+			newcart_path[newcart_path_len-4] = _T('.');
+			newcart_path[newcart_path_len-3] = _T('c');
+			newcart_path[newcart_path_len-2] = _T('a');
+			newcart_path[newcart_path_len-1] = _T('r');
+			newcart_path[newcart_path_len]   = _T('t');
 		}
-		else if(rom_file_path[len-2] == _T('.') && rom_file_path[len-1] == _T('0'))
+		else if(newcart_path[newcart_path_len-2] == _T('.') && newcart_path[newcart_path_len-1] == _T('0'))
 		{
-			newcart_path[len-2] = _T('.');
-			newcart_path[len-1] = _T('c');
-			newcart_path[len]   = _T('a');
-			newcart_path[len+1] = _T('r');				
-			newcart_path[len+2] = _T('t');				
+			newcart_path[newcart_path_len-2] = _T('.');
+			newcart_path[newcart_path_len-1] = _T('c');
+			newcart_path[newcart_path_len]   = _T('a');
+			newcart_path[newcart_path_len+1] = _T('r');				
+			newcart_path[newcart_path_len+2] = _T('t');				
 		}
 		else
 		{
-			newcart_path[len] = _T('.');
-			newcart_path[len+1] = _T('c');
-			newcart_path[len+2] = _T('a');
-			newcart_path[len+3] = _T('r');				
-			newcart_path[len+4] = _T('t');				
+			newcart_path[newcart_path_len] = _T('.');
+			newcart_path[newcart_path_len+1] = _T('c');
+			newcart_path[newcart_path_len+2] = _T('a');
+			newcart_path[newcart_path_len+3] = _T('r');				
+			newcart_path[newcart_path_len+4] = _T('t');				
 		}
 
 		// Delete existing .CART file
@@ -1116,6 +1118,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 		cart_header.crc32		= 0;	// Willbe calculed later
 
 		// Create new .CART file
+		cart_in_memory = true;
 		if(fionewcart->Fopen(newcart_path, FILEIO_WRITE_BINARY))
 		{
 			// Save cart header
@@ -1125,12 +1128,12 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 			fionewcart->Fwrite(&cart_data, cart_size, 1);
 			
 			fionewcart->Fclose();
+
+			cart_in_memory = false;
 		}
 
 		strncpy(rom_file_path, newcart_path, _MAX_PATH);
 		len = _tcslen(rom_file_path);
-
-		cart_in_memory = true;
 	}
 
 	// Get save file path
@@ -1149,49 +1152,47 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 	// Load header
 	if(!cart_in_memory)
-	{
 		fiocart->Fread(&cart_header, sizeof(cart_header), 1);
 
-		// Check format identifier
-		if(cart_header.id[0] != 'E' || cart_header.id[1] != 'm' || cart_header.id[2] != 'u' || cart_header.id[3] != 'S' || cart_header.id[4] != 'C' || cart_header.id[5] != 'V' || (uint8_t)cart_header.id[6] != 0x19 || (uint8_t)cart_header.id[7] != 0x84 || (uint8_t)cart_header.id[8] != 0x07 || (uint8_t)cart_header.id[9] != 0x17)
-			goto lbl_rom_error;	// Fatal error
-		
-		// Check file type
-		if(cart_header.type[0] != 'C' || cart_header.type[1] != 'A' || cart_header.type[2] != 'R' || cart_header.type[3] != 'T')
-			goto lbl_rom_error;	// Fatal error
+	// Check format identifier
+	if(cart_header.id[0] != 'E' || cart_header.id[1] != 'm' || cart_header.id[2] != 'u' || cart_header.id[3] != 'S' || cart_header.id[4] != 'C' || cart_header.id[5] != 'V' || (uint8_t)cart_header.id[6] != 0x19 || (uint8_t)cart_header.id[7] != 0x84 || (uint8_t)cart_header.id[8] != 0x07 || (uint8_t)cart_header.id[9] != 0x17)
+		goto lbl_rom_error;	// Fatal error
+	
+	// Check file type
+	if(cart_header.type[0] != 'C' || cart_header.type[1] != 'A' || cart_header.type[2] != 'R' || cart_header.type[3] != 'T')
+		goto lbl_rom_error;	// Fatal error
 
-		// Check format version
-		if(cart_header.version != 1)
-			goto lbl_rom_error;	// Fatal error
+	// Check format version
+	if(cart_header.version != 1)
+		goto lbl_rom_error;	// Fatal error
 
-		// Check number of blocks (6 max, only 4 used by genuine carts)
-		if(cart_header.nb_block > 6)
-			goto lbl_rom_error;	// Fatal error
+	// Check number of blocks (6 max, only 4 used by genuine carts)
+	if(cart_header.nb_block > 6)
+		goto lbl_rom_error;	// Fatal error
 
-		// Check blocks
-		// Block 1 is needed
-		if(cart_header.block[0] == BLOCK_VOID)
-			goto lbl_rom_error;	// Fatal error
-		// Avoid hole in blocks sequence
-		if(cart_header.block[1] == BLOCK_VOID && (cart_header.nb_block >= 2 || cart_header.block[2] != BLOCK_VOID || cart_header.block[3] != BLOCK_VOID || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
-			goto lbl_rom_error;	// Fatal error
-		if(cart_header.block[1] != BLOCK_VOID && cart_header.nb_block < 2)
-			goto lbl_rom_error;	// Fatal error
-		if(cart_header.block[2] == BLOCK_VOID && (cart_header.nb_block >= 3 || cart_header.block[3] != BLOCK_VOID || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
-			goto lbl_rom_error;	// Fatal error
-		if(cart_header.block[2] != BLOCK_VOID && cart_header.nb_block < 3)
-			goto lbl_rom_error;	// Fatal error
-		if(cart_header.block[3] == BLOCK_VOID && (cart_header.nb_block >= 4 || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
-			goto lbl_rom_error;	// Fatal error
-		if(cart_header.block[3] != BLOCK_VOID && cart_header.nb_block < 4)
-			goto lbl_rom_error;	// Fatal error
-		if(cart_header.block[4] == BLOCK_VOID && (cart_header.nb_block >= 5 || cart_header.block[5] != BLOCK_VOID))
-			goto lbl_rom_error;	// Fatal error
-		if(cart_header.block[4] != BLOCK_VOID && cart_header.nb_block < 5)
-			goto lbl_rom_error;	// Fatal error
-		if(cart_header.block[5] != BLOCK_VOID && cart_header.nb_block < 6)
-			goto lbl_rom_error;	// Fatal error
-	}
+	// Check blocks
+	// Block 1 is needed
+	if(cart_header.block[0] == BLOCK_VOID)
+		goto lbl_rom_error;	// Fatal error
+	// Avoid hole in blocks sequence
+	if(cart_header.block[1] == BLOCK_VOID && (cart_header.nb_block >= 2 || cart_header.block[2] != BLOCK_VOID || cart_header.block[3] != BLOCK_VOID || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
+		goto lbl_rom_error;	// Fatal error
+	if(cart_header.block[1] != BLOCK_VOID && cart_header.nb_block < 2)
+		goto lbl_rom_error;	// Fatal error
+	if(cart_header.block[2] == BLOCK_VOID && (cart_header.nb_block >= 3 || cart_header.block[3] != BLOCK_VOID || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
+		goto lbl_rom_error;	// Fatal error
+	if(cart_header.block[2] != BLOCK_VOID && cart_header.nb_block < 3)
+		goto lbl_rom_error;	// Fatal error
+	if(cart_header.block[3] == BLOCK_VOID && (cart_header.nb_block >= 4 || cart_header.block[4] != BLOCK_VOID || cart_header.block[5] != BLOCK_VOID))
+		goto lbl_rom_error;	// Fatal error
+	if(cart_header.block[3] != BLOCK_VOID && cart_header.nb_block < 4)
+		goto lbl_rom_error;	// Fatal error
+	if(cart_header.block[4] == BLOCK_VOID && (cart_header.nb_block >= 5 || cart_header.block[5] != BLOCK_VOID))
+		goto lbl_rom_error;	// Fatal error
+	if(cart_header.block[4] != BLOCK_VOID && cart_header.nb_block < 5)
+		goto lbl_rom_error;	// Fatal error
+	if(cart_header.block[5] != BLOCK_VOID && cart_header.nb_block < 6)
+		goto lbl_rom_error;	// Fatal error
 
 	// Load blocks
 	for(index = 0; index < cart_header.nb_block; index++)
@@ -1290,7 +1291,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 					fiocart->Fread(&data, size, 1);
 				else
 				{
-					memcpy(&data, &cart_data+data_index, size);
+					memcpy(data, cart_data+data_index, size);
 					data_index += size;
 				}
 
