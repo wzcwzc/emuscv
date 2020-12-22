@@ -41,7 +41,7 @@ class EMU;
     #define EMUSCV_VERSION			"0.00.00000000000000"
 #endif
 #define EMUSCV_AUTHOR				"Maxime MARCONATO (aka MaaaX) - maxime@maaax.com"
-#define EMUSCV_EXTENSIONS			"cart|bin|rom|0|zip"
+#define EMUSCV_EXTENSIONS			"cart|bin|rom|0"//|zip"
 
 // Input descriptions
 #define EMUSCV_INPUTDESC_BUTTON_SELECT	"BUTTON SELECT"

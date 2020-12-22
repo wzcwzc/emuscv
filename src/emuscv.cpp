@@ -1269,6 +1269,11 @@ void EmuSCV_RetroLogFallback(enum retro_log_level level, const char *fmt, ...)
 //
 cEmuSCV::cEmuSCV()
 {
+	// Log
+	RetroLogPrintf = EmuSCV_RetroLogFallback;
+	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::cEmuSCV()\n", EMUSCV_NAME);
+
 	// Init variables
 	retro_core_initialized		= false;
 	retro_use_audio_cb			= false;
@@ -1286,7 +1291,6 @@ cEmuSCV::cEmuSCV()
 	memset(retro_game_path, 0, sizeof(retro_game_path));
 
 	// Init functions
-	RetroLogPrintf			= EmuSCV_RetroLogFallback;
 	RetroEnvironment		= NULL;
 	RetroVideoRefresh		= NULL;
 	RetroAudioSample		= NULL;
@@ -1346,6 +1350,10 @@ cEmuSCV::cEmuSCV()
 //
 cEmuSCV::~cEmuSCV()
 {
+	// Log
+	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::~cEmuSCV()\n", EMUSCV_NAME);
+
 	if (retro_game_loaded == TRUE)
 	{
 		RetroUnloadGame();
@@ -1374,10 +1382,10 @@ void cEmuSCV::RetroSetEnvironment(retro_environment_t cb)
 	// Set the log callback
 	static struct retro_log_callback log_callback;
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback))
+	{
 		RetroLogPrintf = log_callback.log;
-	else
-		RetroLogPrintf = EmuSCV_RetroLogFallback;
-	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Log callback set\n", EMUSCV_NAME);
+		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Log callback set\n", EMUSCV_NAME);
+	}
 
 	// The core can be run without ROM (to show display test if no game loaded)
 	static bool support_no_game = TRUE;
@@ -1577,7 +1585,7 @@ void cEmuSCV::RetroGetSystemInfo(struct retro_system_info *info)
 	info->library_version	= EMUSCV_VERSION;
 	info->valid_extensions	= EMUSCV_EXTENSIONS;
 	info->need_fullpath		= false;
-	info->block_extract		= true;
+	info->block_extract		= false;
 }
 
 // 
@@ -1658,7 +1666,10 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 	retro_audio_enable			= false;
 	retro_audio_phase			= 0;
     retro_input_support_bitmask	= RetroEnvironment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL);
-	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_input_support_bitmask set\n", EMUSCV_NAME);
+	if(retro_input_support_bitmask)
+		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_input_support_bitmask set (true)\n", EMUSCV_NAME);
+	else
+		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_input_support_bitmask set (false)\n", EMUSCV_NAME);
 
 	// Init SDL
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -1740,7 +1751,7 @@ void cEmuSCV::RetroDeinit(void)
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Game not loaded, nothing to unload\n", EMUSCV_NAME);	
 
 	// Destroy eSCV
-	if (escv_emu != NULL)
+	if (escv_emu)
 	{
 #ifdef USE_NOTIFY_POWER_OFF
 		// notify power off
@@ -1850,22 +1861,23 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Previous game unloded\n", EMUSCV_NAME);
 	}
 	else
-		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No previous game, nothing to unlod\n", EMUSCV_NAME);
+		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No previous game, nothing to unload\n", EMUSCV_NAME);
 	
+	retro_game_loaded = false;
 
 	// Set the performance level is guide to Libretro to give an idea of how intensive this core is to run for the game
 	// It should be set in retro_load_game()
 	static unsigned performance_level = 4;
 	RetroEnvironment(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &performance_level);
-	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Performance level set\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Performance level set (4)\n", EMUSCV_NAME);
 
     enum retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_XRGB8888;
     if (!RetroEnvironment(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixel_format))
     {
-		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] XRGB8888 pixel format not supported!\n", EMUSCV_NAME);
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Pixel format not supported! (XRGB8888)\n", EMUSCV_NAME);
         return FALSE;
     }
-	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] XRGB8888 pixel format set\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Pixel format set (XRGB8888)\n", EMUSCV_NAME);
 
 
 	bool updated = false;
@@ -2173,10 +2185,11 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 		// Insert cart
 		if(escv_emu && escv_emu->is_bios_present() && strcmp(retro_game_path, "") != 0)
 		{
+			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Try to load %s\n", EMUSCV_NAME, retro_game_path);
 			escv_emu->open_cart(0,retro_game_path);
 			if(escv_emu->is_cart_inserted(0))
 			{
-				retro_game_loaded = TRUE;
+				retro_game_loaded = true;
 				RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Game loaded\n", EMUSCV_NAME);
 			}
 			else
@@ -2186,14 +2199,11 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Bios not present or empty game path\n", EMUSCV_NAME);
 	}
 	else
-	{
 		RetroLogPrintf(RETRO_LOG_INFO, "[%s] no game\n", EMUSCV_NAME);
-		retro_game_loaded = FALSE;
-	}
 
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Game loading done\n", EMUSCV_NAME);
 
-	return TRUE;
+	return true;
 }
 
 // 
@@ -2478,7 +2488,7 @@ void cEmuSCV::RetroRun(void)
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Settings (variables) unchanged, already loaded\n", EMUSCV_NAME);
 
-	if(escv_emu != NULL)
+	if(escv_emu)
 	{
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] escv_emu exists\n", EMUSCV_NAME);
 
@@ -2547,7 +2557,7 @@ void cEmuSCV::RetroRun(void)
 	{
 #ifdef USE_NOTIFY_POWER_OFF
 		// notify power off
-		if(escv_emu != NULL)
+		if(escv_emu)
 		{
 			escv_emu->notify_power_off();
 		}
@@ -2567,13 +2577,13 @@ void cEmuSCV::RetroRun(void)
     // Key PAUSE
 	if (keyPause != 0)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_SPACE, false, key_pressed_pause);
 		key_pressed_pause = true;
 	}
 	else if(key_pressed_pause)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_SPACE, false);
 		key_pressed_pause = false;
 	}
@@ -2581,13 +2591,13 @@ void cEmuSCV::RetroRun(void)
 	// Key 0
 	if (key0 != 0)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD0, false, key_pressed_0);
 		key_pressed_0 = true;
 	}
 	else if(key_pressed_0)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_NUMPAD0, false);
 		key_pressed_0 = false;
 	}
@@ -2602,13 +2612,13 @@ void cEmuSCV::RetroRun(void)
 			config_changed = true;
 		}
 */
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD1, false, key_pressed_1);
 		key_pressed_1 = true;
 	}
 	else if(key_pressed_1)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_NUMPAD1, false);
 		key_pressed_1 = false;
 	}
@@ -2620,13 +2630,13 @@ void cEmuSCV::RetroRun(void)
 		config.scv_display = SETTING_DISPLAY_EPOCH_VAL;
 		config_changed = true;
 */
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD2, false, key_pressed_2);
 		key_pressed_2 = true;
 	}
 	else if(key_pressed_2)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_NUMPAD2, false);
 		key_pressed_2 = false;
 	}
@@ -2638,13 +2648,13 @@ void cEmuSCV::RetroRun(void)
 		config.scv_display = SETTING_DISPLAY_YENO_VAL;
 		config_changed = true;
 */
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD3, false, key_pressed_3);
 		key_pressed_3 = true;
 	}
 	else if(key_pressed_3)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_NUMPAD3, false);
 		key_pressed_3 = false;
 	}
@@ -2656,13 +2666,13 @@ void cEmuSCV::RetroRun(void)
 		config.scv_displayfull = SETTING_DISPLAYFULL_NO_VAL;
 		config_changed = true;
 */
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD4, false, key_pressed_4);
 		key_pressed_4 = true;
 	}
 	else if(key_pressed_4)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_NUMPAD4, false);
 		key_pressed_4 = false;
 	}
@@ -2674,13 +2684,13 @@ void cEmuSCV::RetroRun(void)
 		config.scv_displayfull = SETTING_DISPLAYFULL_YES_VAL;
 		config_changed = true;
 */
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD5, false, key_pressed_5);
 		key_pressed_5 = true;
 	}
 	else if(key_pressed_5)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_NUMPAD5, false);
 		key_pressed_5 = false;
 	}
@@ -2688,13 +2698,13 @@ void cEmuSCV::RetroRun(void)
 	// Key 6
 	if (key6 != 0)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD6, false, key_pressed_6);
 		key_pressed_6 = true;
 	}
 	else if(key_pressed_6)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_NUMPAD6, false);
 		key_pressed_6 = false;
 	}
@@ -2706,13 +2716,13 @@ void cEmuSCV::RetroRun(void)
 		config.scv_displayfps = SETTING_DISPLAYFPS_EPOCH60_VAL;
 		config_changed = true;
 */
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD7, false, key_pressed_7);
 		key_pressed_7 = true;
 	}
 	else if(key_pressed_7)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_NUMPAD7, false);
 		key_pressed_7 = false;
 	}
@@ -2724,13 +2734,13 @@ void cEmuSCV::RetroRun(void)
 		config.scv_displayfps = SETTING_DISPLAYFPS_YENO50_VAL;
 		config_changed = true;
 */
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD8, false, key_pressed_8);
 		key_pressed_8 = true;
 	}
 	else if(key_pressed_8)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_NUMPAD8, false);
 		key_pressed_8 = false;
 	}
@@ -2738,13 +2748,13 @@ void cEmuSCV::RetroRun(void)
 	// Key 9
 	if (key9 != 0)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD9, false, key_pressed_9);
 		key_pressed_9 = true;
 	}
 	else if(key_pressed_9)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_NUMPAD9, false);
 		key_pressed_9 = false;
 	}
@@ -2752,13 +2762,13 @@ void cEmuSCV::RetroRun(void)
 	// Key CL
 	if (keyClear != 0)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_BACK, false, key_pressed_cl);
 		key_pressed_cl = true;
 	}
 	else if(key_pressed_cl)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_BACK, false);
 		key_pressed_cl = false;
 	}
@@ -2767,13 +2777,13 @@ void cEmuSCV::RetroRun(void)
 	// Controllers 1 & 2, Button START
 	if (keyEnter != 0 || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)))
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_down(VK_RETURN, false, key_pressed_en);
 		key_pressed_en = true;
 	}
 	else if(key_pressed_en)
 	{
-		if(escv_emu != NULL)
+		if(escv_emu)
 			escv_emu->key_up(VK_RETURN, false);
 		key_pressed_en = false;
 	}
@@ -3641,7 +3651,7 @@ void cEmuSCV::RetroLoadSettings(void)
 
 	// CHECK BIOS
 	config.scv_checkbios	= SETTING_CHECKBIOS_YES_VAL;
-	var.key		= SETTING_DISPLAYFULL_KEY;
+	var.key		= SETTING_CHECKBIOS_KEY;
 	var.value	= NULL;
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	{

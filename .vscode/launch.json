@@ -28,7 +28,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/astrwrs.bin"],
+            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/CART/astrwrs.zip"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

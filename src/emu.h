@@ -29,6 +29,9 @@
 #include "fifo.h"
 #include "fileio.h"
 #include "vm/vm.h"
+#if defined(_LIBRETRO)
+	#include "emuscv.h"
+#endif
 
 // OS dependent header files should be included in each osd.h
 // Please do not include them in emu.h
@@ -45,6 +48,7 @@
 	#include <pthread.h>
 	#include "osd/sdl/osd.h"
 #elif defined(_LIBRETRO)
+	#include <libretro.h>
 	#define OSD_LIBRETRO
 	#include <pthread.h>
 	#include "osd/libretro/osd.h"
@@ -401,7 +405,6 @@ public:
 	// debug log
 	void out_debug_log(const _TCHAR* format, ...);
 	void force_out_debug_log(const _TCHAR* format, ...);
-
 	void out_message(const _TCHAR* format, ...);
 	int message_count;
 	_TCHAR message[1024];
