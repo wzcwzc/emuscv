@@ -1,11 +1,20 @@
 #include "emuscv.h"
 
+#define test_width			800
+#define test_height			600
+#define test_aspect_ratio	800.0/600.0
+#define test_zoom_max		1.0
+#define test_fps			60.0
+#define FRAMES_PER_SEC				60
+
+static uint32_t test_video_buffer[test_width*test_height];
+/*
 #include "emu.h"
 #include "vm/vm.h"
 #include "vm/scv/vdp_colors.h"
 
 extern void retro_audio_cb(void);
-
+*/
 static uint8_t color_index = 0;
 
 // Not used in Libretro
@@ -24,7 +33,7 @@ static uint8_t color_index = 0;
 // TODO_MM
 //BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 //#endif
-
+/*
 #ifdef USE_JOYSTICK
 // TODO_MM
 //BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
@@ -38,7 +47,7 @@ static uint8_t color_index = 0;
 //	return create_local_path(_T("%s.sta%d"), _T(CONFIG_NAME), num);
 //}
 #endif
-
+*/
 // ----------------------------------------------------------------------------
 // window main
 // ----------------------------------------------------------------------------
@@ -385,7 +394,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		if(emu) {
 			bool extended = ((HIWORD(lParam) & 0x100) != 0);
 			emu->key_up(LOBYTE(wParam), extended);
-		}
+		}#define FRAMES_PER_SEC				60
+
 		break;
 	case WM_SYSKEYDOWN:
 		if(emu) {
@@ -505,7 +515,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_OPEN_DEBUGGER0: case ID_OPEN_DEBUGGER1: case ID_OPEN_DEBUGGER2: case ID_OPEN_DEBUGGER3:
 		case ID_OPEN_DEBUGGER4: case ID_OPEN_DEBUGGER5: case ID_OPEN_DEBUGGER6: case ID_OPEN_DEBUGGER7:
 			if(emu) {
-				emu->open_debugger(LOWORD(wParam) - ID_OPEN_DEBUGGER0);
+				e#define FRAMES_PER_SEC				60
+mu->open_debugger(LOWORD(wParam) - ID_OPEN_DEBUGGER0);
 			}
 			break;
 		case ID_CLOSE_DEBUGGER:
@@ -1283,9 +1294,9 @@ cEmuSCV::cEmuSCV()
 	retro_frame_time			= 0;
 	retro_input_support_bitmask	= false;
 	retro_game_loaded			= false;
-
+/*
 	is_power_on					= true;
-
+*/
 	memset(retro_base_directory, 0, sizeof(retro_base_directory));
 	memset(retro_save_directory, 0, sizeof(retro_save_directory));
 	memset(retro_game_path, 0, sizeof(retro_game_path));
@@ -1297,7 +1308,7 @@ cEmuSCV::cEmuSCV()
 	RetroAudioSampleBatch	= NULL;
 	RetroInputPoll			= NULL;
 	RetroInputState			= NULL;
-
+/*
 	escv_emu = NULL;
 
 	frame_surface = NULL;
@@ -1343,6 +1354,7 @@ cEmuSCV::cEmuSCV()
 
 	start_up_counter_power = 0;
 	start_up_counter_logo = 0;
+*/
 }
 
 //
@@ -1384,7 +1396,12 @@ void cEmuSCV::RetroSetEnvironment(retro_environment_t cb)
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback))
 	{
 		RetroLogPrintf = log_callback.log;
-		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Log callback set\n", EMUSCV_NAME);
+		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Log callback set to LibRetro\n", EMUSCV_NAME);
+	}
+	else
+	{
+		RetroLogPrintf = EmuSCV_RetroLogFallback;
+		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Log callback set to EmuSCV\n", EMUSCV_NAME);
 	}
 
 	// The core can be run without ROM (to show display test if no game loaded)
@@ -1469,6 +1486,7 @@ void cEmuSCV::RetroSetEnvironment(retro_environment_t cb)
 	// Set config variables
 	struct retro_variable variable[] =
 	{
+/*
 		{ SETTING_CONSOLE_KEY, "CONSOLE; AUTO|EPOCH|YENO|EPOCHLADY" },
 		{ SETTING_DISPLAY_KEY, "DISPLAY; AUTO|EMUSCV|EPOCH|YENO" },
 		{ SETTING_DISPLAYFPS_KEY, "DISPLAY FPS; AUTO|EPOCH_60|YENO_50" },
@@ -1476,6 +1494,7 @@ void cEmuSCV::RetroSetEnvironment(retro_environment_t cb)
 		{ SETTING_DISPLAYINPUTS_KEY, "DISPLAY INPUTS; NO|YES" },
 		{ SETTING_LANGAGE_KEY, "LANGAGE; AUTO|JP|EN|FR" },
 		{ SETTING_CHECKBIOS_KEY, "CHECKBIOS; YES|NO" },
+*/
 		{ NULL, NULL }
 	};
 	RetroEnvironment(RETRO_ENVIRONMENT_SET_VARIABLES, variable);
@@ -1564,11 +1583,11 @@ unsigned cEmuSCV::RetroGetVideoRegion(void)
 {
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
-//	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetVideoRegion() => RETRO_REGION_PAL\n", EMUSCV_NAME);
-	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetVideoRegion() => RETRO_REGION_NTSC\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetVideoRegion() => RETRO_REGION_PAL\n", EMUSCV_NAME);
+//	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetVideoRegion() => RETRO_REGION_NTSC\n", EMUSCV_NAME);
 
-//	return RETRO_REGION_PAL;
-	return RETRO_REGION_NTSC;
+	return RETRO_REGION_PAL;
+//	return RETRO_REGION_NTSC;
 }
 
 // 
@@ -1578,14 +1597,14 @@ void cEmuSCV::RetroGetSystemInfo(struct retro_system_info *info)
 {
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
-	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetSystemInfo()\n     library_name     = %s\n     library_version  = %s\n     valid_extensions = %s\n     need_fullpath    = true\n     block_extract    = false\n", EMUSCV_NAME, EMUSCV_NAME, EMUSCV_VERSION, EMUSCV_EXTENSIONS);
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetSystemInfo()\n     library_name     = %s\n     library_version  = %s\n     valid_extensions = %s\n     need_fullpath    = false\n     block_extract    = true\n", EMUSCV_NAME, EMUSCV_NAME, EMUSCV_VERSION, EMUSCV_EXTENSIONS);
 
 	memset(info, 0, sizeof(*info));
 	info->library_name		= EMUSCV_NAME;
 	info->library_version	= EMUSCV_VERSION;
 	info->valid_extensions	= EMUSCV_EXTENSIONS;
-	info->need_fullpath		= true;
-	info->block_extract		= false;
+	info->need_fullpath		= false;
+	info->block_extract		= true;
 }
 
 // 
@@ -1595,16 +1614,19 @@ void cEmuSCV::RetroGetAudioVideoInfo(struct retro_system_av_info *info)
 {
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
+/*
 	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV:RetroGetAudioVideoInfo()\n     timing.fps            = %f\n     timing.sample_rate    = 44100\n     geometry.base_width   = %d\n     geometry.base_height  = %d\n     geometry.max_width    = %d\n     geometry.max_height   = %d\n     geometry.aspect_ratio = %f\n", EMUSCV_NAME, config.window_fps, config.window_width, config.window_height, config.window_width * WINDOW_ZOOM_MAX, config.window_height * WINDOW_ZOOM_MAX, config.window_aspect_ratio);
+*/
+RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV:RetroGetAudioVideoInfo()\n     timing.fps            = %f\n     timing.sample_rate    = 44100\n     geometry.base_width   = %d\n     geometry.base_height  = %d\n     geometry.max_width    = %d\n     geometry.max_height   = %d\n     geometry.aspect_ratio = %f\n", EMUSCV_NAME, test_fps, test_width, test_height, test_width * test_zoom_max, test_height * test_zoom_max, test_aspect_ratio);
 
 	memset(info, 0, sizeof(*info));
-	info->timing.fps            = config.window_fps;
+	info->timing.fps            = test_fps;//config.window_fps;
 	info->timing.sample_rate    = 44100;
-	info->geometry.base_width   = config.window_width;
-	info->geometry.base_height  = config.window_height;
-	info->geometry.max_width    = config.window_width * WINDOW_ZOOM_MAX;
-	info->geometry.max_height   = config.window_height * WINDOW_ZOOM_MAX;
-	info->geometry.aspect_ratio = config.window_aspect_ratio;
+	info->geometry.base_width   = test_width;//config.window_width;
+	info->geometry.base_height  = test_height;//config.window_height;
+	info->geometry.max_width    = test_width;//config.window_width * WINDOW_ZOOM_MAX;
+	info->geometry.max_height   = test_height;//config.window_height * WINDOW_ZOOM_MAX;
+	info->geometry.aspect_ratio = test_aspect_ratio;//config.window_aspect_ratio;
 }
 
 //
@@ -1641,7 +1663,9 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
 	{
 		snprintf(retro_base_directory, sizeof(retro_base_directory), "%s", dir);
+/*
 		set_libretro_system_directory(dir);
+*/
 		RetroLogPrintf(RETRO_LOG_INFO, "[%s] Base directory: %s\n", EMUSCV_NAME, retro_base_directory);
 	}
 	else
@@ -1652,15 +1676,19 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir) && dir)
 	{
 		snprintf(retro_save_directory, sizeof(retro_save_directory), "%s", dir);
+/*
 		set_libretro_save_directory(dir);
+*/
 		RetroLogPrintf(RETRO_LOG_INFO, "[%s] Save directory: %s\n", EMUSCV_NAME, retro_save_directory);
 	}
 	else
 		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Save directory not set\n", EMUSCV_NAME);
 
 	// Init core variables
-	retro_core_initialized 		= false;
+/*
 	is_power_on					= false;
+*/
+	retro_core_initialized 		= false;
 	retro_frame_time			= 0;
 	retro_game_loaded			= false;
 	retro_audio_enable			= false;
@@ -1670,7 +1698,7 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_input_support_bitmask set (true)\n", EMUSCV_NAME);
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_input_support_bitmask set (false)\n", EMUSCV_NAME);
-
+/*
 	// Init SDL
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 	{
@@ -1721,7 +1749,7 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 	}
 	else
 		is_power_on = true;
-	
+*/	
 
 	retro_core_initialized	= true;
 
@@ -1749,7 +1777,7 @@ void cEmuSCV::RetroDeinit(void)
 	}
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Game not loaded, nothing to unload\n", EMUSCV_NAME);	
-
+/*
 	// Destroy eSCV
 	if (escv_emu)
 	{
@@ -1769,7 +1797,8 @@ void cEmuSCV::RetroDeinit(void)
 	// Deinit SDL
 	SDL_Quit();
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL quitted\n", EMUSCV_NAME);
-	
+*/
+
 	// Reinit core variables
 	retro_frame_time			= 0;
 	retro_game_loaded			= FALSE;
@@ -1826,7 +1855,7 @@ void cEmuSCV::RetroAudioSetStateCb(bool enable)
 {
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
-	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroAudioSetStateCb()\n          Set audio state = %s\n", EMUSCV_NAME, (enable == TRUE ? "ON" : "OFF"));
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroAudioSetStateCb()\n          Set audio state = %s\n", EMUSCV_NAME, (enable ? "ON" : "OFF"));
 
 	// Set audio state
 	retro_audio_enable = enable;
@@ -1837,7 +1866,11 @@ void cEmuSCV::RetroAudioSetStateCb(bool enable)
 // 
 void cEmuSCV::RetroFrameTimeCb(retro_usec_t usec)
 {
+/*
 	int64_t usec_corrected = usec*FRAMES_PER_SEC/config.window_fps;
+*/
+int64_t usec_corrected = usec*FRAMES_PER_SEC/test_fps;
+
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] cEmuSCV::RetroFrameTimeCb()\n          Frame time = %d microseconds\n", EMUSCV_NAME, usec_corrected);
@@ -1879,7 +1912,7 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
     }
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Pixel format set (XRGB8888)\n", EMUSCV_NAME);
 
-
+/*
 	bool updated = false;
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
 	{
@@ -1929,7 +1962,7 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 	SDL_SetRenderDrawColor(frame_renderer, 0, 0, 0, 255);
 	SDL_RenderClear(frame_renderer);
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface cleared\n", EMUSCV_NAME);
-
+*/
 	// reset the frame counter
 	retro_frame_counter = 0;
 
@@ -2182,6 +2215,7 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 			read_buffer = NULL;
 		}
 */
+/*
 		// Insert cart
 		if(escv_emu && escv_emu->is_bios_present() && strcmp(retro_game_path, "") != 0)
 		{
@@ -2197,6 +2231,8 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 		}
 		else
 			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Bios not present or empty game path\n", EMUSCV_NAME);
+*/
+RetroLogPrintf(RETRO_LOG_INFO, "[%s] WE DON'T TRY TO LOAD GAME\n", EMUSCV_NAME);
 	}
 	else
 		RetroLogPrintf(RETRO_LOG_INFO, "[%s] no game\n", EMUSCV_NAME);
@@ -2214,8 +2250,8 @@ void cEmuSCV::RetroUnloadGame(void)
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroUnloadGame()\n", EMUSCV_NAME);
-
-	// 
+/*
+	// Free eSCV
 	if(escv_emu && escv_emu->is_cart_inserted(0))
 	{
 		escv_emu->close_cart(0);
@@ -2263,7 +2299,7 @@ void cEmuSCV::RetroUnloadGame(void)
 	}
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL main surface, nothing to destroy\n", EMUSCV_NAME);
-
+*/
 	retro_game_loaded = FALSE;
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Game unloading done\n", EMUSCV_NAME);
 }
@@ -2275,7 +2311,7 @@ void cEmuSCV::RetroRun(void)
 {
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] cEmuSCV::RetroRun()\n", EMUSCV_NAME);
-
+/*
 	unsigned port0			= 0;
 	unsigned port1			= 1;
 	int16_t ret0			= 0;
@@ -2413,11 +2449,11 @@ void cEmuSCV::RetroRun(void)
 		}
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL secondary surface created\n", EMUSCV_NAME);
 	}
-
+*/
 	// Get inputs
 	RetroInputPoll();
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Imputs polled\n", EMUSCV_NAME);
-
+/*
 	// Controllers buttons
 	if (retro_input_support_bitmask)
 	{
@@ -2553,18 +2589,18 @@ void cEmuSCV::RetroRun(void)
 			key_pressed_power = false;
 	}
 
-/*	if (!is_power_on)
-	{
-#ifdef USE_NOTIFY_POWER_OFF
-		// notify power off
-		if(escv_emu)
-		{
-			escv_emu->notify_power_off();
-		}
-#endif
-		RetroEnvironment(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
-	}
-*/
+//	if (!is_power_on)
+//	{
+//#ifdef USE_NOTIFY_POWER_OFF
+//		// notify power off
+//		if(escv_emu)
+//		{
+//			escv_emu->notify_power_off();
+//		}
+//#endif
+//		RetroEnvironment(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+//	}
+
     // Key RESET
 	if (keyReset != 0)
 	{
@@ -2605,13 +2641,11 @@ void cEmuSCV::RetroRun(void)
 	// Key 1
 	if (key1 != 0)
 	{
-/*
-		if(!key_pressed_1)
-		{
-			config.scv_display = SETTING_DISPLAY_EMUSCV_VAL;
-			config_changed = true;
-		}
-*/
+//		if(!key_pressed_1)
+//		{
+//			config.scv_display = SETTING_DISPLAY_EMUSCV_VAL;
+//			config_changed = true;
+//		}
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD1, false, key_pressed_1);
 		key_pressed_1 = true;
@@ -2626,10 +2660,8 @@ void cEmuSCV::RetroRun(void)
 	// Key 2
 	if (key2 != 0)
 	{
-/*
-		config.scv_display = SETTING_DISPLAY_EPOCH_VAL;
-		config_changed = true;
-*/
+//		config.scv_display = SETTING_DISPLAY_EPOCH_VAL;
+//		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD2, false, key_pressed_2);
 		key_pressed_2 = true;
@@ -2644,10 +2676,8 @@ void cEmuSCV::RetroRun(void)
 	// Key 3
 	if (key3 != 0)
 	{
-/*
-		config.scv_display = SETTING_DISPLAY_YENO_VAL;
-		config_changed = true;
-*/
+//		config.scv_display = SETTING_DISPLAY_YENO_VAL;
+//		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD3, false, key_pressed_3);
 		key_pressed_3 = true;
@@ -2662,10 +2692,8 @@ void cEmuSCV::RetroRun(void)
 	// Key 4
 	if (key4 != 0)
 	{
-/*
-		config.scv_displayfull = SETTING_DISPLAYFULL_NO_VAL;
-		config_changed = true;
-*/
+//		config.scv_displayfull = SETTING_DISPLAYFULL_NO_VAL;
+//		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD4, false, key_pressed_4);
 		key_pressed_4 = true;
@@ -2680,10 +2708,8 @@ void cEmuSCV::RetroRun(void)
 	// Key 5
 	if (key5 != 0)
 	{
-/*
-		config.scv_displayfull = SETTING_DISPLAYFULL_YES_VAL;
-		config_changed = true;
-*/
+//		config.scv_displayfull = SETTING_DISPLAYFULL_YES_VAL;
+//		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD5, false, key_pressed_5);
 		key_pressed_5 = true;
@@ -2712,10 +2738,8 @@ void cEmuSCV::RetroRun(void)
 	// Key 7
 	if (key7 != 0)
 	{
-/*
-		config.scv_displayfps = SETTING_DISPLAYFPS_EPOCH60_VAL;
-		config_changed = true;
-*/
+//		config.scv_displayfps = SETTING_DISPLAYFPS_EPOCH60_VAL;
+//		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD7, false, key_pressed_7);
 		key_pressed_7 = true;
@@ -2730,10 +2754,8 @@ void cEmuSCV::RetroRun(void)
 	// Key 8
 	if (key8 != 0)
 	{
-/*
-		config.scv_displayfps = SETTING_DISPLAYFPS_YENO50_VAL;
-		config_changed = true;
-*/
+//		config.scv_displayfps = SETTING_DISPLAYFPS_YENO50_VAL;
+//		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD8, false, key_pressed_8);
 		key_pressed_8 = true;
@@ -2810,10 +2832,10 @@ void cEmuSCV::RetroRun(void)
 		SDL_RenderClear(frame_renderer);
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface cleared\n", EMUSCV_NAME);
 	}
-
+*/
 	// Increment the frame counter
 	retro_frame_counter++;
-
+/*
 	if(is_power_on && escv_emu)
 	{
 		// drive machine
@@ -2857,29 +2879,27 @@ void cEmuSCV::RetroRun(void)
 			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL blit scaled secondary->main ok\n", EMUSCV_NAME);
 	}
 
-/*
-	// Clear background, changing color every 60 frames
-	if (retro_frame_counter % FRAMES_PER_SEC == 0)
-	{
-		if (retro_frame_counter > UINT64_MAX - FRAMES_PER_SEC)
-			retro_frame_counter = 0;
-		color_index++;
-		if (color_index > 16)
-			color_index = 1;
-	}
-	color = palette_pc[color_index];
-	SDL_SetRenderDrawColor(frame_renderer, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
-	SDL_RenderClear(frame_renderer);
-*/
-/*
-    // Draw a lonely pixel (using an other color than background)
-    // with an ellipse around
-	color = palette_pc[colorIndex < 12 ? colorIndex + 4 : colorIndex - 12 ];  // Different color of background color
-	posx = 10;
-	posy = 10;
-	boxRGBA(frame_renderer, 4*posx, 3*posy, 4*posx+3, 3*posy+2, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
-	ellipseRGBA(frame_renderer, 4*posx+1, 3*posy+1, 10, 12, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
-*/
+//	// Clear background, changing color every 60 frames
+//	if (retro_frame_counter % FRAMES_PER_SEC == 0)
+//	{
+//		if (retro_frame_counter > UINT64_MAX - FRAMES_PER_SEC)
+//			retro_frame_counter = 0;
+//		color_index++;
+//		if (color_index > 16)
+//			color_index = 1;
+//	}
+//	color = palette_pc[color_index];
+//	SDL_SetRenderDrawColor(frame_renderer, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+//	SDL_RenderClear(frame_renderer);
+
+//    // Draw a lonely pixel (using an other color than background)
+//    // with an ellipse around
+//	color = palette_pc[colorIndex < 12 ? colorIndex + 4 : colorIndex - 12 ];  // Different color of background color
+//	posx = 10;
+//	posy = 10;
+//	boxRGBA(frame_renderer, 4*posx, 3*posy, 4*posx+3, 3*posy+2, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+//	ellipseRGBA(frame_renderer, 4*posx+1, 3*posy+1, 10, 12, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), 255);
+
 	// Logo at startup
 	if(start_up_counter_logo < 1200)
 	{
@@ -2901,22 +2921,17 @@ void cEmuSCV::RetroRun(void)
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Logo drawn\n", EMUSCV_NAME);
 	}
 
-/*
-	// Draw a PNG image read from ZIP file
-	if(image_data != NULL)
-	{
-		posx = 80;
-		posy = 30;
-		sizx = image_width;
-		sizy = image_height;
-		for (uint32_t y = 0; y < sizy; y++)
-			for (uint32_t x = 0; x < sizx; x++)
-				pixelRGBA(frame_renderer, posx+x, posy+sizy-y, image_data[4*(x+y*sizx)], image_data[4*(x+y*sizx)+1], image_data[4*(x+y*sizx)+2], image_data[4*(x+y*sizx)+3]);
-	}
-
-	// Reset button state
-	button_pressed = FALSE;
-*/
+//	// Draw a PNG image read from ZIP file
+//	if(image_data != NULL)
+//	{
+//		posx = 80;
+//		posy = 30;
+//		sizx = image_width;
+//		sizy = image_height;
+//		for (uint32_t y = 0; y < sizy; y++)
+//			for (uint32_t x = 0; x < sizx; x++)
+//				pixelRGBA(frame_renderer, posx+x, posy+sizy-y, image_data[4*(x+y*sizx)], image_data[4*(x+y*sizx)+1], image_data[4*(x+y*sizx)+2], image_data[4*(x+y*sizx)+3]);
+//	}
 
 	// Display controls over picture?
 	if(config.scv_displayinputs)
@@ -3381,7 +3396,7 @@ void cEmuSCV::RetroRun(void)
 
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Inputs drawn\n", EMUSCV_NAME);
 	}
-
+*/
 	// Call audio callback manually if not set
 	if (retro_use_audio_cb == false)
 	{
@@ -3392,85 +3407,14 @@ void cEmuSCV::RetroRun(void)
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_use_audio_cb == true => nothing to do\n", EMUSCV_NAME);
 
 	// Call video callback
+/*
 	RetroVideoRefresh(frame_surface->pixels, config.window_width, config.window_height,  config.window_width*sizeof(uint32_t));
+*/
+RetroVideoRefresh(test_video_buffer, test_width, test_height,  test_width*sizeof(uint32_t));
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] RetroVideoRefresh()\n", EMUSCV_NAME);
 }
 
 /*
-png_byte *volatile image_data = NULL;
-png_bytep *volatile image_row_data = NULL;
-png_uint_32 image_width = 0;
-png_uint_32 image_height = 0;
-int image_bit_depth = 0;
-int image_color_type = -1;
-*/
-
-/*
-#ifdef _WIN32
-	#define dir_delimiter '\\'
-#else
-	#define dir_delimiter '/'
-#endif
-#define MAX_FILENAME 512
-#define PNGSIGBYTES 8
-
-typedef struct
-{
-	const png_bytep data;
-	const png_size_t size;
-} PngDataHandle;
-
-typedef struct
-{
-	const PngDataHandle datahandle;
-	png_size_t offset;
-} PngReadDataHandle;
-
-void png_read_data_from_inputstream(png_structp png_ptr, png_bytep raw_data, png_size_t read_length)
-{
-	PngReadDataHandle *handle = (PngReadDataHandle *)png_get_io_ptr(png_ptr);
-	if(handle == NULL)
-	{
-		log_printf_cb(RETRO_LOG_ERROR, "[%s] png_get_io_ptr() KO\n", EMUSCV_NAME);
-		return;
-	}
-
-	const png_bytep png_src = handle->datahandle.data + handle->offset;
-
-	if(memcpy((char *)raw_data, (char *)png_src, (size_t)read_length) == NULL)
-	{
-		log_printf_cb(RETRO_LOG_ERROR, "[%s] memcpy() KO\n", EMUSCV_NAME);
-		return;
-	}
-	handle->offset += read_length;
-}
-*/
-
-/*
-bool file_present_in_system(std::string fname)
-{
-    const char *systemdirtmp = NULL;
-    bool worked = environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &systemdirtmp);
-    if (!worked)
-        return false;
-
-    std::string fullpath  = systemdirtmp;
-    fullpath             += "/";
-    fullpath             += fname;
-
-   RFILE *fp             = filestream_open(fullpath.c_str(), RETRO_VFS_FILE_ACCESS_READ,
-         RETRO_VFS_FILE_ACCESS_HINT_NONE);
-
-   if (fp)
-   {
-      filestream_close(fp);
-      return true;
-   }
-
-   return false;
-}
-*/
-
 //
 // Libretro: load core settings
 //
@@ -3788,7 +3732,7 @@ void cEmuSCV::RetroSaveSettings(void)
 	variable[6].value = "CHECK BIOS; YES|NO";
 	RetroEnvironment(RETRO_ENVIRONMENT_SET_VARIABLES, variable);
 }
-
+*/
 //
 // Libretro: reset the Libretro core
 //
@@ -3797,11 +3741,12 @@ void cEmuSCV::RetroReset(void)
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroReset()\n", EMUSCV_NAME);
-
+/*
 	if(escv_emu)
 	{
 		escv_emu->reset();
 	}
+*/
 }
 
 // 

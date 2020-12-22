@@ -6,75 +6,77 @@ CORE_DEFINES = -D_LIBRETRO -D_SCV
 
 INCFLAGS := -I./ -I$(CORE_DIR) -I$(RESOURCES_DIR) -I$(DEPENDENCIES_DIR)
 INCFLAGS += -I$(DEPENDENCIES_DIR)/libretro-common/ -I$(DEPENDENCIES_DIR)/libretro-common/include
-INCFLAGS += -I$(DEPENDENCIES_DIR)/SDL2_gfx
-INCFLAGS += -I$(DEPENDENCIES_DIR)/zlib
-INCFLAGS += -I$(DEPENDENCIES_DIR)/unzip
-INCFLAGS += -I$(DEPENDENCIES_DIR)/lpng
+#INCFLAGS += -I$(DEPENDENCIES_DIR)/SDL2_gfx
+#INCFLAGS += -I$(DEPENDENCIES_DIR)/zlib
+#INCFLAGS += -I$(DEPENDENCIES_DIR)/unzip
+#INCFLAGS += -I$(DEPENDENCIES_DIR)/lpng
 
-SOURCES_C   :=	$(DEPENDENCIES_DIR)/SDL2_gfx/SDL2_framerate.c \
-				$(DEPENDENCIES_DIR)/SDL2_gfx/SDL2_gfxPrimitives.c \
-				$(DEPENDENCIES_DIR)/SDL2_gfx/SDL2_imageFilter.c \
-				$(DEPENDENCIES_DIR)/SDL2_gfx/SDL2_rotozoom.c \
-				$(DEPENDENCIES_DIR)/zlib/adler32.c \
-				$(DEPENDENCIES_DIR)/zlib/compress.c \
-				$(DEPENDENCIES_DIR)/zlib/crc32.c \
-				$(DEPENDENCIES_DIR)/zlib/deflate.c \
-				$(DEPENDENCIES_DIR)/zlib/gzclose.c \
-				$(DEPENDENCIES_DIR)/zlib/gzlib.c \
-				$(DEPENDENCIES_DIR)/zlib/gzread.c \
-				$(DEPENDENCIES_DIR)/zlib/gzwrite.c \
-				$(DEPENDENCIES_DIR)/zlib/infback.c \
-				$(DEPENDENCIES_DIR)/zlib/inffast.c \
-				$(DEPENDENCIES_DIR)/zlib/inflate.c \
-				$(DEPENDENCIES_DIR)/zlib/inftrees.c \
-				$(DEPENDENCIES_DIR)/zlib/trees.c \
-				$(DEPENDENCIES_DIR)/zlib/uncompr.c \
-				$(DEPENDENCIES_DIR)/zlib/zutil.c \
-				$(DEPENDENCIES_DIR)/unzip/ioapi.c \
-				$(DEPENDENCIES_DIR)/unzip/unzip.c \
-				$(DEPENDENCIES_DIR)/unzip/zip.c \
-				$(DEPENDENCIES_DIR)/lpng/png.c \
-				$(DEPENDENCIES_DIR)/lpng/pngerror.c \
-				$(DEPENDENCIES_DIR)/lpng/pngget.c \
-				$(DEPENDENCIES_DIR)/lpng/pngmem.c \
-				$(DEPENDENCIES_DIR)/lpng/pngpread.c \
-				$(DEPENDENCIES_DIR)/lpng/pngread.c \
-				$(DEPENDENCIES_DIR)/lpng/pngrio.c \
-				$(DEPENDENCIES_DIR)/lpng/pngrtran.c \
-				$(DEPENDENCIES_DIR)/lpng/pngrutil.c \
-				$(DEPENDENCIES_DIR)/lpng/pngset.c \
-				$(DEPENDENCIES_DIR)/lpng/pngtest.c \
-				$(DEPENDENCIES_DIR)/lpng/pngtrans.c \
-				$(DEPENDENCIES_DIR)/lpng/pngwio.c \
-				$(DEPENDENCIES_DIR)/lpng/pngwrite.c \
-				$(DEPENDENCIES_DIR)/lpng/pngwtran.c \
-				$(DEPENDENCIES_DIR)/lpng/pngwutil.c
+SOURCES_C   :=	
+#				$(DEPENDENCIES_DIR)/SDL2_gfx/SDL2_framerate.c \
+#				$(DEPENDENCIES_DIR)/SDL2_gfx/SDL2_gfxPrimitives.c \
+#				$(DEPENDENCIES_DIR)/SDL2_gfx/SDL2_imageFilter.c \
+#				$(DEPENDENCIES_DIR)/SDL2_gfx/SDL2_rotozoom.c \
+#				$(DEPENDENCIES_DIR)/zlib/adler32.c \
+#				$(DEPENDENCIES_DIR)/zlib/compress.c \
+#				$(DEPENDENCIES_DIR)/zlib/crc32.c \
+#				$(DEPENDENCIES_DIR)/zlib/deflate.c \
+#				$(DEPENDENCIES_DIR)/zlib/gzclose.c \
+#				$(DEPENDENCIES_DIR)/zlib/gzlib.c \
+#				$(DEPENDENCIES_DIR)/zlib/gzread.c \
+#				$(DEPENDENCIES_DIR)/zlib/gzwrite.c \
+#				$(DEPENDENCIES_DIR)/zlib/infback.c \
+#				$(DEPENDENCIES_DIR)/zlib/inffast.c \
+#				$(DEPENDENCIES_DIR)/zlib/inflate.c \
+#				$(DEPENDENCIES_DIR)/zlib/inftrees.c \
+#				$(DEPENDENCIES_DIR)/zlib/trees.c \
+#				$(DEPENDENCIES_DIR)/zlib/uncompr.c \
+#				$(DEPENDENCIES_DIR)/zlib/zutil.c \
+#				$(DEPENDENCIES_DIR)/unzip/ioapi.c \
+#				$(DEPENDENCIES_DIR)/unzip/unzip.c \
+#				$(DEPENDENCIES_DIR)/unzip/zip.c \
+#				$(DEPENDENCIES_DIR)/lpng/png.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngerror.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngget.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngmem.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngpread.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngread.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngrio.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngrtran.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngrutil.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngset.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngtest.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngtrans.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngwio.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngwrite.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngwtran.c \
+#				$(DEPENDENCIES_DIR)/lpng/pngwutil.c
 
-SOURCES_CXX :=	$(CORE_DIR)/common.cpp \
-				$(CORE_DIR)/config.cpp \
-				$(CORE_DIR)/emu.cpp \
-				$(CORE_DIR)/emuscv.cpp \
-				$(CORE_DIR)/fileio.cpp \
-				$(CORE_DIR)/fifo.cpp \
-				$(CORE_DIR)/libretro.cpp \
-				$(CORE_DIR)/md5.cpp \
-				$(CORE_DIR)/vm/debugger.cpp \
-				$(CORE_DIR)/vm/event.cpp \
-				$(CORE_DIR)/vm/upd7801.cpp \
-				$(CORE_DIR)/vm/scv/io.cpp \
-				$(CORE_DIR)/vm/scv/memory.cpp \
-				$(CORE_DIR)/vm/scv/scv.cpp \
-				$(CORE_DIR)/vm/scv/sound.cpp \
-				$(CORE_DIR)/vm/scv/vdp.cpp \
-				$(CORE_DIR)/osd/libretro/osd.cpp \
-				$(CORE_DIR)/osd/libretro/osd_console.cpp \
-				$(CORE_DIR)/osd/libretro/osd_input.cpp \
-				$(CORE_DIR)/osd/libretro/osd_screen.cpp \
-				$(CORE_DIR)/osd/libretro/osd_socket.cpp \
-				$(CORE_DIR)/osd/libretro/osd_sound.cpp \
-				$(CORE_DIR)/osd/libretro/osd_video.cpp
+SOURCES_CXX :=	$(CORE_DIR)/common.cpp $(CORE_DIR)/emuscv.cpp $(CORE_DIR)/libretro.cpp
+#				$(CORE_DIR)/common.cpp \
+#				$(CORE_DIR)/config.cpp \
+#				$(CORE_DIR)/emu.cpp \
+#				$(CORE_DIR)/emuscv.cpp \
+#				$(CORE_DIR)/fileio.cpp \
+#				$(CORE_DIR)/fifo.cpp \
+#				$(CORE_DIR)/libretro.cpp \
+#				$(CORE_DIR)/md5.cpp \
+#				$(CORE_DIR)/vm/debugger.cpp \
+#				$(CORE_DIR)/vm/event.cpp \
+#				$(CORE_DIR)/vm/upd7801.cpp \
+#				$(CORE_DIR)/vm/scv/io.cpp \
+#				$(CORE_DIR)/vm/scv/memory.cpp \
+#				$(CORE_DIR)/vm/scv/scv.cpp \
+#				$(CORE_DIR)/vm/scv/sound.cpp \
+#				$(CORE_DIR)/vm/scv/vdp.cpp \
+#				$(CORE_DIR)/osd/libretro/osd.cpp \
+#				$(CORE_DIR)/osd/libretro/osd_console.cpp \
+#				$(CORE_DIR)/osd/libretro/osd_input.cpp \
+#				$(CORE_DIR)/osd/libretro/osd_screen.cpp \
+#				$(CORE_DIR)/osd/libretro/osd_socket.cpp \
+#				$(CORE_DIR)/osd/libretro/osd_sound.cpp \
+#				$(CORE_DIR)/osd/libretro/osd_video.cpp
 
-SOURCES_BIN	:=	$(RESOURCES_DIR)/emuscv64x64xrgba8888.data
+#SOURCES_BIN	:=	$(RESOURCES_DIR)/emuscv64x64xrgba8888.data
 
 ifeq ($(STATIC_LINKING),1)
 else

@@ -8,17 +8,18 @@
 
 // Libraries
 #include <libretro.h>
+/*
 #include <SDL2/SDL.h>
 #include <SDL2_gfx/SDL2_gfxPrimitives.h>
 #include <zlib/zlib.h>
 #include <unzip/unzip.h>
 #include <lpng/png.h>
-
+*/
 #include "common.h"
-
+/*
 // Embedded binary resources
 #include "res/binary.emuscv64x64xrgba8888.data.h"
-
+*/
 // SCV includes
 #ifndef EMUSCV
 	#define EMUSCV
@@ -64,10 +65,10 @@ class EMU;
 #define EMUSCV_INPUTDESC_ANALOG_LEFT_Y	"ANALOG LEFT Y"
 #define EMUSCV_INPUTDESC_ANALOG_RIGHT_X	"ANALOG RIGHT X"
 #define EMUSCV_INPUTDESC_ANALOG_RIGHT_Y	"ANALOG RIGHT Y"
-
+/*
 #define EMUSCV_AXIS_NEUTRAL_MAX	8192
 #define EMUSCV_AXIS_NEUTRAL_MIN	-EMUSCV_AXIS_NEUTRAL_MAX
-
+*/
 /*
 // device informations for virtual machine
 #define AUDIO_SAMPLING_RATE			44100
@@ -108,8 +109,10 @@ class cEmuSCV
 		void RetroReset(void);												// Libretro: reset the Libretro core
 		size_t RetroSaveStateSize(void);									// Libretro: return save state size
 		void *RetroSaveStateData(void);										// Libretro: return save state data pointer
+/*
 		void RetroLoadSettings();											// Libretro: load core settings
 		void RetroSaveSettings();											// Libretro: save core settings
+*/
 
 		retro_log_printf_t			RetroLogPrintf;
 		retro_environment_t 		RetroEnvironment;
@@ -122,18 +125,19 @@ class cEmuSCV
 		bool retro_core_initialized;		// Is the libretro core initialized ?
 		bool retro_use_audio_cb;			// Is the libretro audio callback used ?
 		bool retro_audio_enable;			// Is the libretro audio enabled ?
+
 		uint16_t retro_audio_phase;
 		uint64_t retro_frame_counter;
 		retro_usec_t retro_frame_time;
 		bool retro_input_support_bitmask;
 		bool retro_game_loaded;
-
+/*
 		bool is_power_on;
-		
+*/		
 		char retro_base_directory[_MAX_PATH];
 		char retro_save_directory[_MAX_PATH];
 		char retro_game_path[_MAX_PATH];
-
+/*
 		// double	VideoFps;
 		int window_width_old;
 		int window_height_old;
@@ -176,6 +180,7 @@ class cEmuSCV
 
 		uint64_t start_up_counter_power;
 		uint64_t start_up_counter_logo;
+*/
 };
 
 #endif	// _EMUSCV_INC_EMUSCV_H_
