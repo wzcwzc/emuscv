@@ -1281,7 +1281,9 @@ cEmuSCV::cEmuSCV()
 
 	// Init variables
 	retro_core_initialized		= false;
+/*
 	retro_use_audio_cb			= false;
+*/
 	retro_audio_enable			= false;
 /*
 	retro_audio_phase			= 0;
@@ -1642,8 +1644,8 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 	struct retro_audio_callback audio_callback = { RetroAudioCb, RetroAudioSetStateCb };
 	retro_use_audio_cb = RetroEnvironment(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &audio_callback);
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Audio callback set\n", EMUSCV_NAME);
+//retro_use_audio_cb = false;
 */
-retro_use_audio_cb = false;
 
 	// Set frame time callback
 	struct retro_frame_time_callback frame_time_callback;
@@ -1827,10 +1829,10 @@ void cEmuSCV::RetroSetControllerPortDevice(unsigned port, unsigned device)
 // 
 void cEmuSCV::RetroAudioCb(void)
 {
+/*
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroAudioCb()\n", EMUSCV_NAME);
-/*
 	int16_t val = 0x0000;
 //	if (retro_audio_enable == TRUE)// && button_pressed == TRUE)
 //	{
@@ -1852,6 +1854,7 @@ void cEmuSCV::RetroAudioCb(void)
 //	}
 	retro_audio_phase %= 44100;//AUDIO_SAMPLING_RATE;
 */
+RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] RetroAudioCb()\n", EMUSCV_NAME);
 int16_t val = 0;
 for (uint32_t i = 0; i < 44100; i++)
 	RetroAudioSample(val, val);
@@ -1878,14 +1881,15 @@ void cEmuSCV::RetroFrameTimeCb(retro_usec_t usec)
 {
 /*
 	int64_t usec_corrected = usec*FRAMES_PER_SEC/config.window_fps;
-
-//int64_t usec_corrected = usec*FRAMES_PER_SEC/WINDOW_FPS_EPOCH;
+*/
+int64_t usec_corrected = usec*FRAMES_PER_SEC/WINDOW_FPS_EPOCH;
 
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] cEmuSCV::RetroFrameTimeCb()\n          Frame time = %d microseconds\n", EMUSCV_NAME, usec_corrected);
 	
 	// Memorise current frame time
+/*
 	retro_frame_time = usec_corrected;
 */
 }
@@ -2367,21 +2371,33 @@ void cEmuSCV::RetroRun(void)
 
 	// SDL surfaces and renderers must exists
 /*
-	if (frame_surface == NULL || noise_surface == NULL)
-*/
-	if (frame_surface == NULL)
+	if (!frame_surface)
 	{
 		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL main surface not created!\n", EMUSCV_NAME);
 		return;
 	}
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface exists\n", EMUSCV_NAME);
-/*
-	if (frame_renderer == NULL || noise_renderer == NULL)
+
+	if (!frame_renderer)
 	{
 		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL main surface renderer not created!\n", EMUSCV_NAME);
 		return;
 	}
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface exists\n", EMUSCV_NAME);
+
+	if (!noise_surface)
+	{
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL secondary surface not created!\n", EMUSCV_NAME);
+		return;
+	}
+	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL secondary surface exists\n", EMUSCV_NAME);
+
+	if (!noise_renderer)
+	{
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL secondary surface renderer not created!\n", EMUSCV_NAME);
+		return;
+	}
+	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL secondary surface exists\n", EMUSCV_NAME);
 
 	// Recreate SDL surfaces and renderers if the size change
 	if(frame_surface->w != config.window_width || frame_surface->h != config.window_height)
@@ -3413,11 +3429,14 @@ void cEmuSCV::RetroRun(void)
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Inputs drawn\n", EMUSCV_NAME);
 	}
 */
+/*
 	// Call audio callback manually if not set
 	if (retro_use_audio_cb == false)
 	{
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_use_audio_cb == false -> RetroAudioCb()\n", EMUSCV_NAME);
+*/
 		RetroAudioCb();
+/*
 	}
 	else
 	{
@@ -3427,7 +3446,7 @@ void cEmuSCV::RetroRun(void)
 //			sound_buffer[i] = 0;
 //		RetroAudioSampleBatch(sound_buffer, sizeof(sound_buffer));
 	}
-/*
+
 	// Call video callback
 	RetroVideoRefresh(frame_surface->pixels, config.window_width, config.window_height,  config.window_width*sizeof(uint32_t));
 */

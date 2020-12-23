@@ -123,7 +123,9 @@ class cEmuSCV
 		retro_input_state_t			RetroInputState;
 
 		bool retro_core_initialized;		// Is the libretro core initialized ?
+/*
 		bool retro_use_audio_cb;			// Is the libretro audio callback used ?
+*/
 		bool retro_audio_enable;			// Is the libretro audio enabled ?
 /*
 		uint16_t retro_audio_phase;
