@@ -1637,11 +1637,13 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Initialisaztions already done\n", EMUSCV_NAME);
 		return;
 	}
-
+/*
 	// Set audio callbacks
 	struct retro_audio_callback audio_callback = { RetroAudioCb, RetroAudioSetStateCb };
 	retro_use_audio_cb = RetroEnvironment(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &audio_callback);
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Audio callback set\n", EMUSCV_NAME);
+*/
+retro_use_audio_cb = false;
 
 	// Set frame time callback
 	struct retro_frame_time_callback frame_time_callback;
@@ -3420,12 +3422,10 @@ void cEmuSCV::RetroRun(void)
 	else
 	{
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_use_audio_cb == true => nothing to do\n", EMUSCV_NAME);
-		
-		int16_t sound_buffer[2*44100/WINDOW_FPS_EPOCH];
-		for (uint32_t i = 0; i < 2*44100/WINDOW_FPS_EPOCH; i++)
-			sound_buffer[i] = 0;
-		RetroAudioSampleBatch(sound_buffer, sizeof(sound_buffer));
-
+//		int16_t sound_buffer[2*44100/WINDOW_FPS_EPOCH];
+//		for (uint32_t i = 0; i < 2*44100/WINDOW_FPS_EPOCH; i++)
+//			sound_buffer[i] = 0;
+//		RetroAudioSampleBatch(sound_buffer, sizeof(sound_buffer));
 	}
 /*
 	// Call video callback
