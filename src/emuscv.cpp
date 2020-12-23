@@ -2222,29 +2222,29 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 			else
 			{
 				RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game not loaded\n", EMUSCV_NAME);
-/*
+
 FILEIO *fio = new FILEIO();
 
-if(access(retro_game_path, F_OK) == 0)
+if(fio->IsFileExisting(retro_game_path))
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file exists\n", EMUSCV_NAME);
 else
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file don't exist\n", EMUSCV_NAME);
-
+/*
 if(access(retro_game_path, R_OK) == 0)
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file is readable\n", EMUSCV_NAME);
 else
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file is not readable\n", EMUSCV_NAME);
-
-if(access(retro_game_path, W_OK) == 0)
+*/
+if(!fio->IsFileProtected(retro_game_path))
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file is writable\n", EMUSCV_NAME);
 else
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file is not writable\n", EMUSCV_NAME);
-
+/*
 if(access(retro_game_path, X_OK) == 0)
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file is executable\n", EMUSCV_NAME);
 else
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file is not executable\n", EMUSCV_NAME);
-
+*/
 FILE *fpa = fopen(retro_game_path, "r");
 if(fpa != NULL)
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can open game file manually in READ ASCII mode\n", EMUSCV_NAME);
@@ -2286,7 +2286,7 @@ else
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't open game file in READ_BINARY mode\n", EMUSCV_NAME);
 
 delete(fio);
-*/
+
 			}
 		}
 		else

@@ -1176,7 +1176,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	ram_path[len - 1] = (rom_file_path[len - 1] == _T('t') ? _T('e') : _T('E'));
 	
 	// Open .CART file
-	if(!fiocart->Fopen(rom_file_path, FILEIO_READ_WRITE_BINARY) && !cart_in_memory)
+	if(!fiocart->Fopen(rom_file_path, FILEIO_READ_BINARY) && !cart_in_memory)
 		goto lbl_rom_end;	// Fatal error
 	
 	cart_found = true;
@@ -1372,8 +1372,10 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	if(cart_header.crc32 == 0)
 	{
 		cart_header.crc32 = cart_crc32;
+/*
 		fiocart->Fseek(sizeof(cart_header)-sizeof(cart_header.crc32), FILEIO_SEEK_SET);
 		fiocart->Fwrite(&cart_header.crc32, sizeof(cart_header.crc32), 1);
+*/
 	}
 	else if(cart_header.crc32 != cart_crc32)
 		goto lbl_rom_error;
@@ -1394,7 +1396,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(data+ram_size, 0xFF, sizeof(data)-ram_size);
 
 			// load saved sram
-			if(!fioram->Fopen(ram_path, FILEIO_READ_WRITE_BINARY))
+			if(!fioram->Fopen(ram_path, FILEIO_READ_BINARY))
 				goto lbl_ram_error;	// Fatal error
 			
 			// Load header
@@ -1425,7 +1427,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 			if(ram_header.cart_crc32 == 0)
 			{
 				ram_header.cart_crc32 = cart_header.crc32;
-
+/*
 				// Write cart CRC32
 				FILEIO* fiorw = new FILEIO();
 				if(fiorw->Fopen(ram_path, FILEIO_WRITE_BINARY))
@@ -1435,6 +1437,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 					fiorw->Fclose();
 				}
 				delete(fiorw);
+*/
 			}
 			else if(ram_header.cart_crc32 != cart_crc32)
 				goto lbl_ram_delete;	// Fatal error
@@ -1457,6 +1460,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 			if(ram_header.save_crc32 == 0)
 			{
 				ram_header.save_crc32 = ram_crc32;
+/*
 				// Write ram CRC32
 				FILEIO* fiorw = new FILEIO();
 				if(fiorw->Fopen(ram_path, FILEIO_WRITE_BINARY))
@@ -1466,7 +1470,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 					fiorw->Fclose();
 				}
 				delete(fiorw);
-
+*/
 			}
 			else if(ram_header.save_crc32 != ram_crc32)
 				goto lbl_ram_delete;
