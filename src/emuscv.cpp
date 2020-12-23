@@ -4,9 +4,9 @@
 #include "emu.h"
 #include "vm/vm.h"
 #include "vm/scv/vdp_colors.h"
-/*
+
 extern void retro_audio_cb(void);
-*/
+
 static uint8_t color_index = 0;
 
 static uint32_t test_video_buffer[WINDOW_WIDTH_EMUSCV*WINDOW_HEIGHT_EMUSCV];
@@ -1283,10 +1283,8 @@ cEmuSCV::cEmuSCV()
 	retro_core_initialized		= false;
 	retro_use_audio_cb			= false;
 	retro_audio_enable			= false;
-/*
 	retro_audio_phase			= 0;
 	retro_frame_counter			= 0;
-*/
 	retro_frame_time			= 0;
 	retro_input_support_bitmask	= false;
 	retro_game_loaded			= false;
@@ -1686,9 +1684,8 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 	retro_frame_time			= 0;
 	retro_game_loaded			= false;
 	retro_audio_enable			= false;
-/*
 	retro_audio_phase			= 0;
-*/  
+
 	retro_input_support_bitmask	= RetroEnvironment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL);
 	if(retro_input_support_bitmask)
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_input_support_bitmask set (true)\n", EMUSCV_NAME);
@@ -1798,9 +1795,7 @@ void cEmuSCV::RetroDeinit(void)
 	retro_game_loaded			= FALSE;
     retro_input_support_bitmask	= FALSE;
 	retro_audio_enable			= FALSE;
-/*
 	retro_audio_phase			= 0;
-*/
 	retro_core_initialized 		= FALSE;
 
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] All deinitialisaztions done\n", EMUSCV_NAME);
@@ -1820,10 +1815,9 @@ void cEmuSCV::RetroSetControllerPortDevice(unsigned port, unsigned device)
 // 
 void cEmuSCV::RetroAudioCb(void)
 {
-/*
 	// Log
-//	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
-//	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroAudioCb()\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroAudioCb()\n", EMUSCV_NAME);
 
 	int16_t val = 0x0000;
 //	if (retro_audio_enable == TRUE)// && button_pressed == TRUE)
@@ -1845,7 +1839,6 @@ void cEmuSCV::RetroAudioCb(void)
 
 //	}
 	retro_audio_phase %= 44100;//AUDIO_SAMPLING_RATE;
-*/
 }
 
 // 
@@ -2313,7 +2306,7 @@ void cEmuSCV::RetroRun(void)
 {
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] cEmuSCV::RetroRun()\n", EMUSCV_NAME);
-/*
+
 	unsigned port0			= 0;
 	unsigned port1			= 1;
 	int16_t ret0			= 0;
@@ -2356,13 +2349,16 @@ void cEmuSCV::RetroRun(void)
 
 
 	// SDL surfaces and renderers must exists
+/*
 	if (frame_surface == NULL || noise_surface == NULL)
+*/
+	if (frame_surface == NULL)
 	{
 		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL main surface not created!\n", EMUSCV_NAME);
 		return;
 	}
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface exists\n", EMUSCV_NAME);
-
+/*
 	if (frame_renderer == NULL || noise_renderer == NULL)
 	{
 		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL main surface renderer not created!\n", EMUSCV_NAME);
@@ -2455,7 +2451,7 @@ void cEmuSCV::RetroRun(void)
 	// Get inputs
 	RetroInputPoll();
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Imputs polled\n", EMUSCV_NAME);
-/*
+
 	// Controllers buttons
 	if (retro_input_support_bitmask)
 	{
@@ -2517,6 +2513,7 @@ void cEmuSCV::RetroRun(void)
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Imputs parsed\n", EMUSCV_NAME);
 
 	bool updated = false;
+/*
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
 	{
 		RetroLoadSettings();
@@ -3398,7 +3395,7 @@ void cEmuSCV::RetroRun(void)
 
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Inputs drawn\n", EMUSCV_NAME);
 	}
-
+*/
 	// Call audio callback manually if not set
 	if (retro_use_audio_cb == false)
 	{
@@ -3407,7 +3404,7 @@ void cEmuSCV::RetroRun(void)
 	}
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_use_audio_cb == true => nothing to do\n", EMUSCV_NAME);
-
+/*
 	// Call video callback
 	RetroVideoRefresh(frame_surface->pixels, config.window_width, config.window_height,  config.window_width*sizeof(uint32_t));
 */
