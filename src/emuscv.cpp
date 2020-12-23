@@ -1645,7 +1645,6 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 	retro_use_audio_cb = RetroEnvironment(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &audio_callback);
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Audio callback set\n", EMUSCV_NAME);
 //retro_use_audio_cb = false;
-*/
 
 	// Set frame time callback
 	struct retro_frame_time_callback frame_time_callback;
@@ -1654,6 +1653,7 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 	frame_time_callback.callback(frame_time_callback.reference);
 	RetroEnvironment(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &frame_time_callback);
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Frame time callback set\n", EMUSCV_NAME);
+*/
 
 	// Retrieve base directory
 	const char *dir = NULL;
@@ -1824,12 +1824,12 @@ void cEmuSCV::RetroSetControllerPortDevice(unsigned port, unsigned device)
 	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSetControllerPortDevice()\n          Set device %d into port %d\n", EMUSCV_NAME, device, port);
 }
 
+/*
 // 
 // Libretro: audio callback
 // 
 void cEmuSCV::RetroAudioCb(void)
 {
-/*
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroAudioCb()\n", EMUSCV_NAME);
@@ -1853,12 +1853,12 @@ void cEmuSCV::RetroAudioCb(void)
 
 //	}
 	retro_audio_phase %= 44100;//AUDIO_SAMPLING_RATE;
-*/
-RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] cEmuSCV::RetroAudioCb() => RetroAudioSample()\n", EMUSCV_NAME);
-int16_t val = 0;
-for (uint32_t i = 0; i < 44100; i++)
-	RetroAudioSample(val, val);
+//RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] cEmuSCV::RetroAudioCb() => RetroAudioSample()\n", EMUSCV_NAME);
+//int16_t val = 0;
+//for (uint32_t i = 0; i < 44100; i++)
+//	RetroAudioSample(val, val);
 }
+*/
 
 
 // 
@@ -1873,26 +1873,24 @@ void cEmuSCV::RetroAudioSetStateCb(bool enable)
 	// Set audio state
 	retro_audio_enable = enable;
 }
-
+/*
 // 
 // Libretro: frame time callback
 // 
 void cEmuSCV::RetroFrameTimeCb(retro_usec_t usec)
 {
-/*
+
 	int64_t usec_corrected = usec*FRAMES_PER_SEC/config.window_fps;
-*/
-int64_t usec_corrected = usec*FRAMES_PER_SEC/WINDOW_FPS_EPOCH;
+//int64_t usec_corrected = usec*FRAMES_PER_SEC/WINDOW_FPS_EPOCH;
 
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] cEmuSCV::RetroFrameTimeCb()\n          Frame time = %d microseconds\n", EMUSCV_NAME, usec_corrected);
 	
 	// Memorise current frame time
-/*
 	retro_frame_time = usec_corrected;
-*/
 }
+*/
 
 // 
 // Libretro: load game
@@ -3434,17 +3432,18 @@ void cEmuSCV::RetroRun(void)
 	if (retro_use_audio_cb == false)
 	{
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_use_audio_cb == false -> RetroAudioCb()\n", EMUSCV_NAME);
-*/
 		RetroAudioCb();
-/*
 	}
 	else
 	{
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_use_audio_cb == true => nothing to do\n", EMUSCV_NAME);
-//		int16_t sound_buffer[2*44100/WINDOW_FPS_EPOCH];
-//		for (uint32_t i = 0; i < 2*44100/WINDOW_FPS_EPOCH; i++)
-//			sound_buffer[i] = 0;
-//		RetroAudioSampleBatch(sound_buffer, sizeof(sound_buffer));
+*/
+int16_t sound_buffer[2*44100/WINDOW_FPS_EPOCH];
+for (uint32_t i = 0; i < 2*44100/WINDOW_FPS_EPOCH; i++)
+	sound_buffer[i] = 0;
+RetroAudioSampleBatch(sound_buffer, sizeof(sound_buffer));
+RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] => nRetroAudioSampleBatch()\n", EMUSCV_NAME);
+/*
 	}
 
 	// Call video callback

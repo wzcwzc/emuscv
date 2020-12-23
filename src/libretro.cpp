@@ -89,7 +89,11 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 // 
 void retro_audio_cb(void)
 {
+	// Log
+	oEmuSCV.RetroLogPrintf(RETRO_LOG_INFO, "[%s] retro_audio_cb() => UNUSED\n", EMUSCV_NAME);
+/*
 	oEmuSCV.RetroAudioCb();
+*/
 }
 
 // 
@@ -105,7 +109,11 @@ void retro_audio_set_state_cb(bool enable)
 // 
 void retro_frame_time_cb(retro_usec_t usec)
 {
+	// Log
+	oEmuSCV.RetroLogPrintf(RETRO_LOG_INFO, "[%s] retro_frame_time_cb() => UNUSED\n", EMUSCV_NAME);
+/*
 	oEmuSCV.RetroFrameTimeCb(usec);
+*/
 }
 
 //

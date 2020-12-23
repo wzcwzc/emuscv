@@ -100,9 +100,13 @@ class cEmuSCV
 		void RetroInit(retro_audio_callback_t retro_audio_cb, retro_audio_set_state_callback_t retro_audio_set_state_cb, retro_frame_time_callback_t retro_frame_time_cb);												// Libretro: initialize the core
 		void RetroDeinit(void);												// Libretro: deinitialize the core
 		void RetroSetControllerPortDevice(unsigned port, unsigned device);	// Libretro: set controller port device
+/*
 		void RetroAudioCb(void);											// Libretro: audio callback
+*/
 		void RetroAudioSetStateCb(bool enable);								// Libretro: audio set state enable/disable callback
+/*
 		void RetroFrameTimeCb(retro_usec_t usec);							// Libretro: retro frame time callback
+*/
 		bool RetroLoadGame(const struct retro_game_info *info);				// Libretro: load game
 		void RetroUnloadGame(void);											// Libretro: unload game
 		void RetroRun(void);												// Libretro: run for only one frame
