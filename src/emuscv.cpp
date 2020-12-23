@@ -1,11 +1,11 @@
 #include "emuscv.h"
 
-#define test_width			800
-#define test_height			600
-#define test_aspect_ratio	800.0/600.0
+#define test_width			864
+#define test_height			648
+#define test_aspect_ratio	864.0/648.0
 #define test_zoom_max		1.0
 #define test_fps			60.0
-#define FRAMES_PER_SEC				60
+#define FRAMES_PER_SEC		60
 
 static uint32_t test_video_buffer[test_width*test_height];
 /*
