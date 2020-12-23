@@ -8,8 +8,8 @@
 
 // Libraries
 #include <libretro.h>
-/*
 #include <SDL2/SDL.h>
+/*
 #include <SDL2_gfx/SDL2_gfxPrimitives.h>
 #include <zlib/zlib.h>
 #include <unzip/unzip.h>
@@ -145,8 +145,9 @@ class cEmuSCV
 		double window_fps_old;
 
 		EMU *escv_emu;	// eSCV emulation core
-
+*/
 		SDL_Surface *frame_surface;		// SDL2 frame surface
+/*
 		SDL_Renderer *frame_renderer;	// SDL2 frame renderer
 		SDL_Surface *noise_surface;		// SDL2 TV static noise surface
 		SDL_Renderer *noise_renderer;	// SDL2 TV static noise renderer

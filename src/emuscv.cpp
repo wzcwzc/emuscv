@@ -1924,13 +1924,15 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 
 	// Create SDL main frame surface
     frame_surface = SDL_CreateRGBSurface(0, config.window_width, config.window_height, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+*/
+    frame_surface = SDL_CreateRGBSurface(0, WINDOW_WIDTH_EMUSCV, WINDOW_HEIGHT_EMUSCV, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
     if (frame_surface == NULL)
 	{
 		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL main surface creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
         return FALSE;
 	}
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface created\n", EMUSCV_NAME);
-
+/*
 	// Create SDL main frame renderer
     frame_renderer = SDL_CreateSoftwareRenderer(frame_surface);
     if (frame_renderer == NULL)
@@ -2280,7 +2282,7 @@ void cEmuSCV::RetroUnloadGame(void)
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL secondary surface, nothing to destroy\n", EMUSCV_NAME);
 
-	// Free SDL frame renderer
+	// Free SDL main frame renderer
 	if (frame_renderer != NULL)
 	{
 		SDL_DestroyRenderer(frame_renderer);
@@ -2289,8 +2291,8 @@ void cEmuSCV::RetroUnloadGame(void)
 	}
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL main surface renderer, nothing to destroy\n", EMUSCV_NAME);
-
-	// Free SDL frame surface
+*/
+	// Free SDL main frame surface
 	if (frame_surface != NULL)
 	{
 		SDL_FreeSurface(frame_surface);
@@ -2299,7 +2301,7 @@ void cEmuSCV::RetroUnloadGame(void)
 	}
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL main surface, nothing to destroy\n", EMUSCV_NAME);
-*/
+
 	retro_game_loaded = FALSE;
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Game unloading done\n", EMUSCV_NAME);
 }
