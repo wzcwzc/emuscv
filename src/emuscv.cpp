@@ -1592,14 +1592,14 @@ void cEmuSCV::RetroGetSystemInfo(struct retro_system_info *info)
 {
 	// Log
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
-//	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetSystemInfo()\n     library_name     = %s\n     library_version  = %s\n     valid_extensions = %s\n     need_fullpath    = false\n     block_extract    = true\n", EMUSCV_NAME, EMUSCV_NAME, EMUSCV_VERSION, EMUSCV_EXTENSIONS);
+//	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroGetSystemInfo()\n     library_name     = %s\n     library_version  = %s\n     valid_extensions = %s\n     need_fullpath    = false\n     block_extract    = false\n", EMUSCV_NAME, EMUSCV_NAME, EMUSCV_VERSION, EMUSCV_EXTENSIONS);
 
 	memset(info, 0, sizeof(*info));
 	info->library_name		= EMUSCV_NAME;
 	info->library_version	= EMUSCV_VERSION;
 	info->valid_extensions	= EMUSCV_EXTENSIONS;
 	info->need_fullpath		= false;
-	info->block_extract		= true;
+	info->block_extract		= false;
 }
 
 // 
