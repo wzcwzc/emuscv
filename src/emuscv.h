@@ -64,20 +64,11 @@ class EMU;
 #define EMUSCV_INPUTDESC_ANALOG_RIGHT_X	"ANALOG RIGHT X"
 #define EMUSCV_INPUTDESC_ANALOG_RIGHT_Y	"ANALOG RIGHT Y"
 
-#define EMUSCV_AXIS_NEUTRAL_MAX	8192
-#define EMUSCV_AXIS_NEUTRAL_MIN	-EMUSCV_AXIS_NEUTRAL_MAX
+#define EMUSCV_AXIS_NEUTRAL_MAX			8192
+#define EMUSCV_AXIS_NEUTRAL_MIN			-EMUSCV_AXIS_NEUTRAL_MAX
 
-/*
 // device informations for virtual machine
-#define AUDIO_SAMPLING_RATE			44100
-#define AUDIO_SAMPLES_PER_FRAME		AUDIO_SAMPLING_RATE/FRAMES_PER_SEC
-#define CYCLES_PER_FRAME			CPU_CLOCKS / FRAMES_PER_SEC
-*/
-
-/*
-static uint64_t retro_frame_time	= 0;
-static unsigned long cycles_per_frame = CYCLES_PER_FRAME;
-*/
+#define AUDIO_SAMPLING_RATE				44100
 
 // /!\ Must be static
 class cEmuSCV

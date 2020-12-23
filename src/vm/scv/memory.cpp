@@ -1372,10 +1372,16 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	if(cart_header.crc32 == 0)
 	{
 		cart_header.crc32 = cart_crc32;
-/*
-		fiocart->Fseek(sizeof(cart_header)-sizeof(cart_header.crc32), FILEIO_SEEK_SET);
-		fiocart->Fwrite(&cart_header.crc32, sizeof(cart_header.crc32), 1);
-*/
+
+		// Write cart CRC32
+		FILEIO* fiorw = new FILEIO();
+		if(fiorw->Fopen(rom_file_path, FILEIO_WRITE_BINARY))
+		{
+			fiorw->Fseek(sizeof(cart_header)-sizeof(cart_header.crc32), FILEIO_SEEK_SET);
+			fiorw->Fwrite(&cart_header.crc32, sizeof(cart_header.crc32), 1);
+			fiorw->Fclose();
+		}
+		delete(fiorw);
 	}
 	else if(cart_header.crc32 != cart_crc32)
 		goto lbl_rom_error;
@@ -1423,11 +1429,11 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 			if(ram_header.block[0] == BLOCK_VOID)
 				goto lbl_ram_delete;	// Fatal error
 
-			// Initi cart CRC32 if necessary
+			// Init cart CRC32 if necessary
 			if(ram_header.cart_crc32 == 0)
 			{
 				ram_header.cart_crc32 = cart_header.crc32;
-/*
+
 				// Write cart CRC32
 				FILEIO* fiorw = new FILEIO();
 				if(fiorw->Fopen(ram_path, FILEIO_WRITE_BINARY))
@@ -1437,7 +1443,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 					fiorw->Fclose();
 				}
 				delete(fiorw);
-*/
 			}
 			else if(ram_header.cart_crc32 != cart_crc32)
 				goto lbl_ram_delete;	// Fatal error
@@ -1460,7 +1465,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 			if(ram_header.save_crc32 == 0)
 			{
 				ram_header.save_crc32 = ram_crc32;
-/*
+
 				// Write ram CRC32
 				FILEIO* fiorw = new FILEIO();
 				if(fiorw->Fopen(ram_path, FILEIO_WRITE_BINARY))
@@ -1470,7 +1475,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 					fiorw->Fclose();
 				}
 				delete(fiorw);
-*/
 			}
 			else if(ram_header.save_crc32 != ram_crc32)
 				goto lbl_ram_delete;
@@ -1485,7 +1489,6 @@ lbl_ram_delete:
 			fioram->RemoveFile(ram_path);
 
 lbl_ram_error:
-
 			memset(data, 0x00, ram_size);
 			if(ram_size > 0)
 				memset(data+ram_size, 0xFF, sizeof(data)-ram_size);
@@ -1515,6 +1518,7 @@ lbl_ram_error:
 
 lbl_ram_close:
 			fioram->Fclose();
+
 lbl_ram_end:
 			delete(fioram);
 		}
