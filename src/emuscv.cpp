@@ -2210,6 +2210,7 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 		}
 */
 		// Insert cart
+/*
 		if(escv_emu && escv_emu->is_bios_present() && strcmp(retro_game_path, "") != 0)
 		{
 			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Try to load %s\n", EMUSCV_NAME, retro_game_path);
@@ -2222,28 +2223,48 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 			else
 			{
 				RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game not loaded\n", EMUSCV_NAME);
+*/
 FILEIO *fio = new FILEIO();
 if(fio->IsFileExisting(retro_game_path))
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file exists\n", EMUSCV_NAME);
 else
 	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file don't exist\n", EMUSCV_NAME);
+if(fio->IsFileProtected(retro_game_path))
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file is protected\n", EMUSCV_NAME);
+else
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file is not protected\n", EMUSCV_NAME);
 if(!fio->Fopen(retro_game_path, FILEIO_READ_BINARY))
-	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can open game file\n", EMUSCV_NAME);
+{
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can open game file in READ_BINARY mode\n", EMUSCV_NAME);
+	uint8_t raw[0x20000];
+	if(fio->Fread(&raw, sizeof(raw), 1))
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can read game file in READ_BINARY mode\n", EMUSCV_NAME);
+	else
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't read game file in READ_BINARY mode\n", EMUSCV_NAME);
+	fio->Fclose();
+}
 else
-	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't open game file\n", EMUSCV_NAME);
-uint8_t raw[0x20000];
-if(fio->Fread(&raw, sizeof(raw), 1))
-	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can read game file\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't open game file in READ_BINARY mode\n", EMUSCV_NAME);
+if(!fio->Fopen(retro_game_path, FILEIO_READ_ASCII))
+{
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can open game file in FILEIO_READ_ASCII mode\n", EMUSCV_NAME);
+	uint8_t raw[0x20000];
+	if(fio->Fread(&raw, sizeof(raw), 1))
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can read game file in FILEIO_READ_ASCII mode\n", EMUSCV_NAME);
+	else
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't read game file in FILEIO_READ_ASCII mode\n", EMUSCV_NAME);
+	fio->Fclose();
+}
 else
-	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't read game file\n", EMUSCV_NAME);
-fio->Fclose();
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't open game file in FILEIO_READ_ASCII mode\n", EMUSCV_NAME);
 delete(fio);
+/*
 			}
 		}
 		else
 			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Bios not present or empty game path\n", EMUSCV_NAME);
 //RetroLogPrintf(RETRO_LOG_INFO, "[%s] WE DON'T TRY TO LOAD GAME\n", EMUSCV_NAME);
-	}
+*/	}
 	else
 		RetroLogPrintf(RETRO_LOG_INFO, "[%s] no game\n", EMUSCV_NAME);
 
