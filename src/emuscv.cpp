@@ -2209,7 +2209,6 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 			read_buffer = NULL;
 		}
 */
-/*
 		// Insert cart
 		if(escv_emu && escv_emu->is_bios_present() && strcmp(retro_game_path, "") != 0)
 		{
@@ -2221,12 +2220,29 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 				RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Game loaded\n", EMUSCV_NAME);
 			}
 			else
+			{
 				RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game not loaded\n", EMUSCV_NAME);
+FILEIO *fio = new FILEIO();
+if(fio->IsFileExisting(retro_game_path))
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file exists\n", EMUSCV_NAME);
+else
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Game file don't exist\n", EMUSCV_NAME);
+if(!fio->Fopen(retro_game_path, FILEIO_READ_BINARY))
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can open game file\n", EMUSCV_NAME);
+else
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't open game file\n", EMUSCV_NAME);
+uint8_t raw[0x20000];
+if(fio->Fread(&raw, sizeof(raw), 1))
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can read game file\n", EMUSCV_NAME);
+else
+	RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Can't read game file\n", EMUSCV_NAME);
+fio->Fclose();
+delete(fio);
+			}
 		}
 		else
 			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] Bios not present or empty game path\n", EMUSCV_NAME);
-*/
-RetroLogPrintf(RETRO_LOG_INFO, "[%s] WE DON'T TRY TO LOAD GAME\n", EMUSCV_NAME);
+//RetroLogPrintf(RETRO_LOG_INFO, "[%s] WE DON'T TRY TO LOAD GAME\n", EMUSCV_NAME);
 	}
 	else
 		RetroLogPrintf(RETRO_LOG_INFO, "[%s] no game\n", EMUSCV_NAME);

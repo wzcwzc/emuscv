@@ -109,11 +109,11 @@ void retro_audio_set_state_cb(bool enable)
 // 
 void retro_frame_time_cb(retro_usec_t usec)
 {
+/*
 	// Log
 	oEmuSCV.RetroLogPrintf(RETRO_LOG_INFO, "[%s] retro_frame_time_cb() => UNUSED\n", EMUSCV_NAME);
-/*
-	oEmuSCV.RetroFrameTimeCb(usec);
 */
+	oEmuSCV.RetroFrameTimeCb(usec);
 }
 
 //
