@@ -1694,7 +1694,7 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_input_support_bitmask set (true)\n", EMUSCV_NAME);
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_input_support_bitmask set (false)\n", EMUSCV_NAME);
-
+/*
 	// Init SDL
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 	{
@@ -1704,7 +1704,7 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL initialization ok\n", EMUSCV_NAME);
 	
-/*
+
 	// Initialize eSCV settings
 	initialize_config();
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] config initialized\n", EMUSCV_NAME);
@@ -1788,11 +1788,11 @@ void cEmuSCV::RetroDeinit(void)
 	}
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] escv_emu don't exists, nothing to delete\n", EMUSCV_NAME);
-*/	
+	
 	// Deinit SDL
 	SDL_Quit();
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL quitted\n", EMUSCV_NAME);
-
+*/
 	// Reinit core variables
 	retro_frame_time			= 0;
 	retro_game_loaded			= FALSE;
