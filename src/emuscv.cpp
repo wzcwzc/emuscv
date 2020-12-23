@@ -3442,7 +3442,7 @@ int16_t sound_buffer[2*44100/WINDOW_FPS_EPOCH];
 for (uint32_t i = 0; i < 2*44100/WINDOW_FPS_EPOCH; i++)
 	sound_buffer[i] = 0;
 RetroAudioSampleBatch(sound_buffer, sizeof(sound_buffer));
-RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] => nRetroAudioSampleBatch()\n", EMUSCV_NAME);
+RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] => RetroAudioSampleBatch()\n", EMUSCV_NAME);
 /*
 	}
 
