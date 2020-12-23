@@ -1854,7 +1854,7 @@ void cEmuSCV::RetroAudioCb(void)
 //	}
 	retro_audio_phase %= 44100;//AUDIO_SAMPLING_RATE;
 */
-RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] RetroAudioCb()\n", EMUSCV_NAME);
+RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] cEmuSCV::RetroAudioCb() => RetroAudioSample()\n", EMUSCV_NAME);
 int16_t val = 0;
 for (uint32_t i = 0; i < 44100; i++)
 	RetroAudioSample(val, val);
