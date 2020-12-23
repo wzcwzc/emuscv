@@ -4,10 +4,10 @@
 #include "emu.h"
 #include "vm/vm.h"
 #include "vm/scv/vdp_colors.h"
-
+/*
 extern void retro_audio_cb(void);
-
 static uint8_t color_index = 0;
+*/
 
 static uint32_t test_video_buffer[WINDOW_WIDTH_EMUSCV*WINDOW_HEIGHT_EMUSCV];
 
@@ -1283,9 +1283,11 @@ cEmuSCV::cEmuSCV()
 	retro_core_initialized		= false;
 	retro_use_audio_cb			= false;
 	retro_audio_enable			= false;
+/*
 	retro_audio_phase			= 0;
 	retro_frame_counter			= 0;
 	retro_frame_time			= 0;
+*/
 	retro_input_support_bitmask	= false;
 	retro_game_loaded			= false;
 /*
@@ -1609,15 +1611,15 @@ void cEmuSCV::RetroGetAudioVideoInfo(struct retro_system_av_info *info)
 /*
 	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV:RetroGetAudioVideoInfo()\n     timing.fps            = %f\n     timing.sample_rate    = 44100\n     geometry.base_width   = %d\n     geometry.base_height  = %d\n     geometry.max_width    = %d\n     geometry.max_height   = %d\n     geometry.aspect_ratio = %f\n", EMUSCV_NAME, config.window_fps, config.window_width, config.window_height, config.window_width * WINDOW_ZOOM_MAX, config.window_height * WINDOW_ZOOM_MAX, config.window_aspect_ratio);
 */
-RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV:RetroGetAudioVideoInfo()\n     timing.fps            = %f\n     timing.sample_rate    = 44100\n     geometry.base_width   = %d\n     geometry.base_height  = %d\n     geometry.max_width    = %d\n     geometry.max_height   = %d\n     geometry.aspect_ratio = %f\n", EMUSCV_NAME, WINDOW_FPS_EPOCH, WINDOW_WIDTH_EMUSCV, WINDOW_HEIGHT_EMUSCV, WINDOW_WIDTH_EMUSCV * WINDOW_ZOOM_MAX, WINDOW_HEIGHT_EMUSCV * WINDOW_ZOOM_MAX, WINDOW_ASPECT_RATIO_EMUSCV);
+RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV:RetroGetAudioVideoInfo()\n     timing.fps            = %f\n     timing.sample_rate    = 44100\n     geometry.base_width   = %d\n     geometry.base_height  = %d\n     geometry.max_width    = %d\n     geometry.max_height   = %d\n     geometry.aspect_ratio = %f\n", EMUSCV_NAME, WINDOW_FPS_EPOCH, WINDOW_WIDTH_EMUSCV, WINDOW_HEIGHT_EMUSCV, WINDOW_WIDTH_EMUSCV, WINDOW_HEIGHT_EMUSCV, WINDOW_ASPECT_RATIO_EMUSCV);
 
 	memset(info, 0, sizeof(*info));
 	info->timing.fps            = WINDOW_FPS_EPOCH;//config.window_fps;
 	info->timing.sample_rate    = 44100;
 	info->geometry.base_width   = WINDOW_WIDTH_EMUSCV;//config.window_width;
 	info->geometry.base_height  = WINDOW_HEIGHT_EMUSCV;//config.window_height;
-	info->geometry.max_width    = WINDOW_WIDTH_EMUSCV*WINDOW_ZOOM_MAX;//config.window_width * WINDOW_ZOOM_MAX;
-	info->geometry.max_height   = WINDOW_HEIGHT_EMUSCV*WINDOW_ZOOM_MAX;//config.window_height * WINDOW_ZOOM_MAX;
+	info->geometry.max_width    = WINDOW_WIDTH_EMUSCV;//config.window_width * WINDOW_ZOOM_MAX;
+	info->geometry.max_height   = WINDOW_HEIGHT_EMUSCV;//config.window_height * WINDOW_ZOOM_MAX;
 	info->geometry.aspect_ratio = WINDOW_ASPECT_RATIO_EMUSCV;//config.window_aspect_ratio;
 }
 
@@ -1681,10 +1683,14 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 	is_power_on					= false;
 */
 	retro_core_initialized 		= false;
+/*
 	retro_frame_time			= 0;
+*/
 	retro_game_loaded			= false;
 	retro_audio_enable			= false;
+/*
 	retro_audio_phase			= 0;
+*/
 
 	retro_input_support_bitmask	= RetroEnvironment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL);
 	if(retro_input_support_bitmask)
@@ -1746,7 +1752,7 @@ void cEmuSCV::RetroInit(retro_audio_callback_t RetroAudioCb, retro_audio_set_sta
 
 	retro_core_initialized	= true;
 
-	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] All initialisaztions done\n", EMUSCV_NAME);
+	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] All initialisations done\n", EMUSCV_NAME);
 }
 
 //
@@ -1791,11 +1797,15 @@ void cEmuSCV::RetroDeinit(void)
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL quitted\n", EMUSCV_NAME);
 */
 	// Reinit core variables
+/*
 	retro_frame_time			= 0;
+*/
 	retro_game_loaded			= FALSE;
     retro_input_support_bitmask	= FALSE;
 	retro_audio_enable			= FALSE;
+/*
 	retro_audio_phase			= 0;
+*/
 	retro_core_initialized 		= FALSE;
 
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] All deinitialisaztions done\n", EMUSCV_NAME);
@@ -1818,7 +1828,7 @@ void cEmuSCV::RetroAudioCb(void)
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroAudioCb()\n", EMUSCV_NAME);
-
+/*
 	int16_t val = 0x0000;
 //	if (retro_audio_enable == TRUE)// && button_pressed == TRUE)
 //	{
@@ -1839,7 +1849,12 @@ void cEmuSCV::RetroAudioCb(void)
 
 //	}
 	retro_audio_phase %= 44100;//AUDIO_SAMPLING_RATE;
+*/
+int16_t val = 0;
+for (uint32_t i = 0; i < 44100; i++)
+	RetroAudioSample(val, val);
 }
+
 
 // 
 // Libretro: audio set state enable/disable callback
@@ -1861,8 +1876,8 @@ void cEmuSCV::RetroFrameTimeCb(retro_usec_t usec)
 {
 /*
 	int64_t usec_corrected = usec*FRAMES_PER_SEC/config.window_fps;
-*/
-int64_t usec_corrected = usec*FRAMES_PER_SEC/WINDOW_FPS_EPOCH;
+
+//int64_t usec_corrected = usec*FRAMES_PER_SEC/WINDOW_FPS_EPOCH;
 
 	// Log
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
@@ -1870,6 +1885,7 @@ int64_t usec_corrected = usec*FRAMES_PER_SEC/WINDOW_FPS_EPOCH;
 	
 	// Memorise current frame time
 	retro_frame_time = usec_corrected;
+*/
 }
 
 // 
@@ -1917,15 +1933,14 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 
 	// Create SDL main frame surface
     frame_surface = SDL_CreateRGBSurface(0, config.window_width, config.window_height, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
-*/
-    frame_surface = SDL_CreateRGBSurface(0, WINDOW_WIDTH_EMUSCV, WINDOW_HEIGHT_EMUSCV, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+//frame_surface = SDL_CreateRGBSurface(0, WINDOW_WIDTH_EMUSCV, WINDOW_HEIGHT_EMUSCV, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
     if (frame_surface == NULL)
 	{
 		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL main surface creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
         return FALSE;
 	}
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface created\n", EMUSCV_NAME);
-/*
+
 	// Create SDL main frame renderer
     frame_renderer = SDL_CreateSoftwareRenderer(frame_surface);
     if (frame_renderer == NULL)
@@ -2284,7 +2299,7 @@ void cEmuSCV::RetroUnloadGame(void)
 	}
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL main surface renderer, nothing to destroy\n", EMUSCV_NAME);
-*/
+
 	// Free SDL main frame surface
 	if (frame_surface != NULL)
 	{
@@ -2294,7 +2309,7 @@ void cEmuSCV::RetroUnloadGame(void)
 	}
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL main surface, nothing to destroy\n", EMUSCV_NAME);
-
+*/
 	retro_game_loaded = FALSE;
 	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Game unloading done\n", EMUSCV_NAME);
 }
@@ -3399,11 +3414,19 @@ void cEmuSCV::RetroRun(void)
 	// Call audio callback manually if not set
 	if (retro_use_audio_cb == false)
 	{
-		RetroAudioCb();
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_use_audio_cb == false -> RetroAudioCb()\n", EMUSCV_NAME);
+		RetroAudioCb();
 	}
 	else
+	{
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_use_audio_cb == true => nothing to do\n", EMUSCV_NAME);
+		
+		int16_t sound_buffer[2*44100/WINDOW_FPS_EPOCH];
+		for (uint32_t i = 0; i < 2*44100/WINDOW_FPS_EPOCH; i++)
+			sound_buffer[i] = 0;
+		RetroAudioSampleBatch(sound_buffer, sizeof(sound_buffer));
+
+	}
 /*
 	// Call video callback
 	RetroVideoRefresh(frame_surface->pixels, config.window_width, config.window_height,  config.window_width*sizeof(uint32_t));

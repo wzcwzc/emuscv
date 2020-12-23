@@ -125,10 +125,11 @@ class cEmuSCV
 		bool retro_core_initialized;		// Is the libretro core initialized ?
 		bool retro_use_audio_cb;			// Is the libretro audio callback used ?
 		bool retro_audio_enable;			// Is the libretro audio enabled ?
-
+/*
 		uint16_t retro_audio_phase;
 		uint64_t retro_frame_counter;
 		retro_usec_t retro_frame_time;
+*/
 		bool retro_input_support_bitmask;
 		bool retro_game_loaded;
 /*
