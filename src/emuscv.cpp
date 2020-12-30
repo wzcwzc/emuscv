@@ -3063,7 +3063,7 @@ void cEmuSCV::RetroRun(void)
 
 		// FIRST CONTROLLER (LEFT SIDE, ORANGE)
 		posx = space;
-		posy = config.window_height-26-17*space-30;
+		posy = config.window_height-26-17*space;
 		// Contour
 		color = palette_pc[1];	// Black
 		rectangleRGBA(frame_renderer, posx+2+2*space,   posy,             posx+5+4*space,   posy+3+2*space,   R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// L3
