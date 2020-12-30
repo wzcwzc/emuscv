@@ -75,7 +75,7 @@ void MEMORY::initialize()
 		fio->Fread(bios, 0x1000, 1);
 		bios_present = true;
 
-		if(config.scv_checkbios == false)
+		if(config.scv_checkbios != SETTING_CHECKBIOS_YES_VAL)
 		{
 				bios_ok = true;
 		}
@@ -108,7 +108,7 @@ void MEMORY::initialize()
 			fio->Fread(bios, 0x1000, 1);
 			bios_present = true;
 
-			if(config.scv_checkbios == false)
+			if(config.scv_checkbios != SETTING_CHECKBIOS_YES_VAL)
 			{
 				bios_ok = true;
 			}
@@ -142,7 +142,7 @@ void MEMORY::initialize()
 			fio->Fread(bios, 0x1000, 1);
 			bios_present = true;
 
-			if(config.scv_checkbios == false)
+			if(config.scv_checkbios != SETTING_CHECKBIOS_YES_VAL)
 			{
 				bios_ok = true;
 			}
@@ -177,7 +177,7 @@ void MEMORY::initialize()
 			fio->Fread(bios, 0x1000, 1);
 			bios_present = true;
 
-			if(config.scv_checkbios == false)
+			if(config.scv_checkbios != SETTING_CHECKBIOS_YES_VAL)
 			{
 				bios_ok = true;
 			}
@@ -211,7 +211,7 @@ void MEMORY::initialize()
 			fio->Fread(bios, 0x1000, 1);
 			bios_present = true;
 
-			if(config.scv_checkbios == false)
+			if(config.scv_checkbios != SETTING_CHECKBIOS_YES_VAL)
 			{
 				bios_ok = true;
 			}

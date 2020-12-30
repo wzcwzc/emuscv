@@ -268,8 +268,10 @@ typedef struct {
 	#if defined(_LIBRETRO)
 		int scv_console;
 		int scv_display;
-		int scv_displayfps;
-		int scv_displayfull;
+		int scv_pixelaspect;
+		int scv_resolution;
+		int scv_fps;
+		int scv_displayfullmemory;
 		int scv_displayinputs;
 		int scv_langage;
 		int scv_checkbios;
@@ -282,6 +284,8 @@ typedef struct {
 		int draw_height;
 
 		int window_console;
+		int window_pixelaspect;
+		int window_resolution;
 		int window_width;
 		int window_height;
 		float window_aspect_ratio;

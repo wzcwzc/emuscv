@@ -3,7 +3,7 @@ TARGET_NAME := emuscv
 EMUSCV_VERSION_MAJOR := 0
 EMUSCV_VERSION_MINOR := 06
 EMUSCV_VERSION_DATETIME := $(shell date -u +'%Y%m%d%H%M%S')
-EMUSCV_VERSION_DATETIME := '20201223231000'
+EMUSCV_VERSION_DATETIME := '20201230234800'
 EMUSCV_VERSION := $(EMUSCV_VERSION_MAJOR).$(EMUSCV_VERSION_MINOR).$(EMUSCV_VERSION_DATETIME)
 
 DEBUG = 1
@@ -82,15 +82,23 @@ ifneq (,$(findstring unix,$(platform)))
 	# Raspberry Pi
 # ---FOR TEST ---
 	ifneq (,$(findstring rpi,$(platform)))
+		PLATFORM_DEFINES += -D_RASPBERRYPI
 		CFLAGS += -fomit-frame-pointer -ffast-math -marm
 		CXXFLAGS += $(CFLAGS)
-		ifneq (,$(findstring rpi1,$(platform)))
+		ifneq (,$(findstring rpi0,$(platform)))
+			PLATFORM_DEFINES += -D_RASPBERRYPI0
+			# CFLAGS += -march=armv6j -mfpu=vfp -mfloat-abi=hard
+		else ifneq (,$(findstring rpi1,$(platform)))
+			PLATFORM_DEFINES += -D_RASPBERRYPI1
 			CFLAGS += -march=armv6j -mfpu=vfp -mfloat-abi=hard
 		else ifneq (,$(findstring rpi2,$(platform)))
+			PLATFORM_DEFINES += -D_RASPBERRYPI2
 			CFLAGS += -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
 		else ifneq (,$(findstring rpi3,$(platform)))
+			PLATFORM_DEFINES += -D_RASPBERRYPI3
 			CFLAGS += -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
 		else ifneq (,$(findstring rpi4,$(platform)))
+			PLATFORM_DEFINES += -D_RASPBERRYPI4
 			CFLAGS += -mcpu=cortex-a72 -mfpu=neon-fp-armv8 -mfloat-abi=hard
 		endif
 	endif

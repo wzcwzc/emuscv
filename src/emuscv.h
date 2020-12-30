@@ -15,9 +15,6 @@
 #include <lpng/png.h>
 #include "common.h"
 
-// Embedded binary resources
-#include "res/binary.emuscv64x64xrgba8888.data.h"
-
 // SCV includes
 #ifndef EMUSCV
 	#define EMUSCV

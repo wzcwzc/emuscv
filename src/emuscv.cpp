@@ -4,12 +4,14 @@
 #include "emu.h"
 #include "vm/vm.h"
 #include "vm/scv/vdp_colors.h"
-/*
-extern void retro_audio_cb(void);
-static uint8_t color_index = 0;
-*/
 
-static uint32_t test_video_buffer[WINDOW_WIDTH_EMUSCV*WINDOW_HEIGHT_EMUSCV];
+// Embedded binary resources
+#include "res/binary.emuscv32x32xrgba8888.data.h"
+#include "res/binary.emuscv64x64xrgba8888.data.h"
+#include "res/binary.emuscv128x128xrgba8888.data.h"
+
+#define NOISE_WIDTH 444
+#define NOISE_HEIGHT 333
 
 // Not used in Libretro
 //#ifdef USE_CART
@@ -1325,9 +1327,9 @@ cEmuSCV::cEmuSCV()
 //	update_status_bar_time		= 0;
 //	disable_screen_saver_time	= 0;
 
-	config.window_width = WINDOW_WIDTH_EMUSCV;
-	config.window_height = WINDOW_HEIGHT_EMUSCV;
-	config.window_aspect_ratio = WINDOW_ASPECT_RATIO_EMUSCV;
+	config.window_width = DRAW_WIDTH_EMUSCV;
+	config.window_height = DRAW_WIDTH_EMUSCV*4/3;
+	config.window_aspect_ratio = (float)(config.window_width)/(float)(config.window_height);
 	config.window_fps = WINDOW_FPS_EPOCH;
 
 	window_width_old = config.window_width;
@@ -1485,11 +1487,13 @@ void cEmuSCV::RetroSetEnvironment(retro_environment_t cb)
 	{
 		{ SETTING_CONSOLE_KEY, "CONSOLE; AUTO|EPOCH|YENO|EPOCHLADY" },
 		{ SETTING_DISPLAY_KEY, "DISPLAY; AUTO|EMUSCV|EPOCH|YENO" },
-		{ SETTING_DISPLAYFPS_KEY, "DISPLAY FPS; AUTO|EPOCH_60|YENO_50" },
-		{ SETTING_DISPLAYFULL_KEY, "DISPLAY FULL; NO|YES" },
-		{ SETTING_DISPLAYINPUTS_KEY, "DISPLAY INPUTS; NO|YES" },
-		{ SETTING_LANGAGE_KEY, "LANGAGE; AUTO|JP|EN|FR" },
-		{ SETTING_CHECKBIOS_KEY, "CHECKBIOS; YES|NO" },
+		{ SETTING_PIXELASPECT_KEY, "PIXELASPECT; AUTO|RECTANGULAR|SQUARE" },
+		{ SETTING_RESOLUTION_KEY, "RESOLUTION; AUTO|LOW|MEDIUM|HIGH" },
+		{ SETTING_FPS_KEY, "FPS; AUTO|EPOCH60|YENO50" },
+		{ SETTING_DISPLAYFULLMEMORY_KEY, "DISPLAYFULLMEMORY; AUTO|YES|NO" },
+		{ SETTING_DISPLAYINPUTS_KEY, "DISPLAYINPUTS; AUTO|YES|NO" },
+		{ SETTING_LANGAGE_KEY, "LANGAGE; AUTO|JP|FR|EN" },
+		{ SETTING_CHECKBIOS_KEY, "CHECKBIOS; AUTO|YES|NO" },
 		{ NULL, NULL }
 	};
 	RetroEnvironment(RETRO_ENVIRONMENT_SET_VARIABLES, variable);
@@ -1941,7 +1945,7 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface renderer created\n", EMUSCV_NAME);
 
 	// create SDL TV static noise surface
-    noise_surface = SDL_CreateRGBSurface(0, config.window_width >> 2, config.window_height >> 2, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+    noise_surface = SDL_CreateRGBSurface(0, 2*NOISE_WIDTH, 2*NOISE_HEIGHT, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
     if (noise_surface == NULL)
 	{
 		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL secondary surface creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
@@ -1957,6 +1961,17 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
         return FALSE;
     }
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL secondary surface renderer created\n", EMUSCV_NAME);
+
+	// Draw TV static noise
+	for(int y = 0; y < noise_surface->h; y++)
+	{
+		for(int x = 0; x < noise_surface->w; x++)
+		{
+			uint8_t noise_color = rand() % 255;
+			pixelRGBA(noise_renderer, x, y, noise_color, noise_color, noise_color, 255);
+		}
+	}
+//	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] TV static noise drawn\n", EMUSCV_NAME);
 
 	// Paint it black
 	SDL_SetRenderDrawColor(frame_renderer, 0, 0, 0, 255);
@@ -2410,6 +2425,7 @@ void cEmuSCV::RetroRun(void)
 	uint8_t  alpha			= 127;
 	uint32_t sizx			= 0;
 	uint32_t sizy			= 0;
+	uint32_t space			= 4;
 
 	int16_t joyposx			= 0;
 	int16_t joyposy			= 0;
@@ -2511,7 +2527,7 @@ void cEmuSCV::RetroRun(void)
 //		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface renderer created\n", EMUSCV_NAME);
 
 		// Create SDL TV static noise surface
-		noise_surface = SDL_CreateRGBSurface(0, config.window_width >> 2, config.window_height >> 2, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+		noise_surface = SDL_CreateRGBSurface(0, 2*NOISE_WIDTH, 2*NOISE_HEIGHT, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
 		if (noise_surface == NULL)
 		{
 			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL secondary surface creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
@@ -2527,6 +2543,17 @@ void cEmuSCV::RetroRun(void)
 			return;
 		}
 //		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL secondary surface created\n", EMUSCV_NAME);
+
+		// Draw TV static noise
+		for(int y = 0; y < noise_surface->h; y++)
+		{
+			for(int x = 0; x < noise_surface->w; x++)
+			{
+				uint8_t noise_color = rand() % 255;
+				pixelRGBA(noise_renderer, x, y, noise_color, noise_color, noise_color, 255);
+			}
+		}
+//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] TV static noise drawn\n", EMUSCV_NAME);
 	}
 
 	// Get inputs
@@ -2590,7 +2617,7 @@ void cEmuSCV::RetroRun(void)
 	keyPower = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_i);
 	keyReset = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_r);
 	keyPause = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_LCTRL)
-            || RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RCTRL);
+	        || RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RCTRL);
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Imputs parsed\n", EMUSCV_NAME);
 
 	bool updated = false;
@@ -2940,19 +2967,13 @@ void cEmuSCV::RetroRun(void)
 	}
 	else
 	{
-		SDL_SetRenderDrawColor(frame_renderer, 0, 0, 0, 255);
-		SDL_RenderClear(frame_renderer);
-//		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL main surface cleared\n", EMUSCV_NAME);
-
-		for(int y = 0; y < noise_surface->h; y++)
-			for(int x = 0; x < noise_surface->w; x++)
-			{
-				uint8_t noise_color = rand() % 255;
-			    pixelRGBA(noise_renderer, x, y, noise_color, noise_color, noise_color, 255);
-			}
-//		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL secondary surface drawn\n", EMUSCV_NAME);
-		SDL_SetSurfaceBlendMode(frame_surface, SDL_BLENDMODE_NONE);
-		if(SDL_BlitScaled(noise_surface, NULL, frame_surface, NULL) != 0)
+		SDL_Rect RectSrc;
+		RectSrc.x = rand() % NOISE_WIDTH;
+		RectSrc.y = rand() % NOISE_HEIGHT;
+		RectSrc.w = NOISE_WIDTH;
+		RectSrc.h = NOISE_HEIGHT;
+		SDL_SetSurfaceBlendMode(noise_surface, SDL_BLENDMODE_NONE);
+		if(SDL_BlitScaled(noise_surface, &RectSrc, frame_surface, NULL) != 0)
 			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL blit scaled secondary->main failed! %s\n", EMUSCV_NAME, SDL_GetError());
 //		else
 //			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL blit scaled secondary->main ok\n", EMUSCV_NAME);
@@ -2989,14 +3010,31 @@ void cEmuSCV::RetroRun(void)
 	if(start_up_counter_logo < 1200)
 	{
 		// Draw an embedded binary image (64x97 pixels in ARGB8888 format)
-		posx = config.window_width - 75;
-		posy = config.window_height - 80;
-		sizx = 64;
-		sizy = 64;
 		uint8_t alpha = (start_up_counter_logo < 1200-100 ? 255: 255*(1200-start_up_counter_logo)/100);
-		for (uint32_t y = 0; y < sizy; y++)
+		unsigned char *image;
+		if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
+		{
+			image = (unsigned char *)src_res_emuscv128x128xrgba8888_data;
+			sizx = 128;
+			sizy = 8;
+		}
+		else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
+		{
+			image = (unsigned char *)src_res_emuscv64x64xrgba8888_data;
+			sizx = 64;
+			sizy = 4;
+		}
+		else //if(config.window_resolution == SETTING_RESOLUTION_LOW_VAL)
+		{
+			image = (unsigned char *)src_res_emuscv32x32xrgba8888_data;
+			sizx = 32;
+			sizy = 2;
+		}
+		posx = config.window_width - sizx - sizy;
+		posy = config.window_height - sizx - sizy;
+		for (uint32_t y = 0; y < sizx; y++)
 			for (uint32_t x = 0; x < sizx; x++)
-				pixelRGBA(frame_renderer, posx+x, posy+y, src_res_emuscv64x64xrgba8888_data[4*(x+y*sizx)], src_res_emuscv64x64xrgba8888_data[4*(x+y*sizx)+1], src_res_emuscv64x64xrgba8888_data[4*(x+y*sizx)+2], alpha*src_res_emuscv64x64xrgba8888_data[4*(x+y*sizx)+3]/255);
+				pixelRGBA(frame_renderer, posx+x, posy+y, image[4*(x+y*sizx)], image[4*(x+y*sizx)+1], image[4*(x+y*sizx)+2], alpha*image[4*(x+y*sizx)+3]/255);
 //		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Logo drawn\n", EMUSCV_NAME);
 	}
 
@@ -3013,46 +3051,53 @@ void cEmuSCV::RetroRun(void)
 //	}
 
 	// Display controls over picture?
-	if(config.scv_displayinputs)
+	if(config.scv_displayinputs == SETTING_DISPLAYINPUTS_YES_VAL)
 	{
+		if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
+			space = 16;
+		else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
+			space = 8;
+		else //if(config.window_resolution == SETTING_RESOLUTION_LOW_VAL)
+			space = 4;
+
+
 		// FIRST CONTROLLER (LEFT SIDE, ORANGE)
-		posx = 10;
-		posy = config.window_height-247-10;
+		posx = space;
+		posy = config.window_height-26-17*space-30;
 		// Contour
 		color = palette_pc[1];	// Black
-		rectangleRGBA(frame_renderer, posx+29, posy, posx+60, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);			// L3
-		rectangleRGBA(frame_renderer, posx+29, posy+32, posx+60, posy+63, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// L2
-		rectangleRGBA(frame_renderer, posx+29, posy+64, posx+60, posy+95, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// L1
-		rectangleRGBA(frame_renderer, posx+29, posy+96, posx+60, posy+126, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// UP
-		rectangleRGBA(frame_renderer, posx, posy+125, posx+30, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// LEFT
-		rectangleRGBA(frame_renderer, posx+59, posy+125, posx+89, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT
-		rectangleRGBA(frame_renderer, posx+29, posy+155, posx+60, posy+185, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// DOWN
-		rectangleRGBA(frame_renderer, posx+14, posy+186, posx+75, posy+247, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// LEFT STICK
-		rectangleRGBA(frame_renderer, posx+90, posy+125, posx+121, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// SELECT
-		rectangleRGBA(frame_renderer, posx+122, posy+125, posx+153, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// START
-		rectangleRGBA(frame_renderer, posx+154, posy+125, posx+185, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 4
-		rectangleRGBA(frame_renderer, posx+212, posy+125, posx+243, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 1
-		rectangleRGBA(frame_renderer, posx+168, posy+186, posx+229, posy+247, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT STICK
-		rectangleRGBA(frame_renderer, posx+183, posy+154, posx+214, posy+185, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 2
-		rectangleRGBA(frame_renderer, posx+183, posy+96, posx+214, posy+127, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 3
-		rectangleRGBA(frame_renderer, posx+183, posy+64, posx+214, posy+95, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// R1
-		rectangleRGBA(frame_renderer, posx+183, posy+32, posx+214, posy+63, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// R2
-		rectangleRGBA(frame_renderer, posx+183, posy, posx+214, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// R3
+		rectangleRGBA(frame_renderer, posx+2+2*space,   posy,             posx+5+4*space,   posy+3+2*space,   R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// L3
+		rectangleRGBA(frame_renderer, posx+2+2*space,   posy+4+2*space,   posx+5+4*space,   posy+7+4*space,   R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// L2
+		rectangleRGBA(frame_renderer, posx+2+2*space,   posy+8+4*space,   posx+5+4*space,   posy+11+6*space,  R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// L1
+		rectangleRGBA(frame_renderer, posx+2+2*space,   posy+12+6*space,  posx+5+4*space,   posy+15+8*space,  R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// UP
+		rectangleRGBA(frame_renderer, posx,             posy+14+8*space,  posx+3+2*space,   posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// LEFT
+		rectangleRGBA(frame_renderer, posx+4+4*space,   posy+14+8*space,  posx+7+6*space,   posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT
+		rectangleRGBA(frame_renderer, posx+2+2*space,   posy+16+10*space, posx+5+4*space,   posy+19+12*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// DOWN
+		rectangleRGBA(frame_renderer, posx+1+space,     posy+20+12*space, posx+6+5*space,   posy+25+16*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// LEFT STICK
+		rectangleRGBA(frame_renderer, posx+8+6*space,   posy+14+8*space,  posx+11+8*space,  posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// SELECT
+		rectangleRGBA(frame_renderer, posx+12+8*space,  posy+14+8*space,  posx+15+10*space, posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// START
+		rectangleRGBA(frame_renderer, posx+18+12*space, posy,             posx+21+14*space, posy+3+2*space,   R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// R3
+		rectangleRGBA(frame_renderer, posx+18+12*space, posy+4+2*space,   posx+21+14*space, posy+7+4*space,   R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// R2
+		rectangleRGBA(frame_renderer, posx+18+12*space, posy+8+4*space,   posx+21+14*space, posy+11+6*space,  R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// R1
+		rectangleRGBA(frame_renderer, posx+18+12*space, posy+12+6*space,  posx+21+14*space, posy+15+8*space,  R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 3 (up)
+		rectangleRGBA(frame_renderer, posx+16+10*space, posy+14+8*space,  posx+19+12*space, posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 4 (left)
+		rectangleRGBA(frame_renderer, posx+20+14*space, posy+14+8*space,  posx+23+16*space, posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 2 (right)
+		rectangleRGBA(frame_renderer, posx+18+12*space, posy+16+10*space, posx+21+14*space, posy+19+12*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 1 (down)
+		rectangleRGBA(frame_renderer, posx+17+11*space, posy+20+12*space, posx+22+15*space, posy+25+16*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT STICK
 		color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+30, posy+126, posx+58, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);			// Cross center
-		boxRGBA(frame_renderer, posx+15, posy+187, posx+73, posy+245, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);			// LEFT STICK
-		boxRGBA(frame_renderer, posx+169, posy+187, posx+227, posy+245, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// RIGHT STICK
+		boxRGBA(frame_renderer, posx+2+space,     posy+21+12*space, posx+4+5*space,   posy+23+16*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// LEFT STICK
+		boxRGBA(frame_renderer, posx+18+11*space, posy+21+12*space, posx+20+15*space, posy+23+16*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// RIGHT STICK
 		color = palette_pc[1];	// Black
-		lineRGBA(frame_renderer, posx+44-15, posy+216, posx+44+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// LEFT STICK
-		lineRGBA(frame_renderer, posx+44, posy+216-15, posx+44, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// LEFT STICK
-		lineRGBA(frame_renderer, posx+198-15, posy+216, posx+198+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT STICK
-		lineRGBA(frame_renderer, posx+198, posy+216-15, posx+198, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT STICK
+		lineRGBA(frame_renderer, posx+3+3*space, posy+21+13*space, posx+3+3*space, posy+22+15*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);			// LEFT STICK
+		lineRGBA(frame_renderer, posx+2+2*space, posy+22+14*space, posx+3+4*space, posy+22+14*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);			// LEFT STICK
+		lineRGBA(frame_renderer, posx+18+13*space, posy+21+13*space, posx+18+13*space, posy+22+15*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// RIGHT STICK
+		lineRGBA(frame_renderer, posx+17+12*space, posy+22+14*space, posx+18+14*space, posy+22+14*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// RIGHT STICK
 		// Button L3
 		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L3))
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[6];	// Cyan
-		boxRGBA(frame_renderer, posx+30, posy+1, posx+58, posy+29, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+3+2*space, posy+1, posx+3+4*space, posy+1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button L2
 		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L2))
 			color = palette_pc[4];	// Green light
@@ -3060,7 +3105,7 @@ void cEmuSCV::RetroRun(void)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[2];	// Blue Light
-		boxRGBA(frame_renderer, posx+30, posy+33, posx+58, posy+61, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+3+2*space, posy+5+2*space, posx+3+4*space, posy+5+4*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button L1
 		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
 			color = palette_pc[4];	// Green light
@@ -3068,7 +3113,7 @@ void cEmuSCV::RetroRun(void)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[0];	// Blue medium
-		boxRGBA(frame_renderer, posx+30, posy+65, posx+58, posy+93, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+3+2*space, posy+9+4*space, posx+3+4*space, posy+9+6*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button UP
 		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
 			color = palette_pc[4];	// Green light
@@ -3076,7 +3121,7 @@ void cEmuSCV::RetroRun(void)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+30, posy+97, posx+58, posy+125, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+3+2*space, posy+13+6*space, posx+3+4*space, posy+13+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button LEFT
 		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
 			color = palette_pc[4];	// Green light
@@ -3084,7 +3129,7 @@ void cEmuSCV::RetroRun(void)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+1, posy+126, posx+29, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+1, posy+15+8*space, posx+1+2*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button RIGHT
 		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
 			color = palette_pc[4];	// Green light
@@ -3092,7 +3137,7 @@ void cEmuSCV::RetroRun(void)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+59, posy+126, posx+87, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+5+4*space, posy+15+8*space, posx+5+6*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button DOWN
 		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
 			color = palette_pc[4];	// Green light
@@ -3100,75 +3145,33 @@ void cEmuSCV::RetroRun(void)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+30, posy+155, posx+58, posy+183, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Left analog stick
+		boxRGBA(frame_renderer, posx+3+2*space, posy+17+10*space, posx+3+4*space, posy+17+12*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Left stick
 		if(analogleftx0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogleftx0 >= EMUSCV_AXIS_NEUTRAL_MAX || analoglefty0 <= EMUSCV_AXIS_NEUTRAL_MIN || analoglefty0 >= EMUSCV_AXIS_NEUTRAL_MAX)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[15];	// White
 		joyposx = (analogleftx0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogleftx0 >= EMUSCV_AXIS_NEUTRAL_MAX ? analogleftx0 : 0);
 		joyposy = (analoglefty0 <= EMUSCV_AXIS_NEUTRAL_MIN || analoglefty0 >= EMUSCV_AXIS_NEUTRAL_MAX ? analoglefty0 : 0);
-		boxRGBA(frame_renderer, posx+44-3+26*joyposx/INT16_MAX, posy+216-3+26*joyposy/INT16_MAX, posx+44+3+26*joyposx/INT16_MAX, posy+216+3+26*joyposy/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, (int16_t)(posx+3+3*space-space/4)+(int16_t)(1+2*space-space/4)*joyposx/INT16_MAX, (int16_t)(posy+22+14*space-space/4)+(int16_t)(1+2*space-space/4)*joyposy/INT16_MAX, (int16_t)(posx+3+3*space+space/4)+(int16_t)(1+2*space-space/4)*joyposx/INT16_MAX, (int16_t)(posy+22+14*space+space/4)+(int16_t)(1+2*space-space/4)*joyposy/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button SELECT
 		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[13];	// Green dark
-		boxRGBA(frame_renderer, posx+91, posy+126, posx+119, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+9+6*space, posy+15+8*space, posx+9+8*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button START
 		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START))
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[5];	// Green soft
-		boxRGBA(frame_renderer, posx+123, posy+126, posx+151, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button 4
-		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
-			color = palette_pc[4];	// Green light
-		else if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)))
-			color = palette_pc[0xc];	// Yellow
-		else
-			color = palette_pc[2];	// Blue light
-		boxRGBA(frame_renderer, posx+155, posy+126, posx+183, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button 1
-		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A))
-			color = palette_pc[4];	// Green light
-		else if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R)))
-			color = palette_pc[0xc];	// Yellow
-		else
-			color = palette_pc[8];	// Red
-		boxRGBA(frame_renderer, posx+213, posy+126, posx+241, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Right analog stick
-		if(analogrightx0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrightx0 >= EMUSCV_AXIS_NEUTRAL_MAX || analogrighty0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrighty0 >= EMUSCV_AXIS_NEUTRAL_MAX)
+		boxRGBA(frame_renderer, posx+13+8*space, posy+15+8*space, posx+13+10*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button R3
+		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))
 			color = palette_pc[4];	// Green light
 		else
-			color = palette_pc[15];	// White
-		joyposx = (analogrightx0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrightx0 >= EMUSCV_AXIS_NEUTRAL_MAX ? analogrightx0 : 0);
-		joyposy = (analogrighty0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrighty0 >= EMUSCV_AXIS_NEUTRAL_MAX ? analogrighty0 : 0);
-		boxRGBA(frame_renderer, posx+198-3+26*joyposx/INT16_MAX, posy+216-3+26*joyposy/INT16_MAX, posx+198+3+26*joyposx/INT16_MAX, posy+216+3+26*joyposy/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button 2
-		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B))
-			color = palette_pc[4];	// Green light
-		else if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
-			color = palette_pc[0xc];	// Yellow
-		else
-			color = palette_pc[7];	// Green medium
-		boxRGBA(frame_renderer, posx+184, posy+155, posx+212, posy+183, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button 3
-		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_X))
-			color = palette_pc[4];	// Green light
-		else if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)))
-			color = palette_pc[0xc];	// Yellow
-		else
-			color = palette_pc[9];	// Orange
-		boxRGBA(frame_renderer, posx+184, posy+97, posx+212, posy+125, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button R1
-		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
-			color = palette_pc[4];	// Green light
-		else if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)))
-			color = palette_pc[0xc];	// Yellow
-		else
-			color = palette_pc[3];	// Purple
-		boxRGBA(frame_renderer, posx+184, posy+65, posx+212, posy+93, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+			color = palette_pc[11];	// Pink
+		boxRGBA(frame_renderer, posx+19+12*space, posy+1, posx+19+14*space, posy+1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button R2
 		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R2))
 			color = palette_pc[4];	// Green light
@@ -3176,294 +3179,336 @@ void cEmuSCV::RetroRun(void)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[10];	// Fuschia
-		boxRGBA(frame_renderer, posx+184, posy+33, posx+212, posy+61, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button R3
-		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))
+		boxRGBA(frame_renderer, posx+19+12*space, posy+5+2*space, posx+19+14*space, posy+5+4*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button R1
+		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+			color = palette_pc[4];	// Green light
+		else if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)))
+			color = palette_pc[0xc];	// Yellow
+		else
+			color = palette_pc[3];	// Purple
+		boxRGBA(frame_renderer, posx+19+12*space, posy+9+4*space, posx+19+14*space, posy+9+6*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button 3 (up)
+		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_X))
+			color = palette_pc[4];	// Green light
+		else if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)))
+			color = palette_pc[0xc];	// Yellow
+		else
+			color = palette_pc[9];	// Orange
+		boxRGBA(frame_renderer, posx+19+12*space, posy+13+6*space,  posx+19+14*space, posy+13+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button 4 (left)
+		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
+			color = palette_pc[4];	// Green light
+		else if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)))
+			color = palette_pc[0xc];	// Yellow
+		else
+			color = palette_pc[2];	// Blue light
+		boxRGBA(frame_renderer, posx+17+10*space, posy+15+8*space, posx+17+12*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button 2 (right)
+		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A))
+			color = palette_pc[4];	// Green light
+		else if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R)))
+			color = palette_pc[0xc];	// Yellow
+		else
+			color = palette_pc[7];	// Green medium
+		boxRGBA(frame_renderer, posx+21+14*space, posy+15+8*space,  posx+21+16*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button 1 (down)
+		if(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B))
+			color = palette_pc[4];	// Green light
+		else if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			color = palette_pc[0xc];	// Yellow
+		else
+			color = palette_pc[8];	// Red
+		boxRGBA(frame_renderer, posx+19+12*space, posy+17+10*space, posx+19+14*space, posy+17+12*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Right stick
+		if(analogrightx0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrightx0 >= EMUSCV_AXIS_NEUTRAL_MAX || analogrighty0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrighty0 >= EMUSCV_AXIS_NEUTRAL_MAX)
 			color = palette_pc[4];	// Green light
 		else
-			color = palette_pc[11];	// Pink
-		boxRGBA(frame_renderer, posx+184, posy+1, posx+212, posy+29, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+			color = palette_pc[15];	// White
+		joyposx = (analogrightx0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrightx0 >= EMUSCV_AXIS_NEUTRAL_MAX ? analogrightx0 : 0);
+		joyposy = (analogrighty0 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrighty0 >= EMUSCV_AXIS_NEUTRAL_MAX ? analogrighty0 : 0);
+		boxRGBA(frame_renderer, (int16_t)(posx+18+13*space-space/4)+(int16_t)(1+2*space-space/4)*joyposx/INT16_MAX, (int16_t)(posy+22+14*space-space/4)+(int16_t)(1+2*space-space/4)*joyposy/INT16_MAX, (int16_t)(posx+18+13*space+space/4)+(int16_t)(1+2*space-space/4)*joyposx/INT16_MAX, (int16_t)(posy+22+14*space+space/4)+(int16_t)(1+2*space-space/4)*joyposy/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 
 
 		// SECOND CONTROLLER (RIGHT SIDE, BLUE)
-		posx = config.window_width-243-10;
-		posy = config.window_height-247-10;
+		posx = config.window_width-24-17*space;
+		posy = config.window_height-26-17*space;
 		// Contour
 		color = palette_pc[1];	// Black
-		rectangleRGBA(frame_renderer, posx+29, posy, posx+60, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);			// L3
-		rectangleRGBA(frame_renderer, posx+29, posy+32, posx+60, posy+63, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// L2
-		rectangleRGBA(frame_renderer, posx+29, posy+64, posx+60, posy+95, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// L1
-		rectangleRGBA(frame_renderer, posx+29, posy+96, posx+60, posy+126, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// UP
-		rectangleRGBA(frame_renderer, posx, posy+125, posx+30, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// LEFT
-		rectangleRGBA(frame_renderer, posx+59, posy+125, posx+89, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT
-		rectangleRGBA(frame_renderer, posx+29, posy+155, posx+60, posy+185, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// DOWN
-		rectangleRGBA(frame_renderer, posx+14, posy+186, posx+75, posy+247, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// LEFT STICK
-		rectangleRGBA(frame_renderer, posx+90, posy+125, posx+121, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// SELECT
-		rectangleRGBA(frame_renderer, posx+122, posy+125, posx+153, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// START
-		rectangleRGBA(frame_renderer, posx+154, posy+125, posx+185, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 4
-		rectangleRGBA(frame_renderer, posx+212, posy+125, posx+243, posy+156, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 1
-		rectangleRGBA(frame_renderer, posx+168, posy+186, posx+229, posy+247, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT STICK
-		rectangleRGBA(frame_renderer, posx+183, posy+154, posx+214, posy+185, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 2
-		rectangleRGBA(frame_renderer, posx+183, posy+96, posx+214, posy+127, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 3
-		rectangleRGBA(frame_renderer, posx+183, posy+64, posx+214, posy+95, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// R1
-		rectangleRGBA(frame_renderer, posx+183, posy+32, posx+214, posy+63, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// R2
-		rectangleRGBA(frame_renderer, posx+183, posy, posx+214, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// R3
+		rectangleRGBA(frame_renderer, posx+2+2*space,   posy,             posx+5+4*space,   posy+3+2*space,   R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// L3
+		rectangleRGBA(frame_renderer, posx+2+2*space,   posy+4+2*space,   posx+5+4*space,   posy+7+4*space,   R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// L2
+		rectangleRGBA(frame_renderer, posx+2+2*space,   posy+8+4*space,   posx+5+4*space,   posy+11+6*space,  R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// L1
+		rectangleRGBA(frame_renderer, posx+2+2*space,   posy+12+6*space,  posx+5+4*space,   posy+15+8*space,  R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// UP
+		rectangleRGBA(frame_renderer, posx,             posy+14+8*space,  posx+3+2*space,   posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// LEFT
+		rectangleRGBA(frame_renderer, posx+4+4*space,   posy+14+8*space,  posx+7+6*space,   posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT
+		rectangleRGBA(frame_renderer, posx+2+2*space,   posy+16+10*space, posx+5+4*space,   posy+19+12*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// DOWN
+		rectangleRGBA(frame_renderer, posx+1+space,     posy+20+12*space, posx+6+5*space,   posy+25+16*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// LEFT STICK
+		rectangleRGBA(frame_renderer, posx+8+6*space,   posy+14+8*space,  posx+11+8*space,  posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// SELECT
+		rectangleRGBA(frame_renderer, posx+12+8*space,  posy+14+8*space,  posx+15+10*space, posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// START
+		rectangleRGBA(frame_renderer, posx+18+12*space, posy,             posx+21+14*space, posy+3+2*space,   R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// R3
+		rectangleRGBA(frame_renderer, posx+18+12*space, posy+4+2*space,   posx+21+14*space, posy+7+4*space,   R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// R2
+		rectangleRGBA(frame_renderer, posx+18+12*space, posy+8+4*space,   posx+21+14*space, posy+11+6*space,  R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// R1
+		rectangleRGBA(frame_renderer, posx+18+12*space, posy+12+6*space,  posx+21+14*space, posy+15+8*space,  R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 3 (up)
+		rectangleRGBA(frame_renderer, posx+16+10*space, posy+14+8*space,  posx+19+12*space, posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 4 (left)
+		rectangleRGBA(frame_renderer, posx+20+14*space, posy+14+8*space,  posx+23+16*space, posy+17+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 2 (right)
+		rectangleRGBA(frame_renderer, posx+18+12*space, posy+16+10*space, posx+21+14*space, posy+19+12*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// BUTTON 1 (down)
+		rectangleRGBA(frame_renderer, posx+17+11*space, posy+20+12*space, posx+22+15*space, posy+25+16*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT STICK
 		color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+30, posy+126, posx+58, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);			// Cross center
-		boxRGBA(frame_renderer, posx+15, posy+187, posx+73, posy+245, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);			// LEFT STICK
-		boxRGBA(frame_renderer, posx+169, posy+187, posx+227, posy+245, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// RIGHT STICK
+		boxRGBA(frame_renderer, posx+2+space,     posy+21+12*space, posx+4+5*space,   posy+23+16*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// LEFT STICK
+		boxRGBA(frame_renderer, posx+18+11*space, posy+21+12*space, posx+20+15*space, posy+23+16*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// RIGHT STICK
 		color = palette_pc[1];	// Black
-		lineRGBA(frame_renderer, posx+44-15, posy+216, posx+44+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// LEFT STICK
-		lineRGBA(frame_renderer, posx+44, posy+216-15, posx+44, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// LEFT STICK
-		lineRGBA(frame_renderer, posx+198-15, posy+216, posx+198+15, posy+216, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT STICK
-		lineRGBA(frame_renderer, posx+198, posy+216-15, posx+198, posy+216+15, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RIGHT STICK
+		lineRGBA(frame_renderer, posx+3+3*space, posy+21+13*space, posx+3+3*space, posy+22+15*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);			// LEFT STICK
+		lineRGBA(frame_renderer, posx+2+2*space, posy+22+14*space, posx+3+4*space, posy+22+14*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);			// LEFT STICK
+		lineRGBA(frame_renderer, posx+18+13*space, posy+21+13*space, posx+18+13*space, posy+22+15*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// RIGHT STICK
+		lineRGBA(frame_renderer, posx+17+12*space, posy+22+14*space, posx+18+14*space, posy+22+14*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);		// RIGHT STICK
 		// Button L3
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L3))
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L3))
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[6];	// Cyan
-		boxRGBA(frame_renderer, posx+30, posy+1, posx+58, posy+29, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+3+2*space, posy+1, posx+3+4*space, posy+1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button L2
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2))
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2))
 			color = palette_pc[4];	// Green light
 		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)))
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[2];	// Blue Light
-		boxRGBA(frame_renderer, posx+30, posy+33, posx+58, posy+61, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+3+2*space, posy+5+2*space, posx+3+4*space, posy+5+4*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button L1
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
 			color = palette_pc[4];	// Green light
 		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)))
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[0];	// Blue medium
-		boxRGBA(frame_renderer, posx+30, posy+65, posx+58, posy+93, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+3+2*space, posy+9+4*space, posx+3+4*space, posy+9+6*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button UP
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
 			color = palette_pc[4];	// Green light
 		else if(analoglefty1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrighty1 <= EMUSCV_AXIS_NEUTRAL_MIN)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+30, posy+97, posx+58, posy+125, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+3+2*space, posy+13+6*space, posx+3+4*space, posy+13+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button LEFT
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
 			color = palette_pc[4];	// Green light
 		else if(analogleftx1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrightx1 <= EMUSCV_AXIS_NEUTRAL_MIN)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+1, posy+126, posx+29, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+1, posy+15+8*space, posx+1+2*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button RIGHT
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
 			color = palette_pc[4];	// Green light
 		else if(analogleftx1 >= EMUSCV_AXIS_NEUTRAL_MAX || analogrightx1 >= EMUSCV_AXIS_NEUTRAL_MAX)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+59, posy+126, posx+87, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+5+4*space, posy+15+8*space, posx+5+6*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button DOWN
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
 			color = palette_pc[4];	// Green light
 		else if(analoglefty1 >= EMUSCV_AXIS_NEUTRAL_MAX || analogrighty1 >= EMUSCV_AXIS_NEUTRAL_MAX)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+30, posy+155, posx+58, posy+183, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Left analog stick
-		if (analogleftx1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogleftx1 >= EMUSCV_AXIS_NEUTRAL_MAX || analoglefty1 <= EMUSCV_AXIS_NEUTRAL_MIN || analoglefty1 >= EMUSCV_AXIS_NEUTRAL_MAX)
+		boxRGBA(frame_renderer, posx+3+2*space, posy+17+10*space, posx+3+4*space, posy+17+12*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Left stick
+		if(analogleftx1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogleftx1 >= EMUSCV_AXIS_NEUTRAL_MAX || analoglefty1 <= EMUSCV_AXIS_NEUTRAL_MIN || analoglefty1 >= EMUSCV_AXIS_NEUTRAL_MAX)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[15];	// White
 		joyposx = (analogleftx1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogleftx1 >= EMUSCV_AXIS_NEUTRAL_MAX ? analogleftx1 : 0);
 		joyposy = (analoglefty1 <= EMUSCV_AXIS_NEUTRAL_MIN || analoglefty1 >= EMUSCV_AXIS_NEUTRAL_MAX ? analoglefty1 : 0);
-		boxRGBA(frame_renderer, posx+44-3+26*joyposx/INT16_MAX, posy+216-3+26*joyposy/INT16_MAX, posx+44+3+26*joyposx/INT16_MAX, posy+216+3+26*joyposy/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, (int16_t)(posx+3+3*space-space/4)+(int16_t)(1+2*space-space/4)*joyposx/INT16_MAX, (int16_t)(posy+22+14*space-space/4)+(int16_t)(1+2*space-space/4)*joyposy/INT16_MAX, (int16_t)(posx+3+3*space+space/4)+(int16_t)(1+2*space-space/4)*joyposx/INT16_MAX, (int16_t)(posy+22+14*space+space/4)+(int16_t)(1+2*space-space/4)*joyposy/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button SELECT
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[13];	// Green dark
-		boxRGBA(frame_renderer, posx+91, posy+126, posx+119, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+9+6*space, posy+15+8*space, posx+9+8*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button START
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START))
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START))
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[5];	// Green soft
-		boxRGBA(frame_renderer, posx+123, posy+126, posx+151, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button 4
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
-			color = palette_pc[4];	// Green light
-		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)))
-			color = palette_pc[0xc];	// Yellow
-		else
-			color = palette_pc[2];	// Blue light
-		boxRGBA(frame_renderer, posx+155, posy+126, posx+183, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button 1
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A))
-			color = palette_pc[4];	// Green light
-		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R)))
-			color = palette_pc[0xc];	// Yellow
-		else
-			color = palette_pc[8];	// Red
-		boxRGBA(frame_renderer, posx+213, posy+126, posx+241, posy+154, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Right analog stick
-		if (analogrightx1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrightx1 >= EMUSCV_AXIS_NEUTRAL_MAX || analogrighty1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrighty1 >= EMUSCV_AXIS_NEUTRAL_MAX)
+		boxRGBA(frame_renderer, posx+13+8*space, posy+15+8*space, posx+13+10*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button R3
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))
 			color = palette_pc[4];	// Green light
 		else
-			color = palette_pc[15];	// White
-		joyposx = (analogrightx1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrightx1 >= EMUSCV_AXIS_NEUTRAL_MAX ? analogrightx1 : 0);
-		joyposy = (analogrighty1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrighty1 >= EMUSCV_AXIS_NEUTRAL_MAX ? analogrighty1 : 0);
-		boxRGBA(frame_renderer, posx+198-3+26*joyposx/INT16_MAX, posy+216-3+26*joyposy/INT16_MAX, posx+198+3+26*joyposx/INT16_MAX, posy+216+3+26*joyposy/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button 2
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B))
-			color = palette_pc[4];	// Green light
-		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
-			color = palette_pc[0xc];	// Yellow
-		else
-			color = palette_pc[7];	// Green medium
-		boxRGBA(frame_renderer, posx+184, posy+155, posx+212, posy+183, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button 3
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X))
-			color = palette_pc[4];	// Green light
-		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)))
-			color = palette_pc[0xc];	// Yellow
-		else
-			color = palette_pc[9];	// Orange
-		boxRGBA(frame_renderer, posx+184, posy+97, posx+212, posy+125, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button R1
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
-			color = palette_pc[4];	// Green light
-		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)))
-			color = palette_pc[0xc];	// Yellow
-		else
-			color = palette_pc[3];	// Purple
-		boxRGBA(frame_renderer, posx+184, posy+65, posx+212, posy+93, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+			color = palette_pc[11];	// Pink
+		boxRGBA(frame_renderer, posx+19+12*space, posy+1, posx+19+14*space, posy+1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Button R2
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2))
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2))
 			color = palette_pc[4];	// Green light
 		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)))
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[10];	// Fuschia
-		boxRGBA(frame_renderer, posx+184, posy+33, posx+212, posy+61, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		// Button R3
-		if (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))
+		boxRGBA(frame_renderer, posx+19+12*space, posy+5+2*space, posx+19+14*space, posy+5+4*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button R1
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+			color = palette_pc[4];	// Green light
+		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)))
+			color = palette_pc[0xc];	// Yellow
+		else
+			color = palette_pc[3];	// Purple
+		boxRGBA(frame_renderer, posx+19+12*space, posy+9+4*space, posx+19+14*space, posy+9+6*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button 3 (up)
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X))
+			color = palette_pc[4];	// Green light
+		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)))
+			color = palette_pc[0xc];	// Yellow
+		else
+			color = palette_pc[9];	// Orange
+		boxRGBA(frame_renderer, posx+19+12*space, posy+13+6*space,  posx+19+14*space, posy+13+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button 4 (left)
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y))
+			color = palette_pc[4];	// Green light
+		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)))
+			color = palette_pc[0xc];	// Yellow
+		else
+			color = palette_pc[2];	// Blue light
+		boxRGBA(frame_renderer, posx+17+10*space, posy+15+8*space, posx+17+12*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button 2 (right)
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A))
+			color = palette_pc[4];	// Green light
+		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R)))
+			color = palette_pc[0xc];	// Yellow
+		else
+			color = palette_pc[7];	// Green medium
+		boxRGBA(frame_renderer, posx+21+14*space, posy+15+8*space,  posx+21+16*space, posy+15+10*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Button 1 (down)
+		if(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B))
+			color = palette_pc[4];	// Green light
+		else if((ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			color = palette_pc[0xc];	// Yellow
+		else
+			color = palette_pc[8];	// Red
+		boxRGBA(frame_renderer, posx+19+12*space, posy+17+10*space, posx+19+14*space, posy+17+12*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		// Right stick
+		if(analogrightx1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrightx1 >= EMUSCV_AXIS_NEUTRAL_MAX || analogrighty1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrighty1 >= EMUSCV_AXIS_NEUTRAL_MAX)
 			color = palette_pc[4];	// Green light
 		else
-			color = palette_pc[11];	// Pink
-		boxRGBA(frame_renderer, posx+184, posy+1, posx+212, posy+29, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+			color = palette_pc[15];	// White
+		joyposx = (analogrightx1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrightx1 >= EMUSCV_AXIS_NEUTRAL_MAX ? analogrightx1 : 0);
+		joyposy = (analogrighty1 <= EMUSCV_AXIS_NEUTRAL_MIN || analogrighty1 >= EMUSCV_AXIS_NEUTRAL_MAX ? analogrighty1 : 0);
+		boxRGBA(frame_renderer, (int16_t)(posx+18+13*space-space/4)+(int16_t)(1+2*space-space/4)*joyposx/INT16_MAX, (int16_t)(posy+22+14*space-space/4)+(int16_t)(1+2*space-space/4)*joyposy/INT16_MAX, (int16_t)(posx+18+13*space+space/4)+(int16_t)(1+2*space-space/4)*joyposx/INT16_MAX, (int16_t)(posy+22+14*space+space/4)+(int16_t)(1+2*space-space/4)*joyposy/INT16_MAX, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 
 
 		// KEYBOARD
-		posx = config.window_width-(74+64+31)-10;
-		posy = 10;
+		posx = config.window_width-1-12*space;
+		posy = space;
 		// Contour
 		color = palette_pc[1];	// Black
-		rectangleRGBA(frame_renderer, posx, posy, posx+73, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);                      // POWER ON/OFF BUTTON
-		rectangleRGBA(frame_renderer, posx, posy+48, posx+73, posy+48+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);                // RESET BUTTON
-		rectangleRGBA(frame_renderer, posx, posy+96, posx+73, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);                // PAUSE BUTTON
-		rectangleRGBA(frame_renderer, posx+74, posy, posx+74+31, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		rectangleRGBA(frame_renderer, posx+74+32, posy, posx+74+32+31, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		rectangleRGBA(frame_renderer, posx+74+64, posy, posx+74+64+31, posy+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		rectangleRGBA(frame_renderer, posx+74, posy+32, posx+74+31, posy+32+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		rectangleRGBA(frame_renderer, posx+74+32, posy+32, posx+74+32+31, posy+32+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		rectangleRGBA(frame_renderer, posx+74+64, posy+32, posx+74+64+31, posy+32+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		rectangleRGBA(frame_renderer, posx+74, posy+64, posx+74+31, posy+64+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		rectangleRGBA(frame_renderer, posx+74+32, posy+64, posx+74+32+31, posy+64+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		rectangleRGBA(frame_renderer, posx+74+64, posy+64, posx+74+64+31, posy+64+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		rectangleRGBA(frame_renderer, posx+74, posy+96, posx+74+31, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		rectangleRGBA(frame_renderer, posx+74+32, posy+96, posx+74+32+31, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-		rectangleRGBA(frame_renderer, posx+74+64, posy+96, posx+74+64+31, posy+96+31, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		rectangleRGBA(frame_renderer, posx,           posy,           posx+4+4*space,  posy+1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// POWER ON/OFF BUTTON
+		rectangleRGBA(frame_renderer, posx,           posy+3+3*space, posx+4+4*space,  posy+4+5*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// RESET BUTTON
+		rectangleRGBA(frame_renderer, posx,           posy+6+6*space, posx+4+4*space,  posy+7+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// PAUSE BUTTON
+		rectangleRGBA(frame_renderer, posx+5*space,   posy,           posx+7*space,    posy+1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// 7
+		rectangleRGBA(frame_renderer, posx+1+7*space, posy,           posx+1+9*space,  posy+1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// 8
+		rectangleRGBA(frame_renderer, posx+2+9*space, posy,           posx+2+11*space, posy+1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// 9
+		rectangleRGBA(frame_renderer, posx+5*space,   posy+2+2*space, posx+7*space,    posy+3+4*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// 4
+		rectangleRGBA(frame_renderer, posx+1+7*space, posy+2+2*space, posx+1+9*space,  posy+3+4*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// 5
+		rectangleRGBA(frame_renderer, posx+2+9*space, posy+2+2*space, posx+2+11*space, posy+3+4*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// 6
+		rectangleRGBA(frame_renderer, posx+5*space,   posy+4+4*space, posx+7*space,    posy+5+6*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// 1
+		rectangleRGBA(frame_renderer, posx+1+7*space, posy+4+4*space, posx+1+9*space,  posy+5+6*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// 2
+		rectangleRGBA(frame_renderer, posx+2+9*space, posy+4+4*space, posx+2+11*space, posy+5+6*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// 3
+		rectangleRGBA(frame_renderer, posx+5*space,   posy+6+6*space, posx+7*space,    posy+7+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// 0
+		rectangleRGBA(frame_renderer, posx+1+7*space, posy+6+6*space, posx+1+9*space,  posy+7+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// CL
+		rectangleRGBA(frame_renderer, posx+2+9*space, posy+6+6*space, posx+2+11*space, posy+7+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// EN
+
 		// Key POWER ON/OFF
 		if (keyPower != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+1, posy+1, posx+1+70, posy+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+1, posy+1, posx+2+4*space, posy-1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		color = palette_pc[1];	// Black
 		if (is_power_on)
-			rectangleRGBA(frame_renderer, posx+43, posy+1, posx+72, posy+30, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+			rectangleRGBA(frame_renderer, posx+3+3*space, posy+1, posx+3+4*space, posy+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		else
-			rectangleRGBA(frame_renderer, posx+1, posy+1, posx+30, posy+30, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+			rectangleRGBA(frame_renderer, posx+1, posy+1, posx+1+space, posy+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key RESET
 		if (keyReset != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+1, posy+48+1, posx+1+70, posy+48+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+1, posy+4+3*space, posx+2+4*space, posy+2+5*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key PAUSE
 		if (keyPause != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+1, posy+97, posx+1+70, posy+97+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+1, posy+7+6*space, posx+2+4*space, posy+5+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key 7
 		if (key7 != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+1, posy+1, posx+74+1+28, posy+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+1+5*space, posy+1, posx-2+7*space, posy-1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key 8
 		if (key8 != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+33, posy+1, posx+74+33+28, posy+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+2+7*space, posy+1, posx-1+9*space,  posy-1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key 9
 		if (key9 != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+65, posy+1, posx+74+65+28, posy+1+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+3+9*space, posy+1, posx+11*space, posy-1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key 4
 		if (key4 != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+1, posy+33, posx+74+1+28, posy+33+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+1+5*space, posy+2+2*space, posx-2+7*space, posy+1+4*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key 5
 		if (key5 != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+33, posy+33, posx+74+33+28, posy+33+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+2+7*space, posy+3+2*space, posx-1+9*space,  posy+1+4*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key 6
 		if (key6 != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+65, posy+33, posx+74+65+28, posy+33+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer,posx+3+9*space, posy+3+2*space, posx+11*space, posy+1+4*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key 1
 		if (key1 != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+1, posy+65, posx+74+1+28, posy+65+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+1+5*space, posy+5+4*space, posx-2+7*space, posy+3+6*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key 2
 		if (key2 != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+33, posy+65, posx+74+33+28, posy+65+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+2+7*space, posy+5+4*space, posx-1+9*space, posy+3+6*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key 3
 		if (key3 != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+65, posy+65, posx+74+65+28, posy+65+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+3+9*space, posy+5+4*space, posx+11*space, posy+3+6*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key 0
 		if (key0 != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+1, posy+97, posx+74+1+28, posy+97+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+1+5*space, posy+7+6*space, posx-2+7*space, posy+5+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key CL
 		if (keyClear != 0)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+33, posy+97, posx+74+33+28, posy+97+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		boxRGBA(frame_renderer, posx+2+7*space, posy+7+6*space, posx-1+9*space,  posy+5+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key EN
 		if (keyEnter != 0)
 			color = palette_pc[4];	// Green light
@@ -3471,9 +3516,8 @@ void cEmuSCV::RetroRun(void)
 			color = palette_pc[0xc];	// Yellow
 		else
 			color = palette_pc[14];	// Gray
-		boxRGBA(frame_renderer, posx+74+65, posy+97, posx+74+65+28, posy+97+28, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
-
-		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Inputs drawn\n", EMUSCV_NAME);
+		boxRGBA(frame_renderer, posx+3+9*space, posy+7+6*space, posx+11*space, posy+5+8*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Inputs drawn\n", EMUSCV_NAME);
 	}
 
 /*
@@ -3486,11 +3530,14 @@ void cEmuSCV::RetroRun(void)
 	else
 		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] retro_use_audio_cb == true => nothing to do\n", EMUSCV_NAME);
 */
+
 	// Call audio callback
-	int16_t sound_buffer[2*AUDIO_SAMPLING_RATE/WINDOW_FPS_EPOCH];
-	for (uint32_t i = 0; i < 2*AUDIO_SAMPLING_RATE/WINDOW_FPS_EPOCH; i++)
+	size_t buffer_length = AUDIO_SAMPLING_RATE/config.window_fps;
+	size_t buffer_size = 2 * buffer_length;
+	int16_t sound_buffer[buffer_size];
+	for (uint32_t i = 0; i < buffer_size; i++)
 		sound_buffer[i] = 0;
-	RetroAudioSampleBatch(sound_buffer, sizeof(sound_buffer));
+	RetroAudioSampleBatch(sound_buffer, buffer_length);
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] => RetroAudioSampleBatch()\n", EMUSCV_NAME);
 
 	// Call video callback
@@ -3510,9 +3557,9 @@ void cEmuSCV::RetroLoadSettings(void)
 	struct retro_variable var;
 	
 	// CONSOLE
-	config.scv_console	= SETTING_CONSOLE_AUTO_VAL;
-	var.key		= SETTING_CONSOLE_KEY;
-	var.value	= NULL;
+	config.scv_console = SETTING_CONSOLE_AUTO_VAL;
+	var.key   = SETTING_CONSOLE_KEY;
+	var.value = NULL;
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	{
 		_TCHAR str[sizeof(var.value)];
@@ -3528,23 +3575,24 @@ void cEmuSCV::RetroLoadSettings(void)
 	switch(config.scv_console)
 	{
 		case SETTING_CONSOLE_EPOCH_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Show console as EPOCH\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Console setting: EPOCH\n", EMUSCV_NAME);
 			break;
 		case SETTING_CONSOLE_YENO_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Show console as YENO\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Console setting: YENO\n", EMUSCV_NAME);
 			break;
 		case SETTING_CONSOLE_EPOCHLADY_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Show console as EPOCH LADY\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Console setting: EPOCH LADY\n", EMUSCV_NAME);
 			break;
 		case SETTING_CONSOLE_AUTO_VAL:
 		default:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Show console as AUTO (EPOCH)\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Console setting: automatic (EPOCH)\n", EMUSCV_NAME);
+			break;
 	}
 
 	// DISPLAY
-	config.scv_display	= SETTING_DISPLAY_AUTO_VAL;
-	var.key		= SETTING_DISPLAY_KEY;
-	var.value	= NULL;
+	config.scv_display = SETTING_DISPLAY_AUTO_VAL;
+	var.key   = SETTING_DISPLAY_KEY;
+	var.value = NULL;
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	{
 		_TCHAR str[sizeof(var.value)];
@@ -3560,72 +3608,141 @@ void cEmuSCV::RetroLoadSettings(void)
 	switch(config.scv_display)
 	{
 		case SETTING_DISPLAY_EMUSCV_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display picture as EmuSCV (custom)\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display setting: as EmuSCV (custom)\n", EMUSCV_NAME);
 			break;
 		case SETTING_DISPLAY_EPOCH_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display picture as EPOCH (genuine)\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display setting: as EPOCH (genuine)\n", EMUSCV_NAME);
 			break;
 		case SETTING_DISPLAY_YENO_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display picture as YENO (genuine)\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display setting: as YENO (genuine)\n", EMUSCV_NAME);
 			break;
 		case SETTING_DISPLAY_AUTO_VAL:
 		default:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display picture as AUTO (EmuSCV)\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display setting: automatic (depending of console option)\n", EMUSCV_NAME);
+			break;
 	}
 
-	// DISPLAY FPS
-	config.scv_displayfps	= SETTING_DISPLAYFPS_AUTO_VAL;
-	var.key		= SETTING_DISPLAYFPS_KEY;
-	var.value	= NULL;
+	// PIXEL ASPECT
+	config.scv_pixelaspect = SETTING_PIXELASPECT_AUTO_VAL;
+	var.key   = SETTING_PIXELASPECT_KEY;
+	var.value = NULL;
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	{
 		_TCHAR str[sizeof(var.value)];
 		memset(str, 0, sizeof(str));
 		strncpy(str, var.value, sizeof(str));
-		if(strcmp(str, _T(SETTING_DISPLAYFPS_EPOCH60_KEY)) == 0)
-			config.scv_displayfps = SETTING_DISPLAYFPS_EPOCH60_VAL;
-		else if(strcmp(str, _T(SETTING_DISPLAYFPS_YENO50_KEY)) == 0)
-			config.scv_displayfps = SETTING_DISPLAYFPS_YENO50_VAL;
+		if(strcmp(str, _T(SETTING_PIXELASPECT_RECTANGULAR_KEY)) == 0)
+			config.scv_pixelaspect = SETTING_PIXELASPECT_RECTANGULAR_VAL;
+		else if(strcmp(str, _T(SETTING_PIXELASPECT_SQUARE_KEY)) == 0)
+			config.scv_pixelaspect = SETTING_PIXELASPECT_SQUARE_VAL;
 	}
-	switch(config.scv_displayfps)
+	switch(config.scv_pixelaspect)
 	{
-		case SETTING_DISPLAYFPS_EPOCH60_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display set as 60Hz / 60 FPS (EPOCH)\n", EMUSCV_NAME);
+		case SETTING_PIXELASPECT_RECTANGULAR_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Pixel aspect setting: rectangular (genuine)\n", EMUSCV_NAME);
 			break;
-		case SETTING_DISPLAYFPS_YENO50_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display set as 50Hz / 50 FPS (YENO)\n", EMUSCV_NAME);
+		case SETTING_PIXELASPECT_SQUARE_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Pixel aspect setting: square (custom)\n", EMUSCV_NAME);
 			break;
-		case SETTING_DISPLAYFPS_AUTO_VAL:
+		case SETTING_PIXELASPECT_AUTO_VAL:
 		default:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display Frequency / FPS set as AUTO (depending of display)\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Pixel aspect setting: automatic (rectangular)\n", EMUSCV_NAME);
+			break;
+	}
+
+	// RESOLUTION
+	config.scv_resolution = SETTING_RESOLUTION_AUTO_VAL;
+	var.key   = SETTING_RESOLUTION_KEY;
+	var.value = NULL;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		_TCHAR str[sizeof(var.value)];
+		memset(str, 0, sizeof(str));
+		strncpy(str, var.value, sizeof(str));
+		if(strcmp(str, _T(SETTING_RESOLUTION_LOW_KEY)) == 0)
+			config.scv_resolution = SETTING_RESOLUTION_LOW_VAL;
+		else if(strcmp(str, _T(SETTING_RESOLUTION_MEDIUM_KEY)) == 0)
+			config.scv_resolution = SETTING_RESOLUTION_MEDIUM_VAL;
+		else if(strcmp(str, _T(SETTING_RESOLUTION_HIGH_KEY)) == 0)
+			config.scv_resolution = SETTING_RESOLUTION_HIGH_VAL;
+	}
+	switch(config.scv_resolution)
+	{
+		case SETTING_RESOLUTION_LOW_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Resolution setting: low\n", EMUSCV_NAME);
+			break;
+		case SETTING_RESOLUTION_MEDIUM_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Resolution setting: medium\n", EMUSCV_NAME);
+			break;
+		case SETTING_RESOLUTION_HIGH_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Resolution setting: high\n", EMUSCV_NAME);
+			break;
+		case SETTING_RESOLUTION_AUTO_VAL:
+		default:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Resolution setting: automatic (depending of the platform)\n", EMUSCV_NAME);
+			break;
+	}
+
+	// FPS
+	config.scv_fps = SETTING_FPS_AUTO_VAL;
+	var.key   = SETTING_FPS_KEY;
+	var.value = NULL;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		_TCHAR str[sizeof(var.value)];
+		memset(str, 0, sizeof(str));
+		strncpy(str, var.value, sizeof(str));
+		if(strcmp(str, _T(SETTING_FPS_EPOCH60_KEY)) == 0)
+			config.scv_fps = SETTING_FPS_EPOCH60_VAL;
+		else if(strcmp(str, _T(SETTING_FPS_YENO50_KEY)) == 0)
+			config.scv_fps = SETTING_FPS_YENO50_VAL;
+	}
+	switch(config.scv_fps)
+	{
+		case SETTING_FPS_EPOCH60_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] FPS setting: 60 (EPOCH)\n", EMUSCV_NAME);
+			break;
+		case SETTING_FPS_YENO50_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] FPS setting: 50 (YENO)\n", EMUSCV_NAME);
+			break;
+		case SETTING_FPS_AUTO_VAL:
+		default:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] FPS setting: automatic (depending of the console option)\n", EMUSCV_NAME);
+			break;
 	}
 
 	// DISPLAY FULL
-	config.scv_displayfull	= SETTING_DISPLAYFULL_NO_VAL;
-	var.key		= SETTING_DISPLAYFULL_KEY;
-	var.value	= NULL;
+	config.scv_displayfullmemory = SETTING_DISPLAYFULLMEMORY_AUTO_VAL;
+	var.key   = SETTING_DISPLAYFULLMEMORY_KEY;
+	var.value = NULL;
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	{
 		_TCHAR str[sizeof(var.value)];
 		memset(str, 0, sizeof(str));
 		strncpy(str, var.value, sizeof(str));
-		if(strcmp(str, _T(SETTING_DISPLAYFULL_YES_KEY)) == 0)
-			config.scv_displayfull = SETTING_DISPLAYFULL_YES_VAL;
+		if(strcmp(str, _T(SETTING_DISPLAYFULLMEMORY_YES_KEY)) == 0)
+			config.scv_displayfullmemory = SETTING_DISPLAYFULLMEMORY_YES_VAL;
+		else if(strcmp(str, _T(SETTING_DISPLAYFULLMEMORY_NO_KEY)) == 0)
+			config.scv_displayfullmemory = SETTING_DISPLAYFULLMEMORY_NO_VAL;
 	}
-	switch(config.scv_displayfull)
+	switch(config.scv_displayfullmemory)
 	{
-		case SETTING_DISPLAYFULL_YES_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display entire video memory (developer mode)\n", EMUSCV_NAME);
+		case SETTING_DISPLAYFULLMEMORY_YES_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display full memory setting: yes (developer mode)\n", EMUSCV_NAME);
 			break;
-		case SETTING_DISPLAYFULL_NO_VAL:
+		case SETTING_DISPLAYFULLMEMORY_NO_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display full memory setting: no (normal mode)\n", EMUSCV_NAME);
+			break;
+		case SETTING_DISPLAYFULLMEMORY_AUTO_VAL:
 		default:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Normal display (user mode)\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display full memory setting: automatic (no)\n", EMUSCV_NAME);
+			break;
 	}
 
 	// DISPLAY INPUTS
-	config.scv_displayinputs	= SETTING_DISPLAYINPUTS_NO_VAL;
-	var.key		= SETTING_DISPLAYINPUTS_KEY;
-	var.value	= NULL;
+	config.scv_displayinputs = SETTING_DISPLAYINPUTS_AUTO_VAL;
+	var.key   = SETTING_DISPLAYINPUTS_KEY;
+	var.value = NULL;
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	{
 		_TCHAR str[sizeof(var.value)];
@@ -3633,15 +3750,21 @@ void cEmuSCV::RetroLoadSettings(void)
 		strncpy(str, var.value, sizeof(str));
 		if(strcmp(str, _T(SETTING_DISPLAYINPUTS_YES_KEY)) == 0)
 			config.scv_displayinputs = SETTING_DISPLAYINPUTS_YES_VAL;
+		else if(strcmp(str, _T(SETTING_DISPLAYINPUTS_NO_KEY)) == 0)
+			config.scv_displayinputs = SETTING_DISPLAYINPUTS_NO_VAL;
 	}
 	switch(config.scv_displayinputs)
 	{
 		case SETTING_DISPLAYINPUTS_YES_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display inputs over picture (developer mode)\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display inputs setting: yes (developer mode)\n", EMUSCV_NAME);
 			break;
 		case SETTING_DISPLAYINPUTS_NO_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display inputs setting: no (normal mode)\n", EMUSCV_NAME);
+			break;
+		case SETTING_DISPLAYINPUTS_AUTO_VAL:
 		default:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Don't display inputs (user mode)\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Display inputs setting: automatic (no)\n", EMUSCV_NAME);
+			break;
 	}
 
 	// LANGAGE
@@ -3655,47 +3778,54 @@ void cEmuSCV::RetroLoadSettings(void)
 		strncpy(str, var.value, sizeof(str));
 		if(strcmp(str, _T(SETTING_LANGAGE_JP_KEY)) == 0)
 			config.scv_langage = SETTING_LANGAGE_JP_VAL;
-		else if(strcmp(str, _T(SETTING_LANGAGE_EN_KEY)) == 0)
-			config.scv_langage = SETTING_LANGAGE_EN_VAL;
 		else if(strcmp(str, _T(SETTING_LANGAGE_FR_KEY)) == 0)
 			config.scv_langage = SETTING_LANGAGE_FR_VAL;
+		else if(strcmp(str, _T(SETTING_LANGAGE_EN_KEY)) == 0)
+			config.scv_langage = SETTING_LANGAGE_EN_VAL;
 	}
 	switch(config.scv_langage)
 	{
 		case SETTING_LANGAGE_JP_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage set as JP (EPOCH)\n", EMUSCV_NAME);
-			break;
-		case SETTING_LANGAGE_EN_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage set as EN (YENO)\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage setting: Japanese (genuine EPOCH)\n", EMUSCV_NAME);
 			break;
 		case SETTING_LANGAGE_FR_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage set as FR\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage setting: French (genuine YENO)\n", EMUSCV_NAME);
+			break;
+		case SETTING_LANGAGE_EN_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage setting: English (custom)\n", EMUSCV_NAME);
 			break;
 		case SETTING_LANGAGE_AUTO_VAL:
 		default:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage set as AUTO (depending of console)\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Langage setting: automatic (depending of console)\n", EMUSCV_NAME);
+			break;
 	}
 
 	// CHECK BIOS
-	config.scv_checkbios	= SETTING_CHECKBIOS_YES_VAL;
-	var.key		= SETTING_CHECKBIOS_KEY;
-	var.value	= NULL;
+	config.scv_checkbios = SETTING_CHECKBIOS_AUTO_VAL;
+	var.key   = SETTING_CHECKBIOS_KEY;
+	var.value = NULL;
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	{
 		_TCHAR str[sizeof(var.value)];
 		memset(str, 0, sizeof(str));
 		strncpy(str, var.value, sizeof(str));
-		if(strcmp(str, _T(SETTING_CHECKBIOS_NO_KEY)) == 0)
+		if(strcmp(str, _T(SETTING_CHECKBIOS_YES_KEY)) == 0)
+			config.scv_checkbios = SETTING_CHECKBIOS_YES_VAL;
+		else if(strcmp(str, _T(SETTING_CHECKBIOS_NO_KEY)) == 0)
 			config.scv_checkbios = SETTING_CHECKBIOS_NO_VAL;
 	}
 	switch(config.scv_checkbios)
 	{
-		case SETTING_CHECKBIOS_NO_VAL:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Don't check BIOS\n", EMUSCV_NAME);
-			break;
 		case SETTING_CHECKBIOS_YES_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Check BIOS setting: yes\n", EMUSCV_NAME);
+			break;
+		case SETTING_CHECKBIOS_NO_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Check BIOS setting: no\n", EMUSCV_NAME);
+			break;
+		case SETTING_CHECKBIOS_AUTO_VAL:
 		default:
-			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Check BIOS\n", EMUSCV_NAME);
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Check BIOS setting: automatic (yes)\n", EMUSCV_NAME);
+			break;
 	}
 
 	apply_display_config();
@@ -3711,7 +3841,7 @@ void cEmuSCV::RetroSaveSettings(void)
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 //	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSaveSettings()\n", EMUSCV_NAME);
 
-	struct retro_variable variable[8]; 
+	struct retro_variable variable[10];
 
 	variable[0].key = SETTING_CONSOLE_KEY;
 	switch(config.scv_console)
@@ -3749,70 +3879,132 @@ void cEmuSCV::RetroSaveSettings(void)
 			break;
 	}
 	
-	variable[2].key = SETTING_DISPLAYFPS_KEY;
-	switch(config.scv_displayfps)
+	variable[2].key = SETTING_PIXELASPECT_KEY;
+	switch(config.scv_pixelaspect)
 	{
-		case SETTING_DISPLAYFPS_EPOCH60_VAL:
-			variable[2].value = "DISPLAY FPS; EPOCH_60";
+		case SETTING_PIXELASPECT_SQUARE_VAL:
+			variable[2].value = "PIXELASPECT; SQUARE";
 			break;
-		case SETTING_DISPLAYFPS_YENO50_VAL:
-			variable[2].value = "DISPLAY FPS; YENO_50";
+		case SETTING_PIXELASPECT_RECTANGULAR_VAL:
+			variable[2].value = "PIXELASPECT; RECTANGULAR";
 			break;
-		case SETTING_DISPLAYFPS_AUTO_VAL:
+		case SETTING_PIXELASPECT_AUTO_VAL:
 		default:
-			variable[2].value = "DISPLAY FPS; AUTO";
+			variable[2].value = "PIXELASPECT; AUTO";
+			break;
+	}
+	
+	variable[3].key = SETTING_RESOLUTION_KEY;
+	switch(config.scv_resolution)
+	{
+		case SETTING_RESOLUTION_LOW_VAL:
+			variable[3].value = "RESOLUTION; LOW";
+			break;
+		case SETTING_RESOLUTION_MEDIUM_VAL:
+			variable[3].value = "RESOLUTION; MEDIUM";
+			break;
+		case SETTING_RESOLUTION_HIGH_VAL:
+			variable[3].value = "RESOLUTION; HIGH";
+			break;
+		case SETTING_RESOLUTION_AUTO_VAL:
+		default:
+			variable[3].value = "RESOLUTION; AUTO";
+			break;
+	}
+	
+	variable[4].key = SETTING_FPS_KEY;
+	switch(config.scv_fps)
+	{
+		case SETTING_FPS_EPOCH60_VAL:
+			variable[4].value = "FPS; EPOCH60";
+			break;
+		case SETTING_FPS_YENO50_VAL:
+			variable[4].value = "FPS; YENO50";
+			break;
+		case SETTING_FPS_AUTO_VAL:
+		default:
+			variable[4].value = "FPS; AUTO";
 			break;
 	}
 
-	variable[3].key = SETTING_DISPLAYFULL_KEY;
-	if(config.scv_displayfull == SETTING_DISPLAYFULL_YES_VAL)
-		variable[3].value = "DISPLAY FULL; YES";
-	else
-		variable[3].value = "DISPLAY FULL; NO";
+	variable[5].key = SETTING_DISPLAYFULLMEMORY_KEY;
+	switch(config.scv_displayfullmemory)
+	{
+		case SETTING_DISPLAYFULLMEMORY_YES_VAL:
+			variable[5].value = "DISPLAYFULLMEMORY; YES";
+			break;
+		case SETTING_DISPLAYFULLMEMORY_NO_VAL:
+			variable[5].value = "DISPLAYFULLMEMORY; NO";
+			break;
+		case SETTING_DISPLAYFULLMEMORY_AUTO_VAL:
+		default:
+			variable[5].value = "DISPLAYFULLMEMORY; AUTO";
+			break;
+	}
 	
-	variable[4].key = SETTING_DISPLAYINPUTS_KEY;
-	if(config.scv_displayinputs == SETTING_DISPLAYINPUTS_YES_VAL)
-		variable[4].value = "DISPLAY INPUTS; YES";
-	else
-		variable[4].value = "DISPLAY INPUTS; NO";
+	variable[6].key = SETTING_DISPLAYINPUTS_KEY;
+	switch(config.scv_displayinputs)
+	{
+		case SETTING_DISPLAYINPUTS_YES_VAL:
+			variable[6].value = "DISPLAYINPUTS; YES";
+			break;
+		case SETTING_DISPLAYINPUTS_NO_VAL:
+			variable[6].value = "DISPLAYINPUTS; NO";
+			break;
+		case SETTING_DISPLAYINPUTS_AUTO_VAL:
+		default:
+			variable[6].value = "DISPLAYINPUTS; AUTO";
+			break;
+	}
 	
-	variable[5].key = SETTING_LANGAGE_KEY;
+	variable[7].key = SETTING_LANGAGE_KEY;
 	switch(config.scv_langage)
 	{
 		case SETTING_LANGAGE_JP_VAL:
-			variable[5].value = "LANGAGE; JP";
-			break;
-		case SETTING_LANGAGE_EN_VAL:
-			variable[5].value = "LANGAGE; EN";
+			variable[7].value = "LANGAGE; JP";
 			break;
 		case SETTING_LANGAGE_FR_VAL:
-			variable[5].value = "LANGAGE; FR";
+			variable[7].value = "LANGAGE; FR";
+			break;
+		case SETTING_LANGAGE_EN_VAL:
+			variable[7].value = "LANGAGE; EN";
 			break;
 		case SETTING_LANGAGE_AUTO_VAL:
 		default:
-			variable[5].value = "LANGAGE; AUTO";
+			variable[7].value = "LANGAGE; AUTO";
 			break;
 	}
 	
-	variable[6].key = SETTING_CHECKBIOS_KEY;
-	if(config.scv_checkbios == SETTING_CHECKBIOS_NO_VAL)
-		variable[6].value = "CHECK BIOS; NO";
-	else
-		variable[6].value = "CHECK BIOS; YES";
+	variable[8].key = SETTING_CHECKBIOS_KEY;
+	switch(config.scv_checkbios)
+	{
+		case SETTING_CHECKBIOS_NO_VAL:
+			variable[8].value = "CHECK BIOS; NO";
+			break;
+		case SETTING_CHECKBIOS_YES_VAL:
+			variable[8].value = "CHECK BIOS; YES";
+			break;
+		case SETTING_CHECKBIOS_AUTO_VAL:
+		default:
+			variable[8].value = "CHECK BIOS; AUTO";
+			break;
+	}
 
-	variable[7].key = NULL;
-	variable[7].value = NULL;
+	variable[9].key = NULL;
+	variable[9].value = NULL;
 
 	RetroEnvironment(RETRO_ENVIRONMENT_SET_VARIABLES, variable);
 
 	// Set possible values
 	variable[0].value = "CONSOLE; AUTO|EPOCH|YENO|EPOCHLADY";
 	variable[1].value = "DISPLAY; AUTO|EMUSCV|EPOCH|YENO";
-	variable[2].value = "DISPLAY FPS; AUTO|EPOCH_60|YENO_50";
-	variable[3].value = "DISPLAY FULL; NO|YES";
-	variable[4].value = "DISPLAY INPUTS; NO|YES";
-	variable[5].value = "LANGAGE; AUTO|JP|EN|FR";
-	variable[6].value = "CHECK BIOS; YES|NO";
+	variable[2].value = "PIXELASPECT; AUTO|RECTANGULAR|SQUARE";
+	variable[3].value = "RESOLUTION; AUTO|LOW|MEDIUM|HIGH";
+	variable[4].value = "FPS; AUTO|EPOCH60|YENO50";
+	variable[5].value = "DISPLAYFULLMEMORY; AUTO|YES|NO";
+	variable[6].value = "DISPLAYINPUTS; AUTO|YES|NO";
+	variable[7].value = "LANGAGE; AUTO|JP|FR|EN";
+	variable[8].value = "CHECKBIOS; AUTO|YES|NO";
 	RetroEnvironment(RETRO_ENVIRONMENT_SET_VARIABLES, variable);
 }
 

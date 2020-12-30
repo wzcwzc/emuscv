@@ -345,7 +345,7 @@ using namespace std;
 
 // Virtual key codes
 #ifndef VK_SPACE
-    #define VK_SPACE 0x32
+    #define VK_SPACE 0x20
 #endif
 #ifndef VK_RETURN
     #define VK_RETURN 0x0D

@@ -685,15 +685,42 @@ void DLL_PREFIX apply_display_config()
 			}
 			break;
 	}
+	
+	switch(config.scv_pixelaspect)
+	{
+		case SETTING_PIXELASPECT_RECTANGULAR_VAL:
+		case SETTING_PIXELASPECT_SQUARE_VAL:
+			config.window_pixelaspect = config.scv_pixelaspect;
+			break;
+		case SETTING_PIXELASPECT_AUTO_VAL:
+		default:
+			config.window_pixelaspect = SETTING_PIXELASPECT_RECTANGULAR_VAL;
+			break;
+	}
+	
+	switch(config.scv_resolution)
+	{
+		case SETTING_RESOLUTION_HIGH_VAL:
+		case SETTING_RESOLUTION_MEDIUM_VAL:
+		case SETTING_RESOLUTION_LOW_VAL:
+			config.window_resolution = config.scv_resolution;
+			break;
+		case SETTING_RESOLUTION_AUTO_VAL:
+		default:
+#if defined(_RASPBERRYPI0) || defined(_RASPBERRYPI1) || defined(_RASPBERRYPI2)
+			config.window_resolution = SETTING_RESOLUTION_LOW_VAL;
+#else
+			config.window_resolution = SETTING_RESOLUTION_MEDIUM_VAL;
+#endif
+			break;
+	}
 
-	if(config.scv_displayfull)
+	if(config.scv_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL)
 	{
 		config.draw_x = DRAW_X_FULL;
 		config.draw_y = DRAW_Y_FULL;
 		config.draw_width = DRAW_WIDTH_FULL;
 		config.draw_height = DRAW_HEIGHT_FULL;
-		config.window_width = WINDOW_WIDTH_FULL;
-		config.window_height = WINDOW_HEIGHT_FULL;
 	}
 	else
 	{
@@ -704,39 +731,55 @@ void DLL_PREFIX apply_display_config()
 					config.draw_y = DRAW_Y_EPOCH;
 					config.draw_width = DRAW_WIDTH_EPOCH;
 					config.draw_height = DRAW_HEIGHT_EPOCH;
-					config.window_width = WINDOW_WIDTH_EPOCH;
-					config.window_height = WINDOW_HEIGHT_EPOCH;
 				break;
 			case SETTING_DISPLAY_YENO_VAL:
 				config.draw_x = DRAW_X_YENO;
 				config.draw_y = DRAW_Y_YENO;
 				config.draw_width = DRAW_WIDTH_YENO;
 				config.draw_height = DRAW_HEIGHT_YENO;
-				config.window_width = WINDOW_WIDTH_YENO;
-				config.window_height = WINDOW_HEIGHT_YENO;
 				break;
 			case SETTING_DISPLAY_EMUSCV_VAL:
+			case SETTING_DISPLAY_AUTO_VAL:
 			default:
 				config.draw_x = DRAW_X_EMUSCV;
 				config.draw_y = DRAW_Y_EMUSCV;
 				config.draw_width = DRAW_WIDTH_EMUSCV;
 				config.draw_height = DRAW_HEIGHT_EMUSCV;
-				config.window_width = WINDOW_WIDTH_EMUSCV;
-				config.window_height = WINDOW_HEIGHT_EMUSCV;
 				break;
 		}
 	}
+
+	config.window_height = config.draw_height;
+	if(config.window_pixelaspect == SETTING_PIXELASPECT_SQUARE_VAL)
+		config.window_width = config.draw_width;
+	else
+		config.window_width = config.draw_height*4/3;
+
+	switch(config.window_resolution)
+	{
+		case SETTING_RESOLUTION_HIGH_VAL:
+				config.window_width *= 4;
+				config.window_height *= 4;
+			break;
+		case SETTING_RESOLUTION_MEDIUM_VAL:
+				config.window_width *= 2;
+				config.window_height *= 2;
+			break;
+		default:
+			break;
+	}
+
 	config.window_aspect_ratio = (float)(config.window_width) / (float)(config.window_height);
 
-	switch(config.scv_displayfps)
+	switch(config.scv_fps)
 	{
-		case SETTING_DISPLAYFPS_EPOCH60_VAL:
+		case SETTING_FPS_EPOCH60_VAL:
 			config.window_fps = WINDOW_FPS_EPOCH;
 			break;
-		case SETTING_DISPLAYFPS_YENO50_VAL:
+		case SETTING_FPS_YENO50_VAL:
 			config.window_fps = WINDOW_FPS_YENO;
 			break;
-		case SETTING_DISPLAYFPS_AUTO_VAL:
+		case SETTING_FPS_AUTO_VAL:
 		default:
 			switch(config.scv_console)
 			{
