@@ -6,8 +6,8 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ***********************************************************
 * To do list
 ***********************************************************
-- Quick keyboard overlay (to do all with a controller, when there is any keyboard)
 - Audio
+- Quick keyboard overlay (to do all with a controller, when there is any keyboard)
 - Savestates
 - In-game configuration menu
 - Native .zip ROMs support (actually supported via frontend's autoextract if supported)
@@ -29,6 +29,8 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 - Compiled on Windows 10, Mac OS X 10.10, Linuxmint 20, Recalbox 7.2b (Raspberry Pi, Odroid, PC)
 - Tested on RetroArch: Windows, Mac OS X and Linux
 - Tests in progress on Recalbox: All platforms (Raspberry Pies, Ordoids, PC...)
+- Added options: resolution and pixel aspect
+- Modified screen resolution (now depending of some options)
 
 
 ***********************************************************

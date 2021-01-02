@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.common": "makefile",
+        "*.libretro": "makefile",
+        "cstdio": "cpp",
+        "fstream": "cpp"
+    }
+}

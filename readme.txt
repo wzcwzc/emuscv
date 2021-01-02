@@ -29,7 +29,7 @@ Please use Visual Studio Code as editor on Windows, Mac and Linux,
 On Windows, install Mingw64 as described on the Libretro dev page.
 On Linux install build-essential and retroarch (not from flatpak).
 On Mac please install "xcode-select --install" (debug with lldb on OS X 10.9+). Unable to compile on recent OS X versions.
-
+...work in progress (cross-platform compil/debug toolchain)...
 
 -------
 Authors
