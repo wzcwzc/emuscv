@@ -14,6 +14,10 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 - In-game display of the resources contained in .zip ROMs
 
 
+***********************************************************
+* Libretro-EmuSCV v0.07.20210115130800
+***********************************************************
+- Added Audio (enhanced support for PCM channel)
 
 ***********************************************************
 * Libretro-EmuSCV v0.06.20201223231000

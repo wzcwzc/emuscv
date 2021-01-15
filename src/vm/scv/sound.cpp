@@ -57,7 +57,7 @@ void SOUND::write_data8(uint32_t addr, uint32_t data)
 
 			case CMD_PCM:
 				param_cnt = MAX_PARAM;
-				memset(pcm_table, 0, PCM_TABLE_SIZE);
+				memset(pcm_table, 0, PCM_TABLE_SIZE+8);
 				//memset(pcm_table_smooth, 0, sizeof(pcm_table_smooth));
 				//memset(pcm_smooth, 0, sizeof(pcm_smooth));
 				pcm_len = pcm.ptr = 0;
@@ -137,6 +137,7 @@ void SOUND::write_data8(uint32_t addr, uint32_t data)
 						}
 						pcm_len += 8;
 */
+/*
 						pcm_table[pcm_len++] = (data & 0x80) ? 1 : 0;
 						pcm_table[pcm_len++] = (data & 0x40) ? 1 : 0;
 						pcm_table[pcm_len++] = (data & 0x20) ? 1 : 0;
@@ -145,6 +146,15 @@ void SOUND::write_data8(uint32_t addr, uint32_t data)
 						pcm_table[pcm_len++] = (data & 0x04) ? 1 : 0;
 						pcm_table[pcm_len++] = (data & 0x02) ? 1 : 0;
 						pcm_table[pcm_len++] = (data & 0x01) ? 1 : 0;
+*/
+						pcm_table[pcm_len++] = (data & 0x80) ? MAX_PCM : 0;
+						pcm_table[pcm_len++] = (data & 0x40) ? MAX_PCM : 0;
+						pcm_table[pcm_len++] = (data & 0x20) ? MAX_PCM : 0;
+						pcm_table[pcm_len++] = (data & 0x10) ? MAX_PCM : 0;
+						pcm_table[pcm_len++] = (data & 0x08) ? MAX_PCM : 0;
+						pcm_table[pcm_len++] = (data & 0x04) ? MAX_PCM : 0;
+						pcm_table[pcm_len++] = (data & 0x02) ? MAX_PCM : 0;
+						pcm_table[pcm_len++] = (data & 0x01) ? MAX_PCM : 0;
 
 						if(!pcm.count)
 						{
@@ -340,10 +350,11 @@ inline void SOUND::clear_channel(channel_t *ch)
 
 void SOUND::mix(int32_t* buffer, int cnt)
 {
-	float c, v;
 	int vol, vol_l, vol_r;
+/*
+	float c, v;
 	int o01, o03, o05, o07, o09, o11, o13, o15, o17, o19;
-
+*/
 
 	// create sound buffer
 	for(int i = 0; i < cnt; i++)
@@ -372,9 +383,9 @@ void SOUND::mix(int32_t* buffer, int cnt)
 					pcm.output = +MAX_PCM*(pcm_table[pcm.ptr]+pcm_table[pcm.ptr + 1]+pcm_table[pcm.ptr + 2]+pcm_table[pcm.ptr + 3])/4;
 					pcm.output = +MAX_PCM*(pcm_table[pcm.ptr]+pcm_table[pcm.ptr + 1]+pcm_table[pcm.ptr + 2]+pcm_table[pcm.ptr + 3]+pcm_table[pcm.ptr + 4]+pcm_table[pcm.ptr + 5]+pcm_table[pcm.ptr + 6]+pcm_table[pcm.ptr + 7])/8;
 */
+/*
 					for(uint8_t i = 0; i < 19; i++)
 					{
-/*
 						v = c = 0;
 						if(pcm.ptr + i - 1 >= 0)
 						{
@@ -397,8 +408,7 @@ void SOUND::mix(int32_t* buffer, int cnt)
 							pcm_smooth[i] = 0;
 						else
 							pcm_smooth[i] = MAX_PCM;
-*/
-						pcm_smooth[i] = (pcm.ptr + i < pcm_len ? MAX_PCM * pcm_table[pcm.ptr + i] : 0);
+//						pcm_smooth[i] = (pcm.ptr + i < pcm_len ? MAX_PCM * pcm_table[pcm.ptr + i] : 0);
 					}
 					// Mix 10 bands
 					// /!\ TODO_MM: MUST BE OPTIMIZED
@@ -415,7 +425,8 @@ void SOUND::mix(int32_t* buffer, int cnt)
 //					pcm.output = (50 * o01 + 98 * o03 + 142 * o05 + 181 * o07 + 213 * o09 + 237 * o11 + 251 * o13 + 256 * o15 + 256 * o17 + 253 * o19) / (40+79+116+150+181+207+228+243+253+256);
 					pcm.output = (98 * o03 + 142 * o05 + 237 * o11 + 253 * o19) / (98+142+237+253);
 					pcm.output = (2 * pcm.output) - MAX_PCM;
-
+*/
+					pcm.output = (pcm_table[pcm.ptr] + pcm_table[pcm.ptr + 1] + pcm_table[pcm.ptr + 2] + pcm_table[pcm.ptr + 3] + pcm_table[pcm.ptr + 4] + pcm_table[pcm.ptr + 8] + pcm_table[pcm.ptr + 6] + pcm_table[pcm.ptr + 7]) >> 3;
 				}
 				else
 					pcm.output = 0;

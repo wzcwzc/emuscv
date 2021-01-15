@@ -1355,6 +1355,11 @@ cEmuSCV::cEmuSCV()
 
 	start_up_counter_power = 0;
 	start_up_counter_logo = 0;
+
+	is_keyboard_displayed = false;
+	is_menu_displayed = false;
+	keyboard_x = 1;
+	keyboard_y = 2;
 }
 
 //
@@ -1892,6 +1897,9 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 	// Log
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 //	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroLoadGame()\n", EMUSCV_NAME);
+
+	keyboard_x = 1;
+	keyboard_y = 2;
 
 	if(retro_game_loaded)
 	{

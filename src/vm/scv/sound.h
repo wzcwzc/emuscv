@@ -19,10 +19,10 @@
 #define SQUARE_CLOCK  174000.0
 #define PCM_CLOCK    1522400.0
 
-#define MAX_TONE         24000
-#define MAX_NOISE        16000
-#define MAX_SQUARE        8000
-#define MAX_PCM          20000
+#define MAX_TONE         16384
+#define MAX_NOISE         8192
+#define MAX_SQUARE        2048
+#define MAX_PCM          16384
 
 #define MAX_PARAM       0x8000
 #define PCM_TABLE_SIZE 0x40000
@@ -58,11 +58,11 @@ private:
 	channel_t pcm;
 	inline void clear_channel(channel_t *ch);
 
-	int pcm_table[PCM_TABLE_SIZE];
+	int pcm_table[PCM_TABLE_SIZE+8];
 	uint32_t cmd_addr;
 	int pcm_len;
 //	int pcm_table_smooth[8];
-	int pcm_smooth[19];
+//	int pcm_smooth[19];
 
 	int volume_table[32];
 	int detune_table[32];

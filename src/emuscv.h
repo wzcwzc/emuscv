@@ -166,6 +166,11 @@ class cEmuSCV
 
 		uint64_t start_up_counter_power;
 		uint64_t start_up_counter_logo;
+
+		bool is_keyboard_displayed;
+		bool is_menu_displayed;
+		uint8_t keyboard_x;
+		uint8_t keyboard_y;
 };
 
 #endif	// _EMUSCV_INC_EMUSCV_H_
