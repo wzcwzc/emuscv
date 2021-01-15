@@ -387,16 +387,25 @@ if(nbsprite == 64)	// Patch for Kung-Fu Road only?
 				}
 				else if(cony)
 				{
-					no2 = atb3 ^ 1;
-					col2 = color_pair_y[col1];
+					// Patch for Astro Wars 2
+					if((index == 123 || index == 124) && cony)
+					{
+						no2 = atb3 ^ 8;
+						col2 = color_pair_x[col1];
+					}
+					else
+					{
+						no2 = atb3 ^ 1;
+						col2 = color_pair_y[col1];
+					}
 				}
-				else// if(conx)
+				else// if(conx)1
 				{
 					no2 = atb3 ^ 8;
 					col2 = color_pair_x[col1];
 				}
-/*
-if(col1 !=0 && col2 == 0x0 && col1)	// New color pair?
+
+if(col1 !=0 && col2 == 0x0)	// New color pair?
 {
 //	dx = 20;
 //	dy = 20;
@@ -404,10 +413,10 @@ if(col1 !=0 && col2 == 0x0 && col1)	// New color pair?
 //	sy = 0;
 //	ex = 8;
 //	ey = 8;
-//	col1 = 0x8;
-	col2 = 0x8;
+//	col1 = 0xF;
+	col2 = 0xF;
 }
-*/
+
 				draw_sprite(dx, dy, sx, ex, sy, ey, no1, col1);
 				draw_sprite(dx, dy, sx, ex, sy, ey, no2, col2);
 			}
@@ -579,7 +588,6 @@ inline void VDP::draw_sprite(int dx, int dy, int sx, int ex, int sy, int ey, int
 
 bool VDP::process_state(FILEIO* state_fio, bool loading)
 {
-	/*
 	if(!state_fio->StateCheckUint32(STATE_VERSION))
 		return false;
 	if(!state_fio->StateCheckInt32(this_device_id))
@@ -588,6 +596,6 @@ bool VDP::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(vdc1);
 	state_fio->StateValue(vdc2);
 	state_fio->StateValue(vdc3);
-	*/
+	
 	return true;
 }

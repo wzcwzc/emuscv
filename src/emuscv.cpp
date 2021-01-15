@@ -1316,8 +1316,9 @@ cEmuSCV::cEmuSCV()
 	noise_surface = NULL;
 	noise_renderer = NULL;
 
-	run_frames				= 0;
-	draw_frames					= 0;
+	run_frames_last				= 0;
+	run_frames_total			= 0;
+	draw_frames_total			= 0;
 //	skip_frames					= 0;
 //	next_time.tv_sec			= 0;
 //	next_time.tv_nsec			= 0;
@@ -1327,8 +1328,8 @@ cEmuSCV::cEmuSCV()
 //	update_status_bar_time		= 0;
 //	disable_screen_saver_time	= 0;
 
-	config.window_width = DRAW_WIDTH_EMUSCV;
-	config.window_height = DRAW_WIDTH_EMUSCV*4/3;
+	config.window_height = DRAW_HEIGHT_EMUSCV;
+	config.window_width = config.window_height*4.0/3.0;
 	config.window_aspect_ratio = (float)(config.window_width)/(float)(config.window_height);
 	config.window_fps = WINDOW_FPS_EPOCH;
 
@@ -2433,7 +2434,7 @@ void cEmuSCV::RetroRun(void)
 
 	bool config_changed = false;
 
-
+/*
 	// SDL surfaces and renderers must exists
 	if (!frame_surface)
 	{
@@ -2462,12 +2463,12 @@ void cEmuSCV::RetroRun(void)
 		return;
 	}
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL secondary surface exists\n", EMUSCV_NAME);
-
+*/
 	// Recreate SDL surfaces and renderers if the size change
 	if(frame_surface->w != config.window_width || frame_surface->h != config.window_height)
 	{
 		RetroLogPrintf(RETRO_LOG_INFO, "[%s] Resolution change detected\n", EMUSCV_NAME);
-
+/*
 		// Free SDL TV static noise renderer
 		if (noise_renderer != NULL)
 		{
@@ -2487,7 +2488,7 @@ void cEmuSCV::RetroRun(void)
 		}
 //		else
 //			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL secondary surface, nothing to destroy\n", EMUSCV_NAME);
-
+*/
 		// Free SDL main frame renderer
 		if (frame_renderer != NULL)
 		{
@@ -2525,7 +2526,7 @@ void cEmuSCV::RetroRun(void)
 			return;
 		}
 //		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface renderer created\n", EMUSCV_NAME);
-
+/*
 		// Create SDL TV static noise surface
 		noise_surface = SDL_CreateRGBSurface(0, 2*NOISE_WIDTH, 2*NOISE_HEIGHT, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
 		if (noise_surface == NULL)
@@ -2554,6 +2555,7 @@ void cEmuSCV::RetroRun(void)
 			}
 		}
 //		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] TV static noise drawn\n", EMUSCV_NAME);
+*/
 	}
 
 	// Get inputs
@@ -2614,10 +2616,10 @@ void cEmuSCV::RetroRun(void)
             || RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_KP_ENTER);
 	keyClear = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_BACKSPACE)
             || RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_DELETE);
-	keyPower = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_i);
-	keyReset = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_r);
-	keyPause = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_LCTRL)
-	        || RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RCTRL);
+	keyPower = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F12);
+	keyReset = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F11);
+	keyPause = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F9)
+	        || RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_r);
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Imputs parsed\n", EMUSCV_NAME);
 
 	bool updated = false;
@@ -2945,13 +2947,26 @@ void cEmuSCV::RetroRun(void)
 
 	if(is_power_on && escv_emu)
 	{
-		// drive machine
-//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] escv_emu->run()\n", EMUSCV_NAME);
-		run_frames += escv_emu->run();
+/*
+		// Drive machine
+		if(run_frames_last > 1)
+		{
+			run_frames_last--;
+		}
+		else
+		{
 
-		// update window if enough time
-//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] escv_emu->draw_screen()\n", EMUSCV_NAME);
-		draw_frames += escv_emu->draw_screen();
+	//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] escv_emu->run()\n", EMUSCV_NAME);
+
+
+*/
+			run_frames_last = escv_emu->run();
+			run_frames_total += run_frames_last;
+	//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] escv_emu->draw_screen()\n", EMUSCV_NAME);
+			draw_frames_total += escv_emu->draw_screen();
+/*
+		}
+*/
 
 		// Copy screen
 		SDL_Rect RectSrc;
@@ -3532,12 +3547,25 @@ void cEmuSCV::RetroRun(void)
 */
 
 	// Call audio callback
-	size_t buffer_length = AUDIO_SAMPLING_RATE/config.window_fps;
+	size_t buffer_length = AUDIO_SAMPLING_RATE/config.window_fps + 0.5;
 	size_t buffer_size = 2 * buffer_length;
 	int16_t sound_buffer[buffer_size];
-	for (uint32_t i = 0; i < buffer_size; i++)
-		sound_buffer[i] = 0;
-	RetroAudioSampleBatch(sound_buffer, buffer_length);
+	if(escv_emu && is_power_on)
+	{
+		int16_t *sound_ptr = escv_emu->get_osd()->get_sound_ptr();
+		if(!sound_ptr)
+		{
+			memset(sound_buffer, 0, sizeof(sound_buffer));
+			sound_ptr = sound_buffer;
+		}
+		RetroAudioSampleBatch(sound_ptr, buffer_length);
+	}
+	else
+	{
+		for (uint32_t i = 0; i < buffer_size; i++)
+			sound_buffer[i] = (rand() % 256) - 128;
+		RetroAudioSampleBatch(sound_buffer, buffer_length);
+	}
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] => RetroAudioSampleBatch()\n", EMUSCV_NAME);
 
 	// Call video callback
@@ -3553,6 +3581,9 @@ void cEmuSCV::RetroLoadSettings(void)
 	// Log
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 //	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroLoadSettings()\n", EMUSCV_NAME);
+
+	config.sound_frequency = 5;
+	config.sound_latency = 0;
 
 	struct retro_variable var;
 	

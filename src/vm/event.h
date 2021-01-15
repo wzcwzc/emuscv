@@ -23,7 +23,8 @@ class EVENT : public DEVICE
 {
 private:
 	// event manager
-	typedef struct {
+	typedef struct
+	{
 		DEVICE* device;
 		uint32_t cpu_clocks;
 		uint32_t update_clocks;
@@ -38,7 +39,8 @@ private:
 	int cpu_remain, cpu_accum, cpu_done;
 	uint64_t event_clocks;
 
-	typedef struct event_t {
+	typedef struct event_t
+	{
 		DEVICE* device;
 		int event_id;
 		uint64_t expired_clock;
@@ -69,9 +71,10 @@ private:
 	DEVICE* d_sound[MAX_SOUND];
 	int dcount_sound;
 
-	uint16_t* sound_buffer;
+	int16_t* sound_buffer;
 	int32_t* sound_tmp;
 	int buffer_ptr;
+	int sound_rate;
 	int sound_samples;
 	int sound_tmp_samples;
 
@@ -99,7 +102,8 @@ public:
 
 		// initialize event
 		memset(event, 0, sizeof(event));
-		for(int i = 0; i < MAX_EVENT; i++) {
+		for(int i = 0; i < MAX_EVENT; i++)
+		{
 			event[i].active = false;
 			event[i].index = i;
 			event[i].next = (i + 1 < MAX_EVENT) ? &event[i + 1] : NULL;
@@ -145,9 +149,8 @@ public:
 	}
 	void set_lines_per_frame(int new_lines_per_frame)
 	{
-		if(new_lines_per_frame < MAX_LINES) {
+		if(new_lines_per_frame < MAX_LINES)
 			next_lines_per_frame = new_lines_per_frame;
-		}
 	}
 	int get_lines_per_frame()
 	{
@@ -190,8 +193,8 @@ public:
 	}
 	void drive();
 
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
+	void initialize_sound(int rate);//, int samples);
+	int16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 
 	void set_context_cpu(DEVICE* device, uint32_t clocks)

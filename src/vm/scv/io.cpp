@@ -116,7 +116,6 @@ uint32_t IO::read_io8(uint32_t addr)
 
 bool IO::process_state(FILEIO* state_fio, bool loading)
 {
-	/*
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
 	}
@@ -126,7 +125,7 @@ bool IO::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(pa);
 	state_fio->StateValue(pb);
 	state_fio->StateValue(pc);
-	*/
+	
 	return true;
 }
 

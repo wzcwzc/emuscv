@@ -9,7 +9,7 @@
 
 #include "osd.h"
 
-void OSD::initialize(int rate, int samples)
+void OSD::initialize(int rate)//, int samples)
 {
 /*
 // TODO_MM
@@ -23,7 +23,7 @@ void OSD::initialize(int rate, int samples)
 */
 	initialize_input();
 	initialize_screen();
-	initialize_sound(rate, samples);
+	initialize_sound(rate);//, samples);
 /*
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	CoInitialize(NULL);
@@ -62,12 +62,14 @@ void OSD::power_off()
 
 void OSD::suspend()
 {
+/*
 #ifdef USE_MOVIE_PLAYER
 	if(now_movie_play && !now_movie_pause) {
 		pause_movie();
 		now_movie_pause = false;
 	}
 #endif
+*/
 	mute_sound();
 }
 
@@ -89,9 +91,8 @@ void OSD::lock_vm()
 
 void OSD::unlock_vm()
 {
-	if(--lock_count <= 0) {
+	if(--lock_count <= 0)
 		force_unlock_vm();
-	}
 }
 
 void OSD::force_unlock_vm()

@@ -20,7 +20,8 @@
 // initialize
 // ----------------------------------------------------------------------------
 
-static const int sound_frequency_table[8] = {
+static const int sound_frequency_table[8] =
+{
 	2000, 4000, 8000, 11025, 22050, 44100,
 #ifdef OVERRIDE_SOUND_FREQ_48000HZ
 	OVERRIDE_SOUND_FREQ_48000HZ,
@@ -29,7 +30,7 @@ static const int sound_frequency_table[8] = {
 #endif
 	96000,
 };
-static const double sound_latency_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
+//static const double sound_latency_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
 
 #if defined(_USE_QT)
 #include <string>
@@ -57,16 +58,14 @@ EMU::EMU()
 #endif
 
 	// load sound config
-	if(!(0 <= config.sound_frequency && config.sound_frequency < 8)) {
+	if(!(0 <= config.sound_frequency && config.sound_frequency < 8))
 		config.sound_frequency = 6;	// default: 48KHz
-	}
-	if(!(0 <= config.sound_latency && config.sound_latency < 5)) {
+	if(!(0 <= config.sound_latency && config.sound_latency < 5))
 		config.sound_latency = 1;	// default: 100msec
-	}
 	sound_frequency = config.sound_frequency;
-	sound_latency = config.sound_latency;
+//	sound_latency = config.sound_latency;
 	sound_rate = sound_frequency_table[config.sound_frequency];
-	sound_samples = (int)(sound_rate * sound_latency_table[config.sound_latency] + 0.5);
+//	sound_samples = (int)(sound_rate * sound_latency_table[config.sound_latency] + 0.5);
 
 #ifdef USE_CPU_TYPE
 	cpu_type = config.cpu_type;
@@ -95,7 +94,7 @@ EMU::EMU()
 	osd->main_window_handle = hwnd;
 	osd->instance_handle = hinst;
 #endif
-	osd->initialize(sound_rate, sound_samples);
+	osd->initialize(sound_rate);//, sound_samples);
 
 	// initialize vm
 	osd->vm = vm = new VM(this);
@@ -111,7 +110,7 @@ EMU::EMU()
 #endif
 	now_waiting_in_debugger = false;
 	initialize_media();
-	vm->initialize_sound(sound_rate, sound_samples);
+	vm->initialize_sound(sound_rate);//, sound_samples);
 #ifdef USE_SOUND_VOLUME
 	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
 		vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
@@ -267,7 +266,7 @@ void EMU::reset()
 #if defined(_USE_QT)
 		osd->reset_vm_node();
 #endif
-		vm->initialize_sound(sound_rate, sound_samples);
+		vm->initialize_sound(sound_rate);//, sound_samples);
 #ifdef USE_SOUND_VOLUME
 		for(int i = 0; i < USE_SOUND_VOLUME; i++) {
 			vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);

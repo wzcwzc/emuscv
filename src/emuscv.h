@@ -64,8 +64,6 @@ class EMU;
 #define EMUSCV_AXIS_NEUTRAL_MAX			8192
 #define EMUSCV_AXIS_NEUTRAL_MIN			-EMUSCV_AXIS_NEUTRAL_MAX
 
-// device informations for virtual machine
-#define AUDIO_SAMPLING_RATE				44100
 
 // /!\ Must be static
 class cEmuSCV
@@ -138,8 +136,9 @@ class cEmuSCV
 		SDL_Renderer *noise_renderer;	// SDL2 TV static noise renderer
 		
 		// To drive eSCV
-		int run_frames;
-		int draw_frames;
+		int run_frames_last;
+		int run_frames_total;
+		int draw_frames_total;
 //		int skip_frames;
 //		DWORD next_time;
 //		struct timespec next_time;

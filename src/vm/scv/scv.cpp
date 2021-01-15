@@ -134,16 +134,16 @@ void VM::draw_screen()
 // soud manager
 // ----------------------------------------------------------------------------
 
-void VM::initialize_sound(int rate, int samples)
+void VM::initialize_sound(int rate)//, int samples)
 {
 	// init sound manager
-	event->initialize_sound(rate, samples);
+	event->initialize_sound(rate);//, samples);
 
 	// init sound gen
 	sound->initialize_sound(rate);
 }
 
-uint16_t* VM::create_sound(int* extra_frames)
+int16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
@@ -211,8 +211,8 @@ void VM::update_config()
 
 bool VM::process_state(FILEIO* state_fio, bool loading)
 {
-	/*
-	// TODO_MM
+/*
+// TODO_MM
 	if(!state_fio->StateCheckUint32(STATE_VERSION))
 	{
 		return false;
@@ -236,9 +236,10 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 			return false;
 		}
 	}
-	*/
-
+	
 	return true;
+*/
+	return false;
 }
 
 bool VM::is_bios_found()

@@ -14,22 +14,29 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SOUND_CLOCK  1522400.0
+#define TONE_CLOCK   1522400.0
 #define NOISE_CLOCK      760.0
 #define SQUARE_CLOCK  174000.0
+#define PCM_CLOCK    1522400.0
 
-#define PCM_PERIOD 120000
+#define MAX_TONE         24000
+#define MAX_NOISE        16000
+#define MAX_SQUARE        8000
+#define MAX_PCM          20000
 
-#define MAX_TONE   24000
-#define MAX_NOISE  16000
-#define MAX_SQUARE  8000
-#define MAX_PCM    20000
+#define MAX_PARAM       0x8000
+#define PCM_TABLE_SIZE 0x40000
 
-#define MAX_PARAM 0x8000
+#define CMD_SILENCE	      0x00
+#define CMD_NOISE	      0x01
+#define CMD_TONE	      0x02
+#define CMD_PCM		      0x1F
 
-typedef struct {
+typedef struct
+{
 	int count;
 	int diff;
+	int offset;
 	int period;
 	int timbre;
 	int volume;
@@ -49,11 +56,13 @@ private:
 	channel_t square2;
 	channel_t square3;
 	channel_t pcm;
-	void clear_channel(channel_t *ch);
+	inline void clear_channel(channel_t *ch);
 
-	int pcm_table[MAX_PARAM * 8];
+	int pcm_table[PCM_TABLE_SIZE];
 	uint32_t cmd_addr;
 	int pcm_len;
+//	int pcm_table_smooth[8];
+	int pcm_smooth[19];
 
 	int volume_table[32];
 	int detune_table[32];
@@ -62,11 +71,11 @@ private:
 	int pcm_volume_l, pcm_volume_r;
 
 	// command buffer
-	int param_cnt, param_ptr, register_id;
+	int param_cnt;
+	int param_ptr;
+	int register_id;
 	uint8_t params[MAX_PARAM];
 
-	void process_pcm(uint8_t data);
-	void process_cmd();
 
 public:
 	SOUND(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

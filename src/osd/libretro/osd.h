@@ -405,11 +405,12 @@ private:
 	bool self_invalidate;
 
 	// sound
-	void initialize_sound(int rate, int samples);
+	void initialize_sound(int rate);//, int samples);
 	void release_sound();
 
 	int sound_rate, sound_samples;
 	bool sound_available, sound_started, sound_muted;
+	int16_t* sound_ptr;
 /*
 	LPDIRECTSOUND lpds;
 	LPDIRECTSOUNDBUFFER lpdsPrimaryBuffer, lpdsSecondaryBuffer;
@@ -481,7 +482,7 @@ public:
 
 	// common
 	VM_TEMPLATE* vm;
-	void initialize(int rate, int samples);
+	void initialize(int rate);//, int samples);
 	void release();
 	void power_off();
 	void suspend();
@@ -626,6 +627,7 @@ public:
 	void update_sound(int* extra_frames);
 	void mute_sound();
 	void stop_sound();
+	int16_t *get_sound_ptr() { return sound_ptr; };
 /*
 	void start_record_sound();
 	void stop_record_sound();

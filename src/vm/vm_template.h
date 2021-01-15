@@ -65,8 +65,8 @@ public:
 	virtual void movie_sound_callback(uint8_t *buffer, long size) { }
 
 	// sound generation
-	virtual void initialize_sound(int rate, int samples) { }
-	virtual uint16_t* create_sound(int* extra_frames) { return NULL; }
+	virtual void initialize_sound(int rate) { }//, int samples) { }
+	virtual int16_t* create_sound(int* extra_frames) { return NULL; }
 	virtual int get_sound_buffer_ptr() { return 0; }
 	virtual void set_sound_device_volume(int ch, int decibel_l, int decibel_r) { }
 

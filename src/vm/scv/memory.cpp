@@ -1587,7 +1587,6 @@ void MEMORY::close_cart()
 
 bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 {
-	/*
 	if(!state_fio->StateCheckUint32(STATE_VERSION))
 		return false;
 	if(!state_fio->StateCheckInt32(this_device_id))
@@ -1629,6 +1628,6 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	if(loading)
 		set_bank(cur_bank);
 	state_fio->StateValue(ram_used);
-	*/
+	
 	return true;
 }

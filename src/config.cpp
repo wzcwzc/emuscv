@@ -707,10 +707,12 @@ void DLL_PREFIX apply_display_config()
 			break;
 		case SETTING_RESOLUTION_AUTO_VAL:
 		default:
-#if defined(_RASPBERRYPI0) || defined(_RASPBERRYPI1) || defined(_RASPBERRYPI2)
+#if defined(_RASPBERRYPI0) || defined(_RASPBERRYPI1) || defined(_RASPBERRYPI2) || defined(_RASPBERRYPI3)
 			config.window_resolution = SETTING_RESOLUTION_LOW_VAL;
-#else
+#elif defined(_RASPBERRYPI4)
 			config.window_resolution = SETTING_RESOLUTION_MEDIUM_VAL;
+#else
+			config.window_resolution = SETTING_RESOLUTION_HIGH_VAL;
 #endif
 			break;
 	}

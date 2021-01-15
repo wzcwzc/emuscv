@@ -17,6 +17,9 @@
 #define LINES_PER_FRAME				262
 #define CPU_CLOCKS					4000000
 #define FRAMES_PER_SEC				60
+#define FRAMES_PER_SEC_MAX			FRAMES_PER_SEC
+#define FRAMES_PER_SEC_MIN			50
+#define AUDIO_SAMPLING_RATE			44100
 
 // Mix buffer size
 #define SCREEN_WIDTH				324
@@ -52,23 +55,23 @@
 #define WINDOW_MODE_BASE			1
 #define WINDOW_ZOOM_MAX				1
 
-#define WINDOW_FPS_EPOCH			60
-#define WINDOW_FPS_YENO				50
+#define WINDOW_FPS_EPOCH			FRAMES_PER_SEC_MAX
+#define WINDOW_FPS_YENO				FRAMES_PER_SEC_MIN
 
-#define NUM_JOYSTICK		2
-#define NUM_JOYSTICK_AXE	0
-#define NUM_JOYSTICK_BUTTON	2
+#define NUM_JOYSTICK				2
+#define NUM_JOYSTICK_AXE			0
+#define NUM_JOYSTICK_BUTTON			2
 
 // memory wait
 //#define UPD7801_MEMORY_WAIT
 
 // device informations for win32
-#define USE_CART			1
-//#define USE_SOUND_VOLUME	2
-#define USE_JOYSTICK		2
-//#define USE_DEBUGGER		1
-#define USE_STATE			1
-//#define USE_SCREEN_ROTATE	1
+#define USE_CART					1
+#define USE_SOUND_VOLUME			2
+#define USE_JOYSTICK				2
+//#define USE_DEBUGGER				1
+#define USE_STATE					1
+//#define USE_SCREEN_ROTATE			1
 
 #define SETTING_CONSOLE_KEY					"emuscv_console"
 #define SETTING_CONSOLE_VAL					"CONSOLE"
@@ -215,8 +218,8 @@ public:
 	void draw_screen();
 
 	// sound generation
-	void initialize_sound(int rate, int samples);
-	uint16_t* create_sound(int* extra_frames);
+	void initialize_sound(int rate);//, int samples);
+	int16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
