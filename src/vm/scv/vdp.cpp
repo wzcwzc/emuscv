@@ -234,78 +234,51 @@ inline void VDP::draw_block(int dx, int dy, uint8_t data)
 	  uint32_t c = cu + ((uint32_t)cu << 8); c = c + (c << 16);
 	  for(int i = 8; --i >= 0; p += 320 >> 2)
 	    p[0] = p[1] = c;
-		}
+	}
 	if (cl != 0)
 	{
     unsigned int* p = (unsigned int*)&text[dy16 + 8][dx8];
     uint32_t c = cl + ((uint32_t)cl << 8); c = c + (c << 16);
     for(int i = 8; --i >= 0; p += 320 >> 2)
       p[0] = p[1] = c;
-		}
 	}
+}
 
 inline void VDP::draw_graph(int dx, int dy, uint8_t data, uint8_t col)
 {
 	int dx8l = dx << 3;
-	int dx8r = (dx << 3) + 4;
+	int dx8r = dxl + 4;
 	int dy16 = dy << 4;
 
+  uint32_t c = col + (col << 8); c = c + (c << 16);
+  unsigned int* p = (unsigned int*)&text[dy16][dx8l];
+
 	if(data & 0x80)
-	{
-		for(int l = 0; l < 4; l++)
-		{
-			memset(&text[dy16 + l][dx8l], col, 4);
-		}
-	}
+	  p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
+
 	if(data & 0x40)
-	{
-		for(int l = 0; l < 4; l++)
-		{
-			memset(&text[dy16 + l][dx8r], col, 4);
-		}
-	}
+    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
+
+	p += 320 * 4;
 	if(data & 0x20)
-	{
-		for(int l = 4; l < 8; l++)
-		{
-			memset(&text[dy16 + l][dx8l], col, 4);
-		}
-	}
+    p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
+
 	if(data & 0x10)
-	{
-		for(int l = 4; l < 8; l++)
-		{
-			memset(&text[dy16 + l][dx8r], col, 4);
-		}
-	}
+    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
+
+  p += 320 * 4;
 	if(data & 0x08)
-	{
-		for(int l = 8; l < 12; l++)
-		{
-			memset(&text[dy16 + l][dx8l], col, 4);
-		}
-	}
+    p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
+
 	if(data & 0x04)
-	{
-		for(int l = 8; l < 12; l++)
-		{
-			memset(&text[dy16 + l][dx8r], col, 4);
-		}
-	}
+    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
+
+  p += 320 * 4;
 	if(data & 0x02)
-	{
-		for(int l = 12; l < 16; l++)
-		{
-			memset(&text[dy16 + l][dx8l], col, 4);
-		}
-	}
+    p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
+
 	if(data & 0x01)
-	{
-		for(int l = 12; l < 16; l++)
-		{
-			memset(&text[dy16 + l][dx8r], col, 4);
-		}
-	}
+    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
 }
 
 inline void VDP::draw_sprite_screen()
