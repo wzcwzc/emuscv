@@ -223,26 +223,26 @@ inline void VDP::draw_text(int dx, int dy, uint8_t data, uint8_t tcol, uint8_t b
 
 inline void VDP::draw_block(int dx, int dy, uint8_t data)
 {
-	int dx8 = dx << 3;
+	int dx8 = dx << 3; // Pointer to pixel is aligned to 8.
 	int dy16 = dy << 4;
 	uint8_t cu = data >> 4;
 	uint8_t cl = data & 0xf;
 
-	if(cu)
+	if (cu != 0)
 	{
-		for(int l = 0; l < 8; l++)
-		{
-			memset(&text[dy16 + l][dx8], cu, 8);
+    unsigned int* p = (unsigned int*)&text[dy16][dx8];
+	  uint32_t c = cu + ((uint32_t)cu << 8); c = c + (c << 16);
+	  for(int i = 8; --i >= 0; p += 320 >> 2)
+	    p[0] = p[1] = c;
+		}
+	if (cl != 0)
+	{
+    unsigned int* p = (unsigned int*)&text[dy16 + 8][dx8];
+    uint32_t c = cl + ((uint32_t)cl << 8); c = c + (c << 16);
+    for(int i = 8; --i >= 0; p += 320 >> 2)
+      p[0] = p[1] = c;
 		}
 	}
-	if(cl)
-	{
-		for(int l = 8; l < 16; l++)
-		{
-			memset(&text[dy16 + l][dx8], cl, 8);
-		}
-	}
-}
 
 inline void VDP::draw_graph(int dx, int dy, uint8_t data, uint8_t col)
 {
