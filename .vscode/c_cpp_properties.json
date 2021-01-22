@@ -7,10 +7,8 @@
             ],
             "defines": [],
             "compilerPath": "C:\\msys64\\mingw64\\bin\\gcc.exe",
-//            "cStandard": "c11",
-//            "cppStandard": "c++17",
-"cStandard": "c99",
-"cppStandard": "c++98",
+            "cStandard": "c99",
+            "cppStandard": "c++98",
             "intelliSenseMode": "gcc-x64"
         },
         {

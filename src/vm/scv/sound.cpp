@@ -162,9 +162,9 @@ void SOUND::write_data8(uint32_t addr, uint32_t data)
 				else
 					noise.output = (noise_table[noise.ptr] * noise.volume) >> 9;
 
-				square1.ptr = rand() % NOISE_TABLE_SIZE;
-				square2.ptr = rand() % NOISE_TABLE_SIZE;
-				square3.ptr = rand() % NOISE_TABLE_SIZE;
+				square1.ptr = 0;
+				square2.ptr = 0;
+				square3.ptr = 0;
 				square1.volume = MAX_SQUARE1 * (params[7] & 0x1F) / 0x1F;
 				square2.volume = MAX_SQUARE2 * (params[8] & 0x1F) / 0x1F;
 				square3.volume = MAX_SQUARE3 * (params[9] & 0x1F) / 0x1F;
@@ -308,8 +308,8 @@ void SOUND::initialize_sound(int rate)
 	// Create square table
 	for(int i = 0; i < SQUARE_TABLE_SIZE>>1; i++)
 		square_table[i] = 255; 
-	for(int i = 0; i < SQUARE_TABLE_SIZE>>1; i++)
-		square_table[i] = 255; 
+	for(int i = SQUARE_TABLE_SIZE>>1; i < SQUARE_TABLE_SIZE; i++)
+		square_table[i] = -255; 
 }
 
 inline void SOUND::clear_channel(channel_t *ch)
