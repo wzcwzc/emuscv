@@ -4,6 +4,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.11.29-
 
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
 	[ event manager ]
 */
 
@@ -20,14 +24,15 @@ void EVENT::initialize()
 		config.cpu_power = 0;
 	power = config.cpu_power;
 	
-	// initialize sound buffer
-	sound_buffer = NULL;
-	sound_tmp = NULL;
-	
-	dont_skip_frames = 0;
-	prev_skip = next_skip = false;
-	sound_changed = false;
-	
+	// initialize sound
+	sound_buffer_1 = NULL;
+	sound_buffer_2 = NULL;
+	sound_buffer_1_start = NULL;
+	sound_buffer_2_start = NULL;
+	sound_buffer_read = NULL;
+	sound_buffer_write = NULL;
+	sound_buffer_write_index = 0;
+
 	vline_start_clock = 0;
 	cur_vline = 0;
 
@@ -40,13 +45,21 @@ void EVENT::initialize_sound(int rate)//, int samples)
 {
 	// initialize sound
 	sound_rate = rate;
-	sound_samples = (int)(sound_rate/FRAMES_PER_SEC_MIN+0.5);// samples;
-	sound_tmp_samples = (int)(2*sound_rate/FRAMES_PER_SEC_MIN+0.5);//samples*2;
-	sound_buffer = (int16_t*)malloc(sound_samples * sizeof(int16_t) * 2);
-	memset(sound_buffer, 0, sound_samples * sizeof(int16_t) * 2);
-	sound_tmp = (int32_t*)malloc(sound_tmp_samples * sizeof(int32_t) * 2);
-	memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
-	buffer_ptr = 0;
+	sound_size = (int)(sound_rate / FRAMES_PER_SEC_MIN + 0.5);
+	sound_samples = (int)(sound_rate/config.window_fps+0.5);
+	sound_buffer_1 = (int16_t*)malloc(sound_size * sizeof(int16_t) * 2 + 1);
+	memset(sound_buffer_1, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+	sound_buffer_1_start = sound_buffer_1;
+	if((uint64_t)sound_buffer_1_start & 1)
+		sound_buffer_1++;
+	sound_buffer_2 = (int16_t*)malloc(sound_size * sizeof(int16_t) * 2 + 1);
+	memset(sound_buffer_2, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+	sound_buffer_2_start = sound_buffer_2;
+	if((uint64_t)sound_buffer_2_start & 1)
+		sound_buffer_2++;
+	sound_buffer_read = sound_buffer_2_start;
+	sound_buffer_write = sound_buffer_1_start;
+	sound_buffer_write_index = 0;
 	mix_counter = 1;
 	mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0)); // per 0.5ms.
 	
@@ -57,10 +70,17 @@ void EVENT::initialize_sound(int rate)//, int samples)
 void EVENT::release()
 {
 	// release sound
-	if(sound_buffer)
-		free(sound_buffer);
-	if(sound_tmp)
-		free(sound_tmp);
+	if(sound_buffer_1)
+		free(sound_buffer_1);
+	if(sound_buffer_2)
+		free(sound_buffer_2);
+	sound_buffer_1 = NULL;
+	sound_buffer_2 = NULL;
+	sound_buffer_1_start = NULL;
+	sound_buffer_2_start = NULL;
+	sound_buffer_read = NULL;
+	sound_buffer_write = NULL;
+	sound_buffer_write_index = 0;
 }
 
 void EVENT::reset()
@@ -76,12 +96,15 @@ void EVENT::reset()
 	cpu_remain = cpu_accum = cpu_done = 0;
 	
 	// reset sound
-	if(sound_buffer)
-		memset(sound_buffer, 0, sound_samples * sizeof(int16_t) * 2);
-	if(sound_tmp)
-		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
-//	buffer_ptr = 0;
-	
+	sound_samples = (int)(sound_rate/config.window_fps+0.5);
+	if(sound_buffer_1)
+		memset(sound_buffer_1, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+	if(sound_buffer_2)
+		memset(sound_buffer_2, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+	sound_buffer_read = sound_buffer_2_start;
+	sound_buffer_write = sound_buffer_1_start;
+	sound_buffer_write_index = 0;
+
 #ifdef _DEBUG_LOG
 	initialize_done = true;
 #endif
@@ -499,9 +522,9 @@ void EVENT::touch_sound()
 {
 	if(!(config.sound_strict_rendering || (need_mix > 0)))
 	{
-		int samples = mix_counter;
-		if(samples >= (sound_tmp_samples - buffer_ptr))
-			samples = sound_tmp_samples - buffer_ptr;
+		uint32_t samples = mix_counter;
+		if(samples > sound_samples - sound_buffer_write_index)
+			samples = sound_samples - sound_buffer_write_index;
 		if(samples > 0)
 		{
 			mix_sound(samples);
@@ -530,156 +553,44 @@ void EVENT::set_realtime_render(DEVICE* device, bool flag)
 void EVENT::event_callback(int event_id, int err)
 {
 	// mix sound
-	if(prev_skip && dont_skip_frames == 0 && !sound_changed)
-		buffer_ptr = 0;
-	int remain = sound_tmp_samples - buffer_ptr;
-	
-	if(remain > 0)
+	if(mix_counter >= sound_samples)	
 	{
-		int samples = mix_counter;
-		
-		if(config.sound_strict_rendering || (need_mix > 0))
-		{
-			if(samples < 1)
-				samples = 1;
-		}
-		if(samples >= remain)
-			samples = remain;
-		if(config.sound_strict_rendering || (need_mix > 0))
-		{
-			if(samples > 0)
-				mix_sound(samples);
-			mix_counter = 1;
-		}
-		else
-		{
-			if(samples > 0 && mix_counter >= mix_limit)
-			{
-				mix_sound(samples);
-				mix_counter -= samples;
-			}
-			mix_counter++;
-		}
+		mix_sound(sound_samples);
+		mix_counter -= sound_samples;
 	}
+	mix_counter++;
 }
 
-void EVENT::mix_sound(int samples)
+void EVENT::mix_sound(uint32_t samples)
 {
-	if(samples > 0)
-	{
-		int32_t* buffer = sound_tmp + buffer_ptr * 2;
-		memset(buffer, 0, samples * sizeof(int32_t) * 2);
-		for(int i = 0; i < dcount_sound; i++)
-			d_sound[i]->mix(buffer, samples);
-		if(!sound_changed)
-		{
-			for(int i = 0; i < samples * 2; i += 2)
-			{
-				if(buffer[i] != sound_tmp[0] || buffer[i + 1] != sound_tmp[1])
-				{
-					sound_changed = true;
-					break;
-				}
-			}
-		}
-		buffer_ptr += samples;
-	}
-	else
-	{
-		// notify to sound devices
-		for(int i = 0; i < dcount_sound; i++)
-			d_sound[i]->mix(sound_tmp + buffer_ptr * 2, 0);
-	}
+	d_sound[0]->mix(sound_buffer_write + (sound_buffer_write_index << 1), samples);	// Only one audio device for the Super Cassette Vision
+	sound_buffer_write_index += samples;
 }
 
 int16_t* EVENT::create_sound(int* extra_frames)
 {
-	if(prev_skip && dont_skip_frames == 0 && !sound_changed)
+	for(uint32_t i = 0; i < (sound_samples<<1); i++)
 	{
-		memset(sound_buffer, 0, sound_samples * sizeof(int16_t) * 2);
-		*extra_frames = 0;
-		return sound_buffer;
+		if(sound_buffer_read[i] == 0)
+			bool stop = true;
 	}
-	int frames = 0;
-	
-	// drive extra frames to fill the sound buffer
-	while(sound_samples > buffer_ptr)
+
+	if(sound_buffer_write_index >= sound_samples)
 	{
-		drive();
-		frames++;
-	}
-#ifdef LOW_PASS_FILTER
-	// low-pass filter
-	for(int i = 0; i < sound_samples - 1; i++)
-	{
-		sound_tmp[i * 2    ] = (sound_tmp[i * 2    ] + sound_tmp[i * 2 + 2]) / 2; // L
-		sound_tmp[i * 2 + 1] = (sound_tmp[i * 2 + 1] + sound_tmp[i * 2 + 3]) / 2; // R
-	}
-#endif
-	// copy to buffer
-	for(int i = 0; i < 2 * sound_samples; i++)
-	{
-/*		int dat = sound_tmp[i];
-		int16_t highlow = (int16_t)(dat & 0x0000ffff);
-		if((dat > 0) && (highlow >= 0x8000))
+		if(sound_buffer_write == sound_buffer_1_start)
 		{
-			sound_buffer[i] = 0x7fff;
-			continue;
+			sound_buffer_read = sound_buffer_1_start;
+			sound_buffer_write = sound_buffer_2_start;
 		}
-		if((dat < 0) && (highlow < 0x8000))
-		{
-			sound_buffer[i] = 0x8000;
-			continue;
-		}
-		sound_buffer[i] = (int16_t)highlow;
-*/
-//		sound_buffer[i] = (int16_t)((int)sound_tmp[i]/5 & 0x0000ffff);
-//		sound_buffer[i] = (int16_t)(sound_tmp[i]);
-		sound_tmp[i] = sound_tmp[i] / 5;
-		if(sound_tmp[i] <= INT16_MIN)
-			sound_buffer[i] = INT16_MIN;
-		else if(sound_tmp[i] >= INT16_MAX)
-			sound_buffer[i] = INT16_MAX;
 		else
-			sound_buffer[i] = sound_tmp[i];
+		{
+			sound_buffer_read = sound_buffer_2_start;
+			sound_buffer_write = sound_buffer_1_start;
+		}
+		sound_buffer_write_index = 0;
 	}
-	if(buffer_ptr > sound_samples)
-	{
-		buffer_ptr -= sound_samples;
-		memcpy(sound_tmp, sound_tmp + sound_samples * 2, buffer_ptr * sizeof(int32_t) * 2);
-	}
-	else
-		buffer_ptr = 0;
-	*extra_frames = frames;
-	return sound_buffer;
-}
 
-int EVENT::get_sound_buffer_ptr()
-{
-	return buffer_ptr;
-}
-
-void EVENT::request_skip_frames()
-{
-	next_skip = true;
-}
-
-bool EVENT::is_frame_skippable()
-{
-	bool value = next_skip;
-	
-	if(sound_changed || (prev_skip && !next_skip))
-		dont_skip_frames = (int)frames_per_sec;
-	if(dont_skip_frames > 0)
-	{
-		value = false;
-		dont_skip_frames--;
-	}
-	prev_skip = next_skip;
-	next_skip = false;
-	sound_changed = false;
-	
-	return value;
+	return sound_buffer_read;
 }
 
 void EVENT::update_config()
@@ -756,11 +667,13 @@ bool EVENT::process_state(FILEIO* state_fio, bool loading)
 	// post process
 	if(loading)
 	{
-		if(sound_buffer)
-			memset(sound_buffer, 0, sound_samples * sizeof(int16_t) * 2);
-		if(sound_tmp)
-			memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
-		buffer_ptr = 0;
+		if(sound_buffer_1)
+			memset(sound_buffer_1, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+		if(sound_buffer_2)
+			memset(sound_buffer_2, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+		sound_buffer_read = sound_buffer_2_start;
+		sound_buffer_write = sound_buffer_1_start;
+		sound_buffer_write_index = 0;
 		mix_counter = 1;
 		mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0));  // per 0.5ms.
 	}

@@ -4,6 +4,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.11.29-
 
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
 	[ event manager ]
 */
 
@@ -12,12 +16,13 @@
 
 #include "device.h"
 
-#define MAX_DEVICE	64
-#define MAX_CPU		8
-#define MAX_SOUND	32
-#define MAX_LINES	1024
-#define MAX_EVENT	64
-#define NO_EVENT	-1
+#define MAX_DEVICE   64
+#define MAX_CPU       8
+#define MAX_SOUND    32
+#define MAX_LINES  1024
+#define MAX_EVENT    64
+#define NO_EVENT     -1
+
 
 class EVENT : public DEVICE
 {
@@ -71,23 +76,23 @@ private:
 	DEVICE* d_sound[MAX_SOUND];
 	int dcount_sound;
 
-	int16_t* sound_buffer;
-	int32_t* sound_tmp;
-	int buffer_ptr;
+	int16_t* sound_buffer_1;
+	int16_t* sound_buffer_2;
+	int16_t* sound_buffer_1_start;
+	int16_t* sound_buffer_2_start;
+	int16_t* sound_buffer_read;
+	int16_t* sound_buffer_write;
+	uint32_t sound_buffer_write_index;
 	int sound_rate;
 	int sound_samples;
-	int sound_tmp_samples;
-
-	int dont_skip_frames;
-	bool prev_skip, next_skip;
-	bool sound_changed;
+	int sound_size;
 
 	int mix_counter;
 	int mix_limit;
 	bool dev_need_mix[MAX_DEVICE];
 	int need_mix;
 
-	void mix_sound(int samples);
+	void mix_sound(uint32_t samples);
 	void* get_event(int index);
 
 #ifdef _DEBUG_LOG
@@ -182,7 +187,6 @@ public:
 		return vclocks[cur_vline];
 	}
 	uint32_t get_cpu_pc(int index);
-	void request_skip_frames();
 	void touch_sound();
 	void set_realtime_render(DEVICE* device, bool flag);
 
@@ -195,7 +199,6 @@ public:
 
 	void initialize_sound(int rate);//, int samples);
 	int16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
 
 	void set_context_cpu(DEVICE* device, uint32_t clocks)
 	{
@@ -228,7 +231,6 @@ public:
 		assert(dcount_sound < MAX_SOUND);
 		d_sound[dcount_sound++] = device;
 	}
-	bool is_frame_skippable();
 };
 
 #endif	// _EMUSCV_INC_VM_EVENT_H_

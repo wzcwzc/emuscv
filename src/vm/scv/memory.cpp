@@ -4,7 +4,9 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.08.21 -
 
-	Modified by MaaaX for EmuSCV
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
 
 	[ memory ]
 */
@@ -461,15 +463,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 		memset(raw, 0, sizeof(raw));
 		// First chance
 		read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-		if(read_size > 0)
-		{
-			// Second chance
-			read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-			if(read_size > 0)
-				goto lbl_rom_error;	// Fatal error
-		}
-*/
 
 		// Get MD5
 		memset(raw_md5, 0, sizeof(raw_md5));
@@ -613,15 +606,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -644,15 +628,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -675,15 +650,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -706,15 +672,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -738,15 +695,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -771,15 +719,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -804,15 +743,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -837,15 +767,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -870,15 +791,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -903,15 +815,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -936,15 +839,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -969,15 +863,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -1002,15 +887,6 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
@@ -1036,15 +912,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
+
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
 				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
@@ -1068,15 +936,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
+
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
 				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
@@ -1100,15 +960,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				memset(raw, 0, sizeof(raw));
 				// First chance
 				read_size = fiocart->Fread(&raw, sizeof(raw), 1);
-/*
-				if(read_size > 0)
-				{
-					// Second chance
-					read_size = fiocart->Fread(&raw+sizeof(raw)-read_size, read_size, 1);
-					if(read_size > 0)
-						goto lbl_rom_error;	// Fatal error
-				}
-*/
+
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
 				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));

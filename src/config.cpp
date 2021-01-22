@@ -4,6 +4,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.08.18 -
 
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
 	[ config ]
 */
 
@@ -707,9 +711,9 @@ void DLL_PREFIX apply_display_config()
 			break;
 		case SETTING_RESOLUTION_AUTO_VAL:
 		default:
-#if defined(_RASPBERRYPI0) || defined(_RASPBERRYPI1) || defined(_RASPBERRYPI2) || defined(_RASPBERRYPI3)
+#if defined(_RESOLUTION_AUTO_LOW)
 			config.window_resolution = SETTING_RESOLUTION_LOW_VAL;
-#elif defined(_RASPBERRYPI4)
+#elif defined(_RESOLUTION_AUTO_MEDIUM)
 			config.window_resolution = SETTING_RESOLUTION_MEDIUM_VAL;
 #else
 			config.window_resolution = SETTING_RESOLUTION_HIGH_VAL;

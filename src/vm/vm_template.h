@@ -4,6 +4,10 @@
 	Author : K.Ohta
 	Date   : 2018.10.10-
 
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
 	[ virtual machine template ]
 */
 
@@ -67,8 +71,9 @@ public:
 	// sound generation
 	virtual void initialize_sound(int rate) { }//, int samples) { }
 	virtual int16_t* create_sound(int* extra_frames) { return NULL; }
-	virtual int get_sound_buffer_ptr() { return 0; }
+//	virtual int get_sound_buffer_ptr() { return 0; }
 	virtual void set_sound_device_volume(int ch, int decibel_l, int decibel_r) { }
+	virtual void reset_sound() { }
 
 	// network
 	virtual void notify_socket_connected(int ch) { }

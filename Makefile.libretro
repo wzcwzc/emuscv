@@ -3,7 +3,7 @@ TARGET_NAME := emuscv
 EMUSCV_VERSION_MAJOR := 0
 EMUSCV_VERSION_MINOR := 07
 #EMUSCV_VERSION_DATETIME := $(shell date -u +'%Y%m%d%H%M%S')
-EMUSCV_VERSION_DATETIME := '20210115130800'
+EMUSCV_VERSION_DATETIME := '20210122122000'
 EMUSCV_VERSION := $(EMUSCV_VERSION_MAJOR).$(EMUSCV_VERSION_MINOR).$(EMUSCV_VERSION_DATETIME)
 
 DEBUG = 1
@@ -87,20 +87,30 @@ ifneq (,$(findstring unix,$(platform)))
 		CXXFLAGS += $(CFLAGS)
 		ifneq (,$(findstring rpi0,$(platform)))
 			PLATFORM_DEFINES += -D_RASPBERRYPI0
+			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_LOW
 			# CFLAGS += -march=armv6j -mfpu=vfp -mfloat-abi=hard
 		else ifneq (,$(findstring rpi1,$(platform)))
 			PLATFORM_DEFINES += -D_RASPBERRYPI1
+			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_LOW
 			CFLAGS += -march=armv6j -mfpu=vfp -mfloat-abi=hard
 		else ifneq (,$(findstring rpi2,$(platform)))
 			PLATFORM_DEFINES += -D_RASPBERRYPI2
+			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_LOW
 			CFLAGS += -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
 		else ifneq (,$(findstring rpi3,$(platform)))
 			PLATFORM_DEFINES += -D_RASPBERRYPI3
+			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_LOW
 			CFLAGS += -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
 		else ifneq (,$(findstring rpi4,$(platform)))
 			PLATFORM_DEFINES += -D_RASPBERRYPI4
+			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_LOW
 			CFLAGS += -mcpu=cortex-a72 -mfpu=neon-fp-armv8 -mfloat-abi=hard
+		else
+			PLATFORM_DEFINES += -D_RASPBERRYPI
+			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_MEDIUM
 		endif
+	else
+		PLATFORM_DEFINES += -D_RESOLUTION_AUTO_HIGH
 	endif
 	
 ## (armv7 a7, hard point, neon based) ### 
@@ -133,6 +143,7 @@ ifneq (,$(findstring unix,$(platform)))
 # OS X
 else ifeq ($(platform),osx)
 	PLATFORM_DEFINES := -D_OSX -D__APPLE__
+	PLATFORM_DEFINES += -D_RESOLUTION_AUTO_HIGH
 	TARGET := $(TARGET_NAME)_libretro.dylib
 	CC = clang
 	CXX = c++
@@ -580,6 +591,7 @@ else ifeq ($(platform),osx)
 # Windows
 else
 	PLATFORM_DEFINES := -D_WIN32
+	PLATFORM_DEFINES += -D_RESOLUTION_AUTO_HIGH
 	TARGET := $(TARGET_NAME)_libretro.dll
 	HAVE_NETWORK = 1
 	CC = gcc

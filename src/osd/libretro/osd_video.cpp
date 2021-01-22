@@ -1,10 +1,11 @@
 /*
 	Skelton for retropc emulator
 
-	Author : Takeda.Toshiya
-	Date   : 2015.11.26-
+	For Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
 
-	[ win32 DirectShow ]
+	[ Libretro video ]
 */
 #include "osd.h"
 /*

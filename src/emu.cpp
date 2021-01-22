@@ -4,7 +4,11 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.08.18 -
 
-	[ win32 emulation i/f ]
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
+	[ Emulation i/f ]
 */
 
 #if defined(_USE_QT)
@@ -196,10 +200,10 @@ bool EMU::is_frame_skippable()
 
 int EMU::run()
 {
-	if(now_suspended) {
-		osd->restore();
-		now_suspended = false;
-	}
+//	if(now_suspended) {
+//		osd->restore();
+//		now_suspended = false;
+//	}
 	osd->update_input();
 #ifdef USE_AUTO_KEY
 	update_auto_key();
@@ -208,18 +212,18 @@ int EMU::run()
 	update_joystick();
 #endif
 
-#ifdef USE_SOCKET
-#if !defined(_USE_QT) // Temporally
-	osd->update_socket();
-#endif
-#endif
-	update_media();
+//#ifdef USE_SOCKET
+//#if !defined(_USE_QT) // Temporally
+//	osd->update_socket();
+//#endif
+//#endif
+//	update_media();
 
 	// virtual machine may be driven to fill sound buffer
 	int extra_frames = 0;
 	osd->update_sound(&extra_frames);
-
-	// drive virtual machine
+//
+//	// drive virtual machine
 	if(extra_frames == 0)
 	{
 		osd->lock_vm();
@@ -258,7 +262,7 @@ void EMU::reset()
 #endif
 	if(reinitialize) {
 		// stop sound
-		osd->stop_sound();
+//		osd->stop_sound();
 		// reinitialize virtual machine
 		osd->lock_vm();
 		delete vm;
@@ -322,7 +326,7 @@ void EMU::power_off()
 {
 	osd->power_off();
 }
-
+/*
 void EMU::suspend()
 {
 	if(!now_suspended) {
@@ -330,7 +334,7 @@ void EMU::suspend()
 		now_suspended = true;
 	}
 }
-
+*/
 void EMU::lock_vm()
 {
 	osd->lock_vm();
@@ -1555,11 +1559,11 @@ bool EMU::is_video_recording()
 // sound
 // ----------------------------------------------------------------------------
 
+/*
 void EMU::mute_sound()
 {
 	osd->mute_sound();
 }
-/*
 void EMU::start_record_sound()
 {
 	osd->start_record_sound();

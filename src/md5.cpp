@@ -1,9 +1,12 @@
 /* MD5
- Modified for use by emuSCV
  
  converted to C++ class by Frank Thilo (thilo@unix-ag.org)
  for bzflag (http://www.bzflag.org)
- 
+
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
    based on:
  
    md5.h and md5.c

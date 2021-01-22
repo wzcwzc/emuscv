@@ -1,10 +1,11 @@
 /*
 	Skelton for retropc emulator
 
-	Author : Takeda.Toshiya
-	Date   : 2015.11.20-
+	For Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
 
-	[ libretro dependent ]
+	[ Libretro main ]
 */
 
 #include "osd.h"
@@ -23,7 +24,7 @@ void OSD::initialize(int rate)//, int samples)
 */
 	initialize_input();
 	initialize_screen();
-	initialize_sound(rate);//, samples);
+	initialize_sound();//rate, samples);
 /*
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	CoInitialize(NULL);
@@ -60,29 +61,27 @@ void OSD::power_off()
 */
 }
 
+/*
 void OSD::suspend()
 {
-/*
 #ifdef USE_MOVIE_PLAYER
 	if(now_movie_play && !now_movie_pause) {
 		pause_movie();
 		now_movie_pause = false;
 	}
 #endif
-*/
 	mute_sound();
 }
 
 void OSD::restore()
-{
-/*
+
 #ifdef USE_MOVIE_PLAYER
 	if(now_movie_play && !now_movie_pause) {
 		play_movie();
 	}
 #endif
-*/
 }
+*/
 
 void OSD::lock_vm()
 {

@@ -1,10 +1,11 @@
 /*
 	Skelton for retropc emulator
 
-	Author : Takeda.Toshiya
-	Date   : 2015.11.20-
+	For Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
 
-	[ libretro screen ]
+	[ Libretro screen ]
 */
 
 #include "osd.h"
@@ -586,7 +587,7 @@ void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int 
 */
 
 	// SDL frame surface
-    buffer->frame_surface = SDL_CreateRGBSurface(0, width, height, 8*sizeof(uint32_t), 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+    buffer->frame_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 8*sizeof(uint32_t), 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
     if (buffer->frame_surface == NULL)
 	{
 	}

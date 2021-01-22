@@ -1,10 +1,11 @@
 /*
 	Skelton for retropc emulator
 
-	Author : Takeda.Toshiya
-	Date   : 2015.11.26-
+	For Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
 
-	[ win32 sound ]
+	[ Libretro sound ]
 */
 
 #include "osd.h"
@@ -15,11 +16,11 @@
 #define DSOUND_BUFFER_SIZE (DWORD)(sound_samples * 8)
 #define DSOUND_BUFFER_HALF (DWORD)(sound_samples * 4)
 */
-void OSD::initialize_sound(int rate)//, int samples)
+void OSD::initialize_sound()//int rate, int samples)
 {
-	sound_rate = rate;
-	sound_samples = (int)(sound_rate/FRAMES_PER_SEC_MIN+0.5);//samples;
-	sound_available = sound_started = sound_muted = false;
+//	sound_rate = rate;
+//	sound_samples = (int)(sound_rate/FRAMES_PER_SEC_MIN+0.5);//samples;
+//	sound_available = sound_started = sound_muted = false;
 	sound_ptr = NULL;
 /*
 // TODO_MM
@@ -73,8 +74,8 @@ void OSD::initialize_sound(int rate)//, int samples)
 		return;
 	}
 	sound_first_half = true;
-*/
 	sound_available = true;
+*/
 }
 
 void OSD::release_sound()
@@ -108,21 +109,17 @@ void OSD::update_sound(int* extra_frames)
 //	}
 #endif
 
+/*
 	sound_muted = false;
 	if(sound_available) {
-/*
 		DWORD play_c, write_c, offset, size1, size2;
 		WORD *ptr1, *ptr2;
-*/
 		// start play
 		if(!sound_started) {
-/*
 			lpdsSecondaryBuffer->Play(0, 0, DSBPLAY_LOOPING);
-*/
 			sound_started = true;
 			return;
 		}
-/*
 		// check current position
 		if(FAILED(lpdsSecondaryBuffer->GetCurrentPosition(&play_c, &write_c))) {
 			return;
@@ -166,7 +163,7 @@ void OSD::update_sound(int* extra_frames)
 					} else if(rec_video_frames < -2) {
 						rec_video_run_frames -= (rec_video_frames + 2);
 					}
-//					rec_video_run_frames -= rec_video_frames;
+					rec_video_run_frames -= rec_video_frames;
 				}
 			}
 			rec_sound_buffer_ptr = 0;
@@ -184,15 +181,14 @@ void OSD::update_sound(int* extra_frames)
 		}
 		lpdsSecondaryBuffer->Unlock(ptr1, size1, ptr2, size2);
 		sound_first_half = !sound_first_half;
-*/
 	}
+*/
 }
 
+/*
 void OSD::mute_sound()
 {
 	if(sound_available && !sound_muted) {
-/*
-// TODO_MM
 		// check current position
 		DWORD size1, size2;
 		WORD *ptr1, *ptr2;
@@ -207,7 +203,6 @@ void OSD::mute_sound()
 			ZeroMemory(ptr2, size2);
 		}
 		lpdsSecondaryBuffer->Unlock(ptr1, size1, ptr2, size2);
-*/
 	}
 	sound_muted = true;
 }
@@ -216,10 +211,18 @@ void OSD::stop_sound()
 {
 	if(sound_available && sound_started)
 	{
-/*
-// TODO_MM
 		lpdsSecondaryBuffer->Stop();
-*/
 		sound_started = false;
 	}
+}
+*/
+
+int16_t *OSD::get_sound_ptr()
+{
+	return sound_ptr;
+}
+
+void OSD::reset_sound()
+{
+	vm->reset_sound();
 }

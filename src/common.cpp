@@ -4,6 +4,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2013.01.17-
 
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
 	[ common ]
 */
 

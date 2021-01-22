@@ -1,10 +1,11 @@
 /*
 	Skelton for retropc emulator
 
-	Author : Marconato.Maxime
-	Date   : 2020.01.31-
+	For Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
 
-	[ libretro dependent ]
+	[ libretro ]
 */
 
 #ifndef _EMUSCV_INC_OSD_LIBRETRO_OSD_H_
@@ -16,7 +17,7 @@
 #include <unistd.h>
 #endif
 #include <SDL2/SDL.h>
-#include <SDL2_gfx/SDL2_gfxPrimitives.h>
+//#include <SDL2_gfx/SDL2_gfxPrimitives.h>
 
 /*
 #ifndef _WIN32_WINNT
@@ -405,11 +406,11 @@ private:
 	bool self_invalidate;
 
 	// sound
-	void initialize_sound(int rate);//, int samples);
+	void initialize_sound();//int rate, int samples);
 	void release_sound();
 
-	int sound_rate, sound_samples;
-	bool sound_available, sound_started, sound_muted;
+//	int sound_rate, sound_samples;
+//	bool sound_available, sound_started, sound_muted;
 	int16_t* sound_ptr;
 /*
 	LPDIRECTSOUND lpds;
@@ -485,8 +486,8 @@ public:
 	void initialize(int rate);//, int samples);
 	void release();
 	void power_off();
-	void suspend();
-	void restore();
+//	void suspend();
+//	void restore();
 	void lock_vm();
 	void unlock_vm();
 	bool is_vm_locked()
@@ -625,9 +626,10 @@ public:
 */
 	// common sound
 	void update_sound(int* extra_frames);
-	void mute_sound();
-	void stop_sound();
-	int16_t *get_sound_ptr() { return sound_ptr; };
+//	void mute_sound();
+//	void stop_sound();
+	int16_t *get_sound_ptr();
+	void reset_sound();
 /*
 	void start_record_sound();
 	void stop_record_sound();

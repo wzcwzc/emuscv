@@ -4,6 +4,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2014.12.19-
 
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
 	[ fifo buffer ]
 */
 

@@ -4,6 +4,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.08.21 -
 
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
 	[ virtual machine ]
 */
 
@@ -15,7 +19,7 @@
 
 // Device informations for virtual machine
 #define LINES_PER_FRAME				262
-#define CPU_CLOCKS					4000000
+#define CPU_CLOCKS					3800000
 #define FRAMES_PER_SEC				60
 #define FRAMES_PER_SEC_MAX			FRAMES_PER_SEC
 #define FRAMES_PER_SEC_MIN			50
@@ -180,8 +184,6 @@ static const _TCHAR *sound_device_caption[] = { _T("PSG"), _T("PCM"), };
 class VM : public VM_TEMPLATE
 {
 protected:
-//	EMU* emu;
-
 	// devices
 	EVENT* event;
 
@@ -220,16 +222,15 @@ public:
 	// sound generation
 	void initialize_sound(int rate);//, int samples);
 	int16_t* create_sound(int* extra_frames);
-	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
+	void reset_sound();
 
 	// user interface
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
-	bool is_frame_skippable();
 
 	void update_config();
 	bool process_state(FILEIO* state_fio, bool loading);
@@ -245,9 +246,6 @@ public:
 
 	// devices
 	DEVICE* get_device(int id);
-//	DEVICE* dummy;
-//	DEVICE* first_device;
-//	DEVICE* last_device;
 };
 
 #endif	// _EMUSCV_INC_VM_SCV_SCV_H_

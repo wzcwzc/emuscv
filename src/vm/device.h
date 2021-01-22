@@ -4,6 +4,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.08.18 -
 
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
 	[ device base class ]
 */
 
@@ -707,7 +711,7 @@ public:
 	virtual void event_hsync(int v, int h, int clock) {}
 
 	// sound
-	virtual void mix(int32_t* buffer, int cnt) {}
+	virtual void mix(int16_t* buffer, uint32_t cnt) {}
 	virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
 
 #ifdef USE_DEBUGGER

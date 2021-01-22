@@ -1,3 +1,12 @@
+/*
+	Libretro-EmuSCV
+
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
+	[ Libretro core ]
+*/
+
 #ifndef _EMUSCV_INC_EMUSCV_H_
 #define _EMUSCV_INC_EMUSCV_H_
 
@@ -84,9 +93,6 @@ class cEmuSCV
 		void RetroInit(retro_audio_callback_t retro_audio_cb, retro_audio_set_state_callback_t retro_audio_set_state_cb, retro_frame_time_callback_t retro_frame_time_cb);												// Libretro: initialize the core
 		void RetroDeinit(void);												// Libretro: deinitialize the core
 		void RetroSetControllerPortDevice(unsigned port, unsigned device);	// Libretro: set controller port device
-/*
-		void RetroAudioCb(void);											// Libretro: audio callback
-*/
 		void RetroAudioSetStateCb(bool enable);								// Libretro: audio set state enable/disable callback
 		void RetroFrameTimeCb(retro_usec_t usec);							// Libretro: retro frame time callback
 		bool RetroLoadGame(const struct retro_game_info *info);				// Libretro: load game
@@ -107,10 +113,6 @@ class cEmuSCV
 		retro_input_state_t			RetroInputState;
 
 		bool retro_core_initialized;		// Is the libretro core initialized ?
-/*
-		bool retro_use_audio_cb;			// Is the libretro audio callback used ?
-		uint16_t retro_audio_phase;
-*/
 		bool retro_audio_enable;			// Is the libretro audio enabled ?
 		uint64_t retro_frame_counter;
 		retro_usec_t retro_frame_time;
@@ -139,14 +141,6 @@ class cEmuSCV
 		int run_frames_last;
 		int run_frames_total;
 		int draw_frames_total;
-//		int skip_frames;
-//		DWORD next_time;
-//		struct timespec next_time;
-//		bool prev_skip;
-//		DWORD update_fps_time;
-//		struct timespec update_fps_time;
-//		DWORD update_status_bar_time;
-//		DWORD disable_screen_saver_time;
 
 		bool key_pressed_0;
 		bool key_pressed_1;
@@ -163,6 +157,9 @@ class cEmuSCV
 		bool key_pressed_power;
 		bool key_pressed_pause;
 		bool key_pressed_reset;
+
+		bool button_keyboard_pressed;
+		bool button_menu_pressed;
 
 		uint64_t start_up_counter_power;
 		uint64_t start_up_counter_logo;

@@ -1,3 +1,12 @@
+/*
+	Libretro-EmuSCV
+	
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
+	[Libretro mapping]
+*/
+
 // EmuSCV includes
 #include "emuscv.h"
 

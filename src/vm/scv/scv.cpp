@@ -4,13 +4,16 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.08.21 -
 
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
 	[ virtual machine ]
 */
 
 #include "scv.h"
 
 #include "../device.h"
-//#include "../../emu.h"
 #include "../event.h"
 #include "../upd7801.h"
 #include "io.h"
@@ -148,9 +151,9 @@ int16_t* VM::create_sound(int* extra_frames)
 	return event->create_sound(extra_frames);
 }
 
-int VM::get_sound_buffer_ptr()
+void VM::reset_sound()
 {
-	return event->get_sound_buffer_ptr();
+	event->reset();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -192,11 +195,6 @@ bool VM::is_cart_inserted(int drv)
 	{
 		return false;
 	}
-}
-
-bool VM::is_frame_skippable()
-{
-	return event->is_frame_skippable();
 }
 
 void VM::update_config()

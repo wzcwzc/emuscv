@@ -4,7 +4,11 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.08.18 -
 
-	[ win32 emulation i/f ]
+	Modified for Libretro-EmuSCV
+	Author : MARCONATO Maxime (aka MaaaX)
+	Date   : 2019-12-05 - 
+
+	[ Emulation i/f ]
 */
 
 #ifndef _EMUSCV_INC_EMU_H_
@@ -227,7 +231,7 @@ public:
 	void notify_power_off();
 #endif
 	void power_off();
-	void suspend();
+//	void suspend();
 	void lock_vm();
 	void unlock_vm();
 	void force_unlock_vm();
