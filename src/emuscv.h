@@ -73,6 +73,8 @@ class EMU;
 #define EMUSCV_AXIS_NEUTRAL_MAX			8192
 #define EMUSCV_AXIS_NEUTRAL_MIN			-EMUSCV_AXIS_NEUTRAL_MAX
 
+#define EMUSCV_NOISE_SAMPLES			16384
+
 
 // /!\ Must be static
 class cEmuSCV
@@ -168,6 +170,12 @@ class cEmuSCV
 		bool is_menu_displayed;
 		uint8_t keyboard_x;
 		uint8_t keyboard_y;
+
+		int16_t sound_buffer_noise[EMUSCV_NOISE_SAMPLES];	// Mono noise
+		size_t sound_buffer_noise_index;
+		size_t sound_buffer_samples;
+		size_t sound_buffer_size;
+
 };
 
 #endif	// _EMUSCV_INC_EMUSCV_H_

@@ -153,7 +153,7 @@ void SOUND::write_data8(uint32_t addr, uint32_t data)
 
 			case CMD_NOISE:	// Noise & square
 				noise.timbre = (params[1] & 0xE0) << 1;
-				noise.offset = (params[1] & 0x1F) << 3;
+				//noise.offset = (params[1] & 0x1F) << 3;
 				noise.ptr    = rand() % (NOISE_TABLE_SIZE - 1);
 				noise.period = params[2] << 6;
 				noise.volume = MAX_NOISE * (params[3] & 0x1F) / 0x1F;
@@ -162,16 +162,13 @@ void SOUND::write_data8(uint32_t addr, uint32_t data)
 				else
 					noise.output = (noise_table[noise.ptr] * noise.volume) >> 9;
 
-				square1.ptr = 0;
-				square2.ptr = 0;
-				square3.ptr = 0;
 				square1.volume = MAX_SQUARE1 * (params[7] & 0x1F) / 0x1F;
 				square2.volume = MAX_SQUARE2 * (params[8] & 0x1F) / 0x1F;
 				square3.volume = MAX_SQUARE3 * (params[9] & 0x1F) / 0x1F;
 				if(params[1] == 0 && params[3] == 0)
 				{
 					square1.period = params[4] << 7;
-					if(params[4] > 1 && params[4] < 12)
+					if(params[4] > 1 && params[4] < 12)	// Patch for Kung-Fu Road... Not perfect
 						square2.period = (params[5] * params[4]) << 2;
 					else
 						square2.period = params[5] << 8;
@@ -195,8 +192,7 @@ void SOUND::write_data8(uint32_t addr, uint32_t data)
 
 			case CMD_TONE:	// note on : $02, timbre, period, volume ?
 				tone.timbre = (params[1] & 0xE0) >> 5;
-				tone.offset = (params[1] & 0x1F) << 3;
-				tone.ptr    = tone.offset;
+				tone.offset = params[1] & 0x1F;
 				tone.period = params[2] * detune_table[tone.offset];
 				tone.volume = MAX_TONE * (params[3] & 0x1F) / 0x1F;
 				tone.output = (timbre_table[tone.timbre][tone.ptr] * tone.volume) >> 8;
@@ -335,8 +331,8 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 		// mix pcm
 		if(pcm.count != 0)
 		{
-			int64_t v = pcm.output;
-			int64_t c = 1;
+//			int64_t v = pcm.output;
+//			int64_t c = 1;
 			pcm.count -= pcm.diff;
 			while(pcm.count <= 0)
 			{
@@ -348,10 +344,9 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 					else
 						pcm_table_data[i] = 0;
 				}
-				pcm.output = (pcm_table_data[0]+pcm_table_data[1]+(pcm_table_data[2]+pcm_table_data[3]+pcm_table_data[4]+pcm_table_data[5]+pcm_table_data[6])<<1+pcm_table_data[7]) >> 3;
-				v += tone.output;
-				c++;
-
+				pcm.output = (pcm_table_data[0]+pcm_table_data[1]+pcm_table_data[4]+pcm_table_data[5]+pcm_table_data[6]+(pcm_table_data[2]+pcm_table_data[3]+pcm_table_data[4]+pcm_table_data[5]+pcm_table_data[6]+pcm_table_data[7]+pcm_table_data[8])<<1+pcm_table_data[9]) >> 4;
+//				v += tone.output;
+//				c++;
 				if(++pcm.ptr >= pcm_len)
 				{
 					pcm.count = 0;
@@ -359,15 +354,16 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 				}
 			}
 			// Smooth sound
-			v = v/c;
-			vol += v;
+//			v = v/c;
+//			vol += v;
+			vol += pcm.output;
 		}
 
 		// mix tone
 		if(tone.volume && tone.period)
 		{
-			int64_t v = tone.output;
-			int64_t c = 1;
+//			int64_t v = tone.output;
+//			int64_t c = 1;
 			tone.count -= tone.diff;
 			while(tone.count <= 0)
 			{
@@ -375,12 +371,13 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 				if(++tone.ptr >= 256)
 					tone.ptr = tone.offset;
 				tone.output = (timbre_table[tone.timbre][tone.ptr] * tone.volume) >> 8;
-				v += tone.output;
-				c++;
+//				v += tone.output;
+//				c++;
 			}
 			// Smooth sound
-			v = v/c;
-			vol += v;
+//			v = v/c;
+//			vol += v;
+			vol += tone.output;
 		}
 
 		// Mix noise
@@ -453,8 +450,8 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 			vol = INT16_MAX;
 		else if(vol < INT16_MIN)
 			vol = INT16_MIN;
-		*buffer++ = vol;	// Left
-		*buffer++ = vol;	// Right
+
+		*buffer++ = vol;	// Mono
 	}
 }
 

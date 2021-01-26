@@ -15,10 +15,9 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 
 
 ***********************************************************
-* Libretro-EmuSCV v0.07.20210122133400
+* Libretro-EmuSCV v0.07.20210126134500
 ***********************************************************
-- Added Audio (enhanced support for PCM, noise and square channels)
-- Modified audio support
+- Added Audio (support of PCM 1-bit, tone, noise and 3 square channels)
 
 ***********************************************************
 * Libretro-EmuSCV v0.06.20201223231000

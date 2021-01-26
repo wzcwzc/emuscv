@@ -18,16 +18,16 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define TONE_CLOCK   1522400.0
+#define TONE_CLOCK   1500000.0
 #define NOISE_CLOCK      750.0
-#define SQUARE_CLOCK  174000.0
-#define PCM_CLOCK    1522400.0
+#define SQUARE_CLOCK  175000.0
+#define PCM_CLOCK    1500000.0
 
 #define MAX_TONE          9000
-#define MAX_NOISE         9000
-#define MAX_SQUARE1       4500
-#define MAX_SQUARE2       4500
-#define MAX_SQUARE3       4500
+#define MAX_NOISE         3000
+#define MAX_SQUARE1       1500
+#define MAX_SQUARE2       1500
+#define MAX_SQUARE3       1500
 #define MAX_PCM          12000
 
 #define MAX_PARAM       0x8000
@@ -35,7 +35,7 @@
 #define NOISE_TABLE_SIZE  1024
 #define SQUARE_TABLE_SIZE  256
 #define PCM_TABLE_SIZE 0x40000
-#define PCM_TABLE_DATA_SIZE  8
+#define PCM_TABLE_DATA_SIZE 10
 
 #define CMD_SILENCE	      0x00
 #define CMD_NOISE	      0x01

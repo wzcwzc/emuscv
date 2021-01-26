@@ -45,15 +45,15 @@ void EVENT::initialize_sound(int rate)//, int samples)
 {
 	// initialize sound
 	sound_rate = rate;
-	sound_size = (int)(sound_rate / FRAMES_PER_SEC_MIN + 0.5);
+	sound_size = (int)(sound_rate / FRAMES_PER_SEC_MIN + 0.5) * sizeof(int16_t) + 1;
 	sound_samples = (int)(sound_rate/config.window_fps+0.5);
-	sound_buffer_1 = (int16_t*)malloc(sound_size * sizeof(int16_t) * 2 + 1);
-	memset(sound_buffer_1, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+	sound_buffer_1 = (int16_t*)malloc(sound_size);
+	memset(sound_buffer_1, 0, sound_size);
 	sound_buffer_1_start = sound_buffer_1;
 	if((uint64_t)sound_buffer_1_start & 1)
 		sound_buffer_1++;
-	sound_buffer_2 = (int16_t*)malloc(sound_size * sizeof(int16_t) * 2 + 1);
-	memset(sound_buffer_2, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+	sound_buffer_2 = (int16_t*)malloc(sound_size);
+	memset(sound_buffer_2, 0, sound_size);
 	sound_buffer_2_start = sound_buffer_2;
 	if((uint64_t)sound_buffer_2_start & 1)
 		sound_buffer_2++;
@@ -98,9 +98,9 @@ void EVENT::reset()
 	// reset sound
 	sound_samples = (int)(sound_rate/config.window_fps+0.5);
 	if(sound_buffer_1)
-		memset(sound_buffer_1, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+		memset(sound_buffer_1, 0, sound_size);
 	if(sound_buffer_2)
-		memset(sound_buffer_2, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+		memset(sound_buffer_2, 0, sound_size);
 	sound_buffer_read = sound_buffer_2_start;
 	sound_buffer_write = sound_buffer_1_start;
 	sound_buffer_write_index = 0;
@@ -563,18 +563,12 @@ void EVENT::event_callback(int event_id, int err)
 
 void EVENT::mix_sound(uint32_t samples)
 {
-	d_sound[0]->mix(sound_buffer_write + (sound_buffer_write_index << 1), samples);	// Only one audio device for the Super Cassette Vision
+	d_sound[0]->mix(sound_buffer_write + sound_buffer_write_index, samples);	// Only one audio device for the Super Cassette Vision
 	sound_buffer_write_index += samples;
 }
 
 int16_t* EVENT::create_sound(int* extra_frames)
 {
-	for(uint32_t i = 0; i < (sound_samples<<1); i++)
-	{
-		if(sound_buffer_read[i] == 0)
-			bool stop = true;
-	}
-
 	if(sound_buffer_write_index >= sound_samples)
 	{
 		if(sound_buffer_write == sound_buffer_1_start)
@@ -668,9 +662,9 @@ bool EVENT::process_state(FILEIO* state_fio, bool loading)
 	if(loading)
 	{
 		if(sound_buffer_1)
-			memset(sound_buffer_1, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+			memset(sound_buffer_1, 0, sound_size);
 		if(sound_buffer_2)
-			memset(sound_buffer_2, 0, ((sound_size << 1) * sizeof(int16_t)) + 1);
+			memset(sound_buffer_2, 0, sound_size);
 		sound_buffer_read = sound_buffer_2_start;
 		sound_buffer_write = sound_buffer_1_start;
 		sound_buffer_write_index = 0;
