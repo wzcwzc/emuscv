@@ -17,7 +17,7 @@
 #define XXX 0x0	// Not tested
 #define OOO 0x8	// Tested but unable to find color
 
-static const scrntype_t palette_pc[16] =
+static const scrntype_t palette_pal[16] =
 {
 	RGB_COLOR(  0,   0, 136),	//  0 0x0 BLUE 1 (MEDIUM) for text  / TRANSPARENT for sprites
 	RGB_COLOR(  8,   8,   8),	//  1 0x1 BLACK
@@ -41,6 +41,29 @@ static const scrntype_t palette_pc[16] =
 //  64  72  80  88  96 104 112 120 
 // 128 136 144 152 160 168 176 184
 // 192 200 208 216 224 232 240 248
+
+
+static const scrntype_t palette_ntsc[16] =
+{
+	RGB_COLOR(  0,  90, 156),
+	RGB_COLOR(  0,   0,   0),
+	RGB_COLOR( 58, 148, 255),
+	RGB_COLOR(  0,   0, 255),
+	RGB_COLOR( 16, 214,   0),
+	RGB_COLOR( 66, 255,  16),
+	RGB_COLOR(123, 230, 197),
+	RGB_COLOR(  0, 173,   0),
+	RGB_COLOR(255,  41, 148),
+	RGB_COLOR(255,  49,  16),
+	RGB_COLOR(255,  58, 255),
+	RGB_COLOR(239, 156, 255),
+	RGB_COLOR(255, 206, 33),
+	RGB_COLOR( 74, 123, 16),
+	RGB_COLOR(165, 148, 165),
+	RGB_COLOR(255, 255, 255)
+};
+
+static scrntype_t *palette_pc;
 
 // Pairs of color used for two colors sprtites
 //                                        0x0  0x1  0x2  0x3  0x4  0x5  0x6  0x7  0x8  0x9  0xA  0xB  0xC  0xD  0xE  0xF

@@ -63,6 +63,7 @@ public:
 	virtual void update_dipswitch(void) { }
 
 	// draw screen
+	virtual void reset_palette() { }
 	virtual void draw_screen() { }
 
 	// multimedia

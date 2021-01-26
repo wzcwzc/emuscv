@@ -274,6 +274,7 @@ typedef struct {
 		int scv_display;
 		int scv_pixelaspect;
 		int scv_resolution;
+		int scv_palette;
 		int scv_fps;
 		int scv_displayfullmemory;
 		int scv_displayinputs;
@@ -290,6 +291,7 @@ typedef struct {
 		int window_console;
 		int window_pixelaspect;
 		int window_resolution;
+		int window_palette;
 		int window_width;
 		int window_height;
 		float window_aspect_ratio;

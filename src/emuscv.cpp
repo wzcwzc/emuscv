@@ -1501,6 +1501,7 @@ void cEmuSCV::RetroSetEnvironment(retro_environment_t cb)
 		{ SETTING_DISPLAY_KEY, "DISPLAY; AUTO|EMUSCV|EPOCH|YENO" },
 		{ SETTING_PIXELASPECT_KEY, "PIXELASPECT; AUTO|RECTANGULAR|SQUARE" },
 		{ SETTING_RESOLUTION_KEY, "RESOLUTION; AUTO|LOW|MEDIUM|HIGH" },
+		{ SETTING_PALETTE_KEY, "PALETTE; AUTO|STANDARD|OLDNTSC" },
 		{ SETTING_FPS_KEY, "FPS; AUTO|EPOCH60|YENO50" },
 		{ SETTING_DISPLAYFULLMEMORY_KEY, "DISPLAYFULLMEMORY; AUTO|YES|NO" },
 		{ SETTING_DISPLAYINPUTS_KEY, "DISPLAYINPUTS; AUTO|YES|NO" },
@@ -3570,6 +3571,34 @@ void cEmuSCV::RetroLoadSettings(void)
 			break;
 	}
 
+	// PALETTE
+	config.scv_palette = SETTING_PALETTE_AUTO_VAL;
+	var.key   = SETTING_PALETTE_KEY;
+	var.value = NULL;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		_TCHAR str[sizeof(var.value)];
+		memset(str, 0, sizeof(str));
+		strncpy(str, var.value, sizeof(str));
+		if(strcmp(str, _T(SETTING_PALETTE_STANDARD_KEY)) == 0)
+			config.scv_palette = SETTING_PALETTE_STANDARD_VAL;
+		else if(strcmp(str, _T(SETTING_PALETTE_OLDNTSC_KEY)) == 0)
+			config.scv_palette = SETTING_PALETTE_OLDNTSC_VAL;
+	}
+	switch(config.scv_palette)
+	{
+		case SETTING_PALETTE_STANDARD_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Palette setting: standard PAL/NEW NTSC colors\n", EMUSCV_NAME);
+			break;
+		case SETTING_PALETTE_OLDNTSC_VAL:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Resolution setting: old NTSC colors\n", EMUSCV_NAME);
+			break;
+		case SETTING_PALETTE_AUTO_VAL:
+		default:
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Resolution setting: automatic (standard PAL/NEW NTSC colors)\n", EMUSCV_NAME);
+			break;
+	}
+
 	// FPS
 	config.scv_fps = SETTING_FPS_AUTO_VAL;
 	var.key   = SETTING_FPS_KEY;
@@ -3715,10 +3744,16 @@ void cEmuSCV::RetroLoadSettings(void)
 			break;
 	}
 
-	apply_display_config();
-
+	apply_display_config();	
+	if(config.window_palette == SETTING_PALETTE_OLDNTSC_VAL)
+		palette_pc = (scrntype_t *)palette_ntsc;
+	else
+		palette_pc = (scrntype_t *)palette_pal;
 	if(escv_emu)
+	{
+		escv_emu->get_osd()->reset_palette();
 		escv_emu->get_osd()->reset_sound();
+	}
 	sound_buffer_samples = (AUDIO_SAMPLING_RATE / config.window_fps + 0.5);
 
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] apply_display_config()\n", EMUSCV_NAME);
@@ -3733,7 +3768,7 @@ void cEmuSCV::RetroSaveSettings(void)
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 //	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSaveSettings()\n", EMUSCV_NAME);
 
-	struct retro_variable variable[10];
+	struct retro_variable variable[11];
 
 	variable[0].key = SETTING_CONSOLE_KEY;
 	switch(config.scv_console)
@@ -3804,86 +3839,101 @@ void cEmuSCV::RetroSaveSettings(void)
 			break;
 	}
 	
-	variable[4].key = SETTING_FPS_KEY;
+	variable[4].key = SETTING_PALETTE_KEY;
+	switch(config.scv_palette)
+	{
+		case SETTING_PALETTE_STANDARD_VAL:
+			variable[4].value = "PALETTE; STANDARD";
+			break;
+		case SETTING_PALETTE_OLDNTSC_VAL:
+			variable[4].value = "PALETTE; OLDNTSC";
+			break;
+		case SETTING_PALETTE_AUTO_VAL:
+		default:
+			variable[4].value = "PALETTE; AUTO";
+			break;
+	}
+	
+	variable[5].key = SETTING_FPS_KEY;
 	switch(config.scv_fps)
 	{
 		case SETTING_FPS_EPOCH60_VAL:
-			variable[4].value = "FPS; EPOCH60";
+			variable[5].value = "FPS; EPOCH60";
 			break;
 		case SETTING_FPS_YENO50_VAL:
-			variable[4].value = "FPS; YENO50";
+			variable[5].value = "FPS; YENO50";
 			break;
 		case SETTING_FPS_AUTO_VAL:
 		default:
-			variable[4].value = "FPS; AUTO";
+			variable[5].value = "FPS; AUTO";
 			break;
 	}
 
-	variable[5].key = SETTING_DISPLAYFULLMEMORY_KEY;
+	variable[6].key = SETTING_DISPLAYFULLMEMORY_KEY;
 	switch(config.scv_displayfullmemory)
 	{
 		case SETTING_DISPLAYFULLMEMORY_YES_VAL:
-			variable[5].value = "DISPLAYFULLMEMORY; YES";
+			variable[6].value = "DISPLAYFULLMEMORY; YES";
 			break;
 		case SETTING_DISPLAYFULLMEMORY_NO_VAL:
-			variable[5].value = "DISPLAYFULLMEMORY; NO";
+			variable[6].value = "DISPLAYFULLMEMORY; NO";
 			break;
 		case SETTING_DISPLAYFULLMEMORY_AUTO_VAL:
 		default:
-			variable[5].value = "DISPLAYFULLMEMORY; AUTO";
+			variable[6].value = "DISPLAYFULLMEMORY; AUTO";
 			break;
 	}
 	
-	variable[6].key = SETTING_DISPLAYINPUTS_KEY;
+	variable[7].key = SETTING_DISPLAYINPUTS_KEY;
 	switch(config.scv_displayinputs)
 	{
 		case SETTING_DISPLAYINPUTS_YES_VAL:
-			variable[6].value = "DISPLAYINPUTS; YES";
+			variable[7].value = "DISPLAYINPUTS; YES";
 			break;
 		case SETTING_DISPLAYINPUTS_NO_VAL:
-			variable[6].value = "DISPLAYINPUTS; NO";
+			variable[7].value = "DISPLAYINPUTS; NO";
 			break;
 		case SETTING_DISPLAYINPUTS_AUTO_VAL:
 		default:
-			variable[6].value = "DISPLAYINPUTS; AUTO";
+			variable[7].value = "DISPLAYINPUTS; AUTO";
 			break;
 	}
 	
-	variable[7].key = SETTING_LANGAGE_KEY;
+	variable[8].key = SETTING_LANGAGE_KEY;
 	switch(config.scv_langage)
 	{
 		case SETTING_LANGAGE_JP_VAL:
-			variable[7].value = "LANGAGE; JP";
+			variable[8].value = "LANGAGE; JP";
 			break;
 		case SETTING_LANGAGE_FR_VAL:
-			variable[7].value = "LANGAGE; FR";
+			variable[8].value = "LANGAGE; FR";
 			break;
 		case SETTING_LANGAGE_EN_VAL:
-			variable[7].value = "LANGAGE; EN";
+			variable[8].value = "LANGAGE; EN";
 			break;
 		case SETTING_LANGAGE_AUTO_VAL:
 		default:
-			variable[7].value = "LANGAGE; AUTO";
+			variable[8].value = "LANGAGE; AUTO";
 			break;
 	}
 	
-	variable[8].key = SETTING_CHECKBIOS_KEY;
+	variable[9].key = SETTING_CHECKBIOS_KEY;
 	switch(config.scv_checkbios)
 	{
 		case SETTING_CHECKBIOS_NO_VAL:
-			variable[8].value = "CHECK BIOS; NO";
+			variable[9].value = "CHECK BIOS; NO";
 			break;
 		case SETTING_CHECKBIOS_YES_VAL:
-			variable[8].value = "CHECK BIOS; YES";
+			variable[9].value = "CHECK BIOS; YES";
 			break;
 		case SETTING_CHECKBIOS_AUTO_VAL:
 		default:
-			variable[8].value = "CHECK BIOS; AUTO";
+			variable[9].value = "CHECK BIOS; AUTO";
 			break;
 	}
 
-	variable[9].key = NULL;
-	variable[9].value = NULL;
+	variable[10].key = NULL;
+	variable[10].value = NULL;
 
 	RetroEnvironment(RETRO_ENVIRONMENT_SET_VARIABLES, variable);
 
@@ -3892,12 +3942,25 @@ void cEmuSCV::RetroSaveSettings(void)
 	variable[1].value = "DISPLAY; AUTO|EMUSCV|EPOCH|YENO";
 	variable[2].value = "PIXELASPECT; AUTO|RECTANGULAR|SQUARE";
 	variable[3].value = "RESOLUTION; AUTO|LOW|MEDIUM|HIGH";
-	variable[4].value = "FPS; AUTO|EPOCH60|YENO50";
-	variable[5].value = "DISPLAYFULLMEMORY; AUTO|YES|NO";
-	variable[6].value = "DISPLAYINPUTS; AUTO|YES|NO";
-	variable[7].value = "LANGAGE; AUTO|JP|FR|EN";
-	variable[8].value = "CHECKBIOS; AUTO|YES|NO";
+	variable[4].value = "PALETTE; AUTO|STANDARD|OLDNTSC";
+	variable[5].value = "FPS; AUTO|EPOCH60|YENO50";
+	variable[6].value = "DISPLAYFULLMEMORY; AUTO|YES|NO";
+	variable[7].value = "DISPLAYINPUTS; AUTO|YES|NO";
+	variable[8].value = "LANGAGE; AUTO|JP|FR|EN";
+	variable[9].value = "CHECKBIOS; AUTO|YES|NO";
 	RetroEnvironment(RETRO_ENVIRONMENT_SET_VARIABLES, variable);
+
+	apply_display_config();
+	if(config.window_palette == SETTING_PALETTE_OLDNTSC_VAL)
+		palette_pc = (scrntype_t *)palette_ntsc;
+	else
+		palette_pc = (scrntype_t *)palette_pal;
+	if(escv_emu)
+	{
+		escv_emu->get_osd()->reset_palette();
+		escv_emu->get_osd()->reset_sound();
+	}
+	sound_buffer_samples = (AUDIO_SAMPLING_RATE / config.window_fps + 0.5);
 }
 
 //

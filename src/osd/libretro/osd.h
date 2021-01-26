@@ -601,7 +601,7 @@ public:
 	scrntype_t* get_vm_screen_ptr();
 	scrntype_t* get_vm_line_ptr(int y);
 	scrntype_t* get_vm_pixel_ptr(int x, int y);
-	
+	void reset_palette();
 	int draw_screen();
 /*
 #ifdef ONE_BOARD_MICRO_COMPUTER

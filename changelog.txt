@@ -6,18 +6,26 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ***********************************************************
 * To do list
 ***********************************************************
-- Audio
 - Quick keyboard overlay (to do all with a controller, when there is any keyboard)
 - Savestates
 - In-game configuration menu
 - Native .zip ROMs support (actually supported via frontend's autoextract if supported)
 - In-game display of the resources contained in .zip ROMs
+- Enhance audio PCM 1-bitchannel quality
+
+
+
+***********************************************************
+* Libretro-EmuSCV v0.08.20210126232500
+***********************************************************
+- Added old NTSC wrong color palette (aka Never The Same Color) like in eSCV
 
 
 ***********************************************************
 * Libretro-EmuSCV v0.07.20210126134500
 ***********************************************************
 - Added Audio (support of PCM 1-bit, tone, noise and 3 square channels)
+
 
 ***********************************************************
 * Libretro-EmuSCV v0.06.20201223231000

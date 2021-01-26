@@ -119,6 +119,15 @@
 #define SETTING_RESOLUTION_HIGH_KEY			"HIGH"
 #define SETTING_RESOLUTION_HIGH_VAL			3
 
+#define SETTING_PALETTE_KEY					"emuscv_palette"
+#define SETTING_PALETTE_VAL					"PALETTE"
+#define SETTING_PALETTE_AUTO_KEY			"AUTO"
+#define SETTING_PALETTE_AUTO_VAL			0
+#define SETTING_PALETTE_STANDARD_KEY		"STANDARD"
+#define SETTING_PALETTE_STANDARD_VAL		1
+#define SETTING_PALETTE_OLDNTSC_KEY			"OLDNTSC"
+#define SETTING_PALETTE_OLDNTSC_VAL			2
+
 #define SETTING_FPS_KEY						"emuscv_fps"
 #define SETTING_FPS_VAL						"FPS"
 #define SETTING_FPS_AUTO_KEY				"AUTO"
@@ -217,6 +226,7 @@ public:
 #endif
 
 	// draw screen
+	void reset_palette();
 	void draw_screen();
 
 	// sound generation

@@ -128,6 +128,11 @@ DEVICE *VM::get_cpu(int index)
 // draw screen
 // ----------------------------------------------------------------------------
 
+void VM::reset_palette()
+{
+	vdp->reset_palette();
+}
+
 void VM::draw_screen()
 {
 	vdp->draw_screen();

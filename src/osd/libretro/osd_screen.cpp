@@ -195,6 +195,11 @@ scrntype_t* OSD::get_vm_pixel_ptr(int x, int y)
 	return vm_screen_buffer.get_pixel_ptr(x, y);
 }
 
+void OSD::reset_palette()
+{
+	vm->reset_palette();
+}
+
 int OSD::draw_screen()
 {
 /*

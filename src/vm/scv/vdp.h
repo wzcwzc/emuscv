@@ -52,6 +52,7 @@ public:
 	~VDP() {}
 
 	// common functions
+	void reset_palette();
 	void initialize();
 	void reset();
 	void event_vline(int v, int clock);

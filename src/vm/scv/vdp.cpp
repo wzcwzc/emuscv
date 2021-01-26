@@ -15,12 +15,21 @@
 #include "scv.h"
 #include "../upd7801.h"
 
+void VDP::reset_palette()
+{
+	if(config.window_palette == SETTING_PALETTE_OLDNTSC_VAL)
+		palette_pc = (scrntype_t *)palette_ntsc;
+	else
+		palette_pc = (scrntype_t *)palette_pal;
+}
+
 void VDP::initialize()
 {
 	resetting = true;
 	resetscanband = int(SCREEN_HEIGHT*rand()/RAND_MAX);
 	// register event to interrupt
 	register_vline_event(this);
+	reset_palette();
 }
 
 void VDP::reset()

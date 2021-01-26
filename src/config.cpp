@@ -721,6 +721,18 @@ void DLL_PREFIX apply_display_config()
 			break;
 	}
 
+	switch(config.scv_palette)
+	{
+		case SETTING_PALETTE_STANDARD_VAL:
+		case SETTING_PALETTE_OLDNTSC_VAL:
+			config.window_palette = config.scv_palette;
+			break;
+		case SETTING_PALETTE_AUTO_VAL:
+		default:
+			config.window_palette = SETTING_PALETTE_STANDARD_VAL;
+			break;
+	}
+
 	if(config.scv_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL)
 	{
 		config.draw_x = DRAW_X_FULL;
