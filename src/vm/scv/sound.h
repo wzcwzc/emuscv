@@ -18,29 +18,30 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define TONE_CLOCK   1500000.0
-#define NOISE_CLOCK      750.0
-#define SQUARE_CLOCK  175000.0
-#define PCM_CLOCK    1500000.0
+#define TONE_CLOCK    1500000.0
+#define NOISE_CLOCK       750.0
+#define SQUARE_CLOCK   175000.0
+#define PCM_CLOCK     1500000.0
 
-#define MAX_TONE          9000
-#define MAX_NOISE         3000
-#define MAX_SQUARE1       1500
-#define MAX_SQUARE2       1500
-#define MAX_SQUARE3       1500
-#define MAX_PCM          12000
+#define MAX_TONE           9000
+#define MAX_NOISE          3000
+#define MAX_SQUARE1        1500
+#define MAX_SQUARE2        1500
+#define MAX_SQUARE3        1500
+#define MAX_PCM           12000
 
-#define MAX_PARAM       0x8000
+#define MAX_PARAM        0x8000
 
-#define NOISE_TABLE_SIZE  1024
-#define SQUARE_TABLE_SIZE  256
-#define PCM_TABLE_SIZE 0x40000
-#define PCM_TABLE_DATA_SIZE 10
+#define NOISE_TABLE_SIZE   1024
+#define SQUARE_TABLE_SIZE   256
+#define PCM_TABLE_SIZE  0x40000
+#define PCM_TABLE_DATA_SIZE   8
+#define PCM_TABLE_SMOOTH_SIZE 8
 
-#define CMD_SILENCE	      0x00
-#define CMD_NOISE	      0x01
-#define CMD_TONE	      0x02
-#define CMD_PCM		      0x1F
+#define CMD_SILENCE	       0x00
+#define CMD_NOISE	       0x01
+#define CMD_TONE	       0x02
+#define CMD_PCM		       0x1F
 
 typedef struct
 {
@@ -72,6 +73,8 @@ private:
 	uint32_t cmd_addr;
 	int pcm_len;
 	int pcm_table_data[PCM_TABLE_DATA_SIZE];
+	int pcm_table_smooth[PCM_TABLE_SMOOTH_SIZE];
+	int pcm_table_smooth_index;
 
 	int volume_table[32];
 	int detune_table[32];

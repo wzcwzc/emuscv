@@ -62,7 +62,9 @@ void SOUND::write_data8(uint32_t addr, uint32_t data)
 			case CMD_PCM:
 				param_cnt = MAX_PARAM;
 				memset(pcm_table, 0, PCM_TABLE_SIZE+8);
+				memset(pcm_table_smooth, 0, PCM_TABLE_SMOOTH_SIZE);
 				pcm_len = pcm.ptr = 0;
+				pcm_table_smooth_index = 0;
 				break;
 		}
 		param_ptr = 0;
@@ -323,6 +325,7 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 {
 	int64_t vol;
 
+
 	// create sound buffer
 	for(int i = cnt; i != 0; i--)
 	{
@@ -331,8 +334,6 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 		// mix pcm
 		if(pcm.count != 0)
 		{
-//			int64_t v = pcm.output;
-//			int64_t c = 1;
 			pcm.count -= pcm.diff;
 			while(pcm.count <= 0)
 			{
@@ -344,9 +345,13 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 					else
 						pcm_table_data[i] = 0;
 				}
-				pcm.output = (pcm_table_data[0]+pcm_table_data[1]+pcm_table_data[4]+pcm_table_data[5]+pcm_table_data[6]+(pcm_table_data[2]+pcm_table_data[3]+pcm_table_data[4]+pcm_table_data[5]+pcm_table_data[6]+pcm_table_data[7]+pcm_table_data[8])<<1+pcm_table_data[9]) >> 4;
-//				v += tone.output;
-//				c++;
+
+				pcm.output =  pcm_table_data[0]+pcm_table_data[1]+pcm_table_data[2]+pcm_table_data[3]+pcm_table_data[4]+pcm_table_data[5]+pcm_table_data[6]+pcm_table_data[7]
+				           +                    pcm_table_data[1]+pcm_table_data[2]+pcm_table_data[3]+pcm_table_data[4]+pcm_table_data[5]+pcm_table_data[6]
+				           +                                      pcm_table_data[2]+pcm_table_data[3]+pcm_table_data[4]+pcm_table_data[5]
+				           +                                                        pcm_table_data[3]+pcm_table_data[4];
+				pcm.output = pcm.output >> 4;
+
 				if(++pcm.ptr >= pcm_len)
 				{
 					pcm.count = 0;
@@ -354,16 +359,18 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 				}
 			}
 			// Smooth sound
-//			v = v/c;
-//			vol += v;
-			vol += pcm.output;
+			pcm_table_smooth[pcm_table_smooth_index] = pcm.output;
+			if(++pcm_table_smooth_index >= PCM_TABLE_SMOOTH_SIZE)
+				pcm_table_smooth_index = 0;
+			int64_t v = pcm_table_smooth[0];
+			for(int i = PCM_TABLE_SMOOTH_SIZE-1; i > 0; i--)
+				v += pcm_table_smooth[i];
+			vol += v>>3;	// Optimization for: vol += v/PCM_TABLE_SMOOTH_SIZE;
 		}
 
 		// mix tone
 		if(tone.volume && tone.period)
 		{
-//			int64_t v = tone.output;
-//			int64_t c = 1;
 			tone.count -= tone.diff;
 			while(tone.count <= 0)
 			{
@@ -371,12 +378,7 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 				if(++tone.ptr >= 256)
 					tone.ptr = tone.offset;
 				tone.output = (timbre_table[tone.timbre][tone.ptr] * tone.volume) >> 8;
-//				v += tone.output;
-//				c++;
 			}
-			// Smooth sound
-//			v = v/c;
-//			vol += v;
 			vol += tone.output;
 		}
 
