@@ -94,54 +94,63 @@ void VDP::draw_screen()
 	resetting = false;
 
 	// Screen border
-	switch(config.screen_display)
+	// YENO
+	if(config.screen_display == SETTING_DISPLAY_YENO_VAL)
 	{
-		case SETTING_DISPLAY_EPOCH_VAL:
-			// EPOCH
-			for(int x = 26; x < 226; x++)
-			{
-				d[int(x+23*SCREEN_WIDTH)] = palette_pc[0x8];
-				d[int(x+248*SCREEN_WIDTH)] = palette_pc[0x8];
-			}
-			for(int y = 24; y < 248; y++)
-			{
-				d[int(26+y*SCREEN_WIDTH)] = palette_pc[0x8];
-				d[int(225+y*SCREEN_WIDTH)] = palette_pc[0x8];
-			}
-			break;
-		case SETTING_DISPLAY_YENO_VAL:
-			// YENO
-			for(int y = 0; y < 256; y++)
-				for(int x = 215; x < 218; x++)
-						d[int(x+y*SCREEN_WIDTH)] = palette_pc[0x1];
-			for(int y = 256; y < 264; y++)
-				for(int x = 32; x < 218; x++)
-						d[int(x+y*SCREEN_WIDTH)] = palette_pc[0x1];
-			for(int x = 31; x < 219; x++)
-			{
-//				d[int(x-1*SCREEN_WIDTH)] = palette_pc[0x2];
-				d[int(x+264*SCREEN_WIDTH)] = palette_pc[0x2];
-			}
-			for(int y = 0; y < 264; y++)
-			{
-				d[int(31+y*SCREEN_WIDTH)] = palette_pc[0x2];
-				d[int(218+y*SCREEN_WIDTH)] = palette_pc[0x2];
-			}
-			break;
-		case SETTING_DISPLAY_EMUSCV_VAL:
-		default:
-			// EMUSCV
-			for(int x = 29; x < 223; x++)
-			{
-				d[int(x+27*SCREEN_WIDTH)] = palette_pc[0x4];
-				d[int(x+244*SCREEN_WIDTH)] = palette_pc[0x4];
-			}
-			for(int y = 28; y < 244; y++)
-			{
-				d[int(29+y*SCREEN_WIDTH)] = palette_pc[0x4];
-				d[int(222+y*SCREEN_WIDTH)] = palette_pc[0x4];
-			}
-			break;
+		for(int y = 0; y < 256; y++)
+			for(int x = 215; x < 218; x++)
+					d[int(x+y*SCREEN_WIDTH)] = palette_pc[0x1];
+		for(int y = 256; y < 264; y++)
+			for(int x = 32; x < 218; x++)
+					d[int(x+y*SCREEN_WIDTH)] = palette_pc[0x1];
+	}
+
+	// Screen contour
+	if(config.window_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL)
+	{
+		switch(config.screen_display)
+		{
+			case SETTING_DISPLAY_EPOCH_VAL:
+				// EPOCH
+				for(int x = 26; x < 226; x++)
+				{
+					d[int(x+23*SCREEN_WIDTH)] = palette_pc[0x8];
+					d[int(x+248*SCREEN_WIDTH)] = palette_pc[0x8];
+				}
+				for(int y = 24; y < 248; y++)
+				{
+					d[int(26+y*SCREEN_WIDTH)] = palette_pc[0x8];
+					d[int(225+y*SCREEN_WIDTH)] = palette_pc[0x8];
+				}
+				break;
+			case SETTING_DISPLAY_YENO_VAL:
+				// YENO
+				for(int x = 31; x < 219; x++)
+				{
+//					d[int(x-1*SCREEN_WIDTH)] = palette_pc[0x2];
+					d[int(x+264*SCREEN_WIDTH)] = palette_pc[0x2];
+				}
+				for(int y = 0; y < 264; y++)
+				{
+					d[int(31+y*SCREEN_WIDTH)] = palette_pc[0x2];
+					d[int(218+y*SCREEN_WIDTH)] = palette_pc[0x2];
+				}
+				break;
+			case SETTING_DISPLAY_EMUSCV_VAL:
+			default:
+				// EMUSCV
+				for(int x = 29; x < 223; x++)
+				{
+					d[int(x+27*SCREEN_WIDTH)] = palette_pc[0x4];
+					d[int(x+244*SCREEN_WIDTH)] = palette_pc[0x4];
+				}
+				for(int y = 28; y < 244; y++)
+				{
+					d[int(29+y*SCREEN_WIDTH)] = palette_pc[0x4];
+					d[int(222+y*SCREEN_WIDTH)] = palette_pc[0x4];
+				}
+				break;
+		}
 	}
 }
 

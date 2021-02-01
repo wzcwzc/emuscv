@@ -735,6 +735,7 @@ void DLL_PREFIX apply_display_config()
 
 	if(config.scv_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL)
 	{
+		config.window_displayfullmemory = SETTING_DISPLAYFULLMEMORY_YES_VAL;
 		config.draw_x = DRAW_X_FULL;
 		config.draw_y = DRAW_Y_FULL;
 		config.draw_width = DRAW_WIDTH_FULL;
@@ -742,6 +743,7 @@ void DLL_PREFIX apply_display_config()
 	}
 	else
 	{
+		config.window_displayfullmemory = SETTING_DISPLAYFULLMEMORY_NO_VAL;
 		switch(config.screen_display)
 		{
 			case SETTING_DISPLAY_EPOCH_VAL:

@@ -18,6 +18,9 @@
 #include "res/binary.emuscv32x32xrgba8888.data.h"
 #include "res/binary.emuscv64x64xrgba8888.data.h"
 #include "res/binary.emuscv128x128xrgba8888.data.h"
+#include "res/binary.emuscvlady32x32xrgba8888.data.h"
+#include "res/binary.emuscvlady64x64xrgba8888.data.h"
+#include "res/binary.emuscvlady128x128xrgba8888.data.h"
 
 #define NOISE_WIDTH 444
 #define NOISE_HEIGHT 333
@@ -2878,19 +2881,28 @@ void cEmuSCV::RetroRun(void)
 		unsigned char *image;
 		if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
 		{
-			image = (unsigned char *)src_res_emuscv128x128xrgba8888_data;
+			if(config.window_console == SETTING_CONSOLE_EPOCHLADY_VAL)
+				image = (unsigned char *)src_res_emuscvlady128x128xrgba8888_data;
+			else
+				image = (unsigned char *)src_res_emuscv128x128xrgba8888_data;
 			sizx = 128;
 			sizy = 8;
 		}
 		else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
 		{
-			image = (unsigned char *)src_res_emuscv64x64xrgba8888_data;
+			if(config.scv_console == SETTING_CONSOLE_EPOCHLADY_VAL)
+				image = (unsigned char *)src_res_emuscvlady64x64xrgba8888_data;
+			else
+				image = (unsigned char *)src_res_emuscv64x64xrgba8888_data;
 			sizx = 64;
 			sizy = 4;
 		}
 		else //if(config.window_resolution == SETTING_RESOLUTION_LOW_VAL)
 		{
-			image = (unsigned char *)src_res_emuscv32x32xrgba8888_data;
+			if(config.window_console == SETTING_CONSOLE_EPOCHLADY_VAL)
+				image = (unsigned char *)src_res_emuscvlady32x32xrgba8888_data;
+			else
+				image = (unsigned char *)src_res_emuscv32x32xrgba8888_data;
 			sizx = 32;
 			sizy = 2;
 		}
@@ -3450,7 +3462,7 @@ void cEmuSCV::RetroLoadSettings(void)
 	var.value = NULL;
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	{
-		_TCHAR str[sizeof(var.value)];
+		_TCHAR str[16];
 		memset(str, 0, sizeof(str));
 		strncpy(str, var.value, sizeof(str));
 		if(strcmp(str, _T(SETTING_CONSOLE_EPOCH_KEY)) == 0)

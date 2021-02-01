@@ -76,7 +76,10 @@ SOURCES_CXX :=	$(CORE_DIR)/common.cpp \
 
 SOURCES_BIN	:=	$(RESOURCES_DIR)/emuscv32x32xrgba8888.data \
 				$(RESOURCES_DIR)/emuscv64x64xrgba8888.data \
-				$(RESOURCES_DIR)/emuscv128x128xrgba8888.data
+				$(RESOURCES_DIR)/emuscv128x128xrgba8888.data \
+				$(RESOURCES_DIR)/emuscvlady32x32xrgba8888.data \
+				$(RESOURCES_DIR)/emuscvlady64x64xrgba8888.data \
+				$(RESOURCES_DIR)/emuscvlady128x128xrgba8888.data
 
 ifeq ($(STATIC_LINKING),1)
 else

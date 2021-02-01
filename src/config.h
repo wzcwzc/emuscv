@@ -296,7 +296,8 @@ typedef struct {
 		int window_height;
 		float window_aspect_ratio;
 		double window_fps;
-
+		int window_displayfullmemory;
+		
 	#endif
 } config_t;
 
