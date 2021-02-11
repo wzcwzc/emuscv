@@ -79,7 +79,16 @@ SOURCES_BIN	:=	$(RESOURCES_DIR)/emuscv32x32xrgba8888.data \
 				$(RESOURCES_DIR)/emuscv128x128xrgba8888.data \
 				$(RESOURCES_DIR)/emuscvlady32x32xrgba8888.data \
 				$(RESOURCES_DIR)/emuscvlady64x64xrgba8888.data \
-				$(RESOURCES_DIR)/emuscvlady128x128xrgba8888.data
+				$(RESOURCES_DIR)/emuscvlady128x128xrgba8888.data \
+				$(RESOURCES_DIR)/keyboardepoch115x78xrgba8888.data \
+				$(RESOURCES_DIR)/keyboardepoch230x156xrgba8888.data \
+				$(RESOURCES_DIR)/keyboardepoch460x312xrgba8888.data \
+				$(RESOURCES_DIR)/keyboardlady115x78xrgba8888.data \
+				$(RESOURCES_DIR)/keyboardlady230x156xrgba8888.data \
+				$(RESOURCES_DIR)/keyboardlady460x312xrgba8888.data \
+				$(RESOURCES_DIR)/keyboardyeno115x78xrgba8888.data \
+				$(RESOURCES_DIR)/keyboardyeno230x156xrgba8888.data \
+				$(RESOURCES_DIR)/keyboardyeno460x312xrgba8888.data
 
 ifeq ($(STATIC_LINKING),1)
 else

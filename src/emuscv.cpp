@@ -21,6 +21,15 @@
 #include "res/binary.emuscvlady32x32xrgba8888.data.h"
 #include "res/binary.emuscvlady64x64xrgba8888.data.h"
 #include "res/binary.emuscvlady128x128xrgba8888.data.h"
+#include "res/binary.keyboardepoch115x78xrgba8888.data.h"
+#include "res/binary.keyboardepoch230x156xrgba8888.data.h"
+#include "res/binary.keyboardepoch460x312xrgba8888.data.h"
+#include "res/binary.keyboardlady115x78xrgba8888.data.h"
+#include "res/binary.keyboardlady230x156xrgba8888.data.h"
+#include "res/binary.keyboardlady460x312xrgba8888.data.h"
+#include "res/binary.keyboardyeno115x78xrgba8888.data.h"
+#include "res/binary.keyboardyeno230x156xrgba8888.data.h"
+#include "res/binary.keyboardyeno460x312xrgba8888.data.h"
 
 #define NOISE_WIDTH 444
 #define NOISE_HEIGHT 333
