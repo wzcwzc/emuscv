@@ -71,22 +71,34 @@ void VDP::draw_screen()
 
 	// Mix buffers
 	scrntype_t* d = emu->get_screen_ptr();
-	memset(d, 0, SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(uint32_t));
-	for(int y = 319; y >= 0; y--)
-		for(int x = 0; x < 320; x++)
-		{
-			d[int(x+4+y*SCREEN_WIDTH)] = palette_pc[text[y][x]];
-			if(sprite[y][x])
-				d[int(x-(x > 255 ? 256 : 0)+(y+2)*SCREEN_WIDTH)] = palette_pc[sprite[y][x]];
-		}
+	//memset(d, 0, SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(uint32_t));
+	for(int y = 320; --y >= 0; )
+  {
+    scrntype_t* pt = &d[4 + y * SCREEN_WIDTH];
+    unsigned char *st = text[y];
+    scrntype_t* ps = &d[(y + 2) * SCREEN_WIDTH];
+    unsigned char *ss = sprite[y];
+
+    for (int x = -1; ++x < 320;)
+    {
+      *pt++ = palette_pc[*st++];
+      unsigned int s = *ss++;
+      if (s != 0)
+        ps[x & 0xFF] = palette_pc[s];
+    }
+  }
 
 	// Reset scanline
 	if(resetting)
 	{
-		for(int y = resetscanband; y < resetscanband+30 ; y++)
-			for(int x = 0; x < SCREEN_WIDTH; x++)
-				if(y >= 0 && y < SCREEN_HEIGHT)
-					d[int(x+y*SCREEN_WIDTH)] = palette_pc[0x1];
+    scrntype_t color = palette_pc[0x1];
+		for(int y = resetscanband+30 ; --y >= resetscanband; )
+      if((unsigned int)y < SCREEN_HEIGHT)
+      {
+        scrntype_t* p = &d[y * SCREEN_WIDTH];
+        for (int x = SCREEN_WIDTH; --x >= 0; )
+          *p++ = color;
+      }
 	}
 	resetscanband -= 2;
 	if(resetscanband < -30)
@@ -167,31 +179,15 @@ inline void VDP::draw_text_screen()
 	uint8_t cb = vdc3 & 0xf;
 	uint8_t cg = vdc1 >> 4;
 
-	for(int y = 15; y >= 0; y--)
+	for(int y = 16; --y >= 0; )
 	{
 		bool t = (ys <= y && y < ye);
 		int y32 = y << 5;
-
-		for(int x = 0; x < 32; x++)
+		for(int x = 32; --x >= 0; )
 		{
-			if(t && (xs <= x && x < xe))
-			{
-				// draw text
-				uint8_t data = vram1[y32 + x] & 0x7f;
-				draw_text(x, y, data, ct, cb);
-			}
-			else if((vdc0 & 3) == 1)
-			{
-				// semi graph
-				uint8_t data = vram1[y32 + x];
-				draw_graph(x, y, data, cg);
-			}
-			else if((vdc0 & 3) == 3)
-			{
-				// block
-				uint8_t data = vram1[y32 + x];
-				draw_block(x, y, data);
-			}
+			if (t && (xs <= x && x < xe)) draw_text(x, y, vram1[y32 + x] & 0x7f, ct, cb); // draw text
+			else if ((vdc0 & 3) == 1) draw_graph(x, y, vram1[y32 + x], cg); // semi graph
+			else if ((vdc0 & 3) == 3) draw_block(x, y, vram1[y32 + x]); // block
 		}
 	}
 }
@@ -201,111 +197,86 @@ inline void VDP::draw_text(int dx, int dy, uint8_t data, uint8_t tcol, uint8_t b
 	int dx8 = (dx << 3)+2;
 	int dy16 = dy << 4;
 
-	for(int l = 0; l < 8 && data; l++)
-	{
-		uint8_t* dest = &text[dy16 + l][dx8];
-		uint8_t pat = font[data][l];
+	const unsigned char* f = font[data];
+	unsigned char* p = (unsigned char*)&text[dy16][dx8];
+	unsigned int c = (tcol << 8) + bcol;
+	if (data)
+	  for(int l = 8; --l >= 0; f++, p += 320)
+    {
+	    unsigned int pat = *f;
+      p[0] = (unsigned char)(c >> ((pat >> (7 - 3)) & 8));
+      p[1] = (unsigned char)(c >> ((pat >> (6 - 3)) & 8));
+      p[2] = (unsigned char)(c >> ((pat >> (5 - 3)) & 8));
+      p[3] = (unsigned char)(c >> ((pat >> (4 - 3)) & 8));
+      p[4] = (unsigned char)(c >> ((pat >> (3 - 3)) & 8));
+      p[5] = (unsigned char)(c >> ((pat << (3 - 2)) & 8));
+      p[6] = (unsigned char)(c >> ((pat << (3 - 1)) & 8));
+      p[7] = (unsigned char)(c >> ((pat << (3 - 0)) & 8));
+    }
 
-		dest[0] = (pat & 0x80) ? tcol : bcol;
-		dest[1] = (pat & 0x40) ? tcol : bcol;
-		dest[2] = (pat & 0x20) ? tcol : bcol;
-		dest[3] = (pat & 0x10) ? tcol : bcol;
-		dest[4] = (pat & 0x08) ? tcol : bcol;
-		dest[5] = (pat & 0x04) ? tcol : bcol;
-		dest[6] = (pat & 0x02) ? tcol : bcol;
-		dest[7] = (pat & 0x01) ? tcol : bcol;
-	}
-	for(int l = (data ? 8 : 0); l < 16; l++)
-	{
-		memset(&text[dy16 + l][dx8], bcol, 8);
-	}
+  unsigned int* p2 = (unsigned int*)&text[dy16 + ((data != 0) ? 8 : 0)][dx8];
+  c = bcol + ((uint32_t)bcol << 8); c = c + (c << 16);
+	for(int l = (data ? 8 : 16); --l >= 0; p2 += 320 >> 2)
+	  p2[0] = p2[1] = c;
 }
 
 inline void VDP::draw_block(int dx, int dy, uint8_t data)
 {
-	int dx8 = dx << 3;
+	int dx8 = dx << 3; // Pointer to pixel is aligned to 8.
 	int dy16 = dy << 4;
 	uint8_t cu = data >> 4;
 	uint8_t cl = data & 0xf;
 
-	if(cu)
+	if (cu != 0)
 	{
-		for(int l = 0; l < 8; l++)
-		{
-			memset(&text[dy16 + l][dx8], cu, 8);
-		}
+    unsigned int* p = (unsigned int*)&text[dy16][dx8];
+	  uint32_t c = cu + ((uint32_t)cu << 8); c = c + (c << 16);
+	  for(int i = 8; --i >= 0; p += 320 >> 2)
+	    p[0] = p[1] = c;
 	}
-	if(cl)
+	if (cl != 0)
 	{
-		for(int l = 8; l < 16; l++)
-		{
-			memset(&text[dy16 + l][dx8], cl, 8);
-		}
+    unsigned int* p = (unsigned int*)&text[dy16 + 8][dx8];
+    uint32_t c = cl + ((uint32_t)cl << 8); c = c + (c << 16);
+    for(int i = 8; --i >= 0; p += 320 >> 2)
+      p[0] = p[1] = c;
 	}
 }
 
 inline void VDP::draw_graph(int dx, int dy, uint8_t data, uint8_t col)
 {
 	int dx8l = dx << 3;
-	int dx8r = (dx << 3) + 4;
 	int dy16 = dy << 4;
 
+  uint32_t c = col + (col << 8); c = c + (c << 16);
+  unsigned int* p = (unsigned int*)&text[dy16][dx8l];
+
 	if(data & 0x80)
-	{
-		for(int l = 0; l < 4; l++)
-		{
-			memset(&text[dy16 + l][dx8l], col, 4);
-		}
-	}
+	  p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
+
 	if(data & 0x40)
-	{
-		for(int l = 0; l < 4; l++)
-		{
-			memset(&text[dy16 + l][dx8r], col, 4);
-		}
-	}
+    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
+
+	p += 320 * 4;
 	if(data & 0x20)
-	{
-		for(int l = 4; l < 8; l++)
-		{
-			memset(&text[dy16 + l][dx8l], col, 4);
-		}
-	}
+    p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
+
 	if(data & 0x10)
-	{
-		for(int l = 4; l < 8; l++)
-		{
-			memset(&text[dy16 + l][dx8r], col, 4);
-		}
-	}
+    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
+
+  p += 320 * 4;
 	if(data & 0x08)
-	{
-		for(int l = 8; l < 12; l++)
-		{
-			memset(&text[dy16 + l][dx8l], col, 4);
-		}
-	}
+    p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
+
 	if(data & 0x04)
-	{
-		for(int l = 8; l < 12; l++)
-		{
-			memset(&text[dy16 + l][dx8r], col, 4);
-		}
-	}
+    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
+
+  p += 320 * 4;
 	if(data & 0x02)
-	{
-		for(int l = 12; l < 16; l++)
-		{
-			memset(&text[dy16 + l][dx8l], col, 4);
-		}
-	}
+    p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
+
 	if(data & 0x01)
-	{
-		for(int l = 12; l < 16; l++)
-		{
-			memset(&text[dy16 + l][dx8r], col, 4);
-		}
-	}
+    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
 }
 
 inline void VDP::draw_sprite_screen()
