@@ -327,13 +327,13 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 
 
 	// create sound buffer
-	for(int i = cnt; i != 0; i--)
+	// mix pcm
+	if(pcm.count != 0)
 	{
-		vol = 0;
-
-		// mix pcm
-		if(pcm.count != 0)
+		for(int i = cnt+1; --i != 0; )
 		{
+			vol = 0;
+
 			pcm.count -= pcm.diff;
 			while(pcm.count <= 0)
 			{
@@ -345,13 +345,7 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 					else
 						pcm_table_data[i] = 0;
 				}
-
-				pcm.output =  pcm_table_data[0]+pcm_table_data[1]+pcm_table_data[2]+pcm_table_data[3]+pcm_table_data[4]+pcm_table_data[5]+pcm_table_data[6]+pcm_table_data[7]
-				           +                    pcm_table_data[1]+pcm_table_data[2]+pcm_table_data[3]+pcm_table_data[4]+pcm_table_data[5]+pcm_table_data[6]
-				           +                                      pcm_table_data[2]+pcm_table_data[3]+pcm_table_data[4]+pcm_table_data[5]
-				           +                                                        pcm_table_data[3]+pcm_table_data[4];
-				pcm.output = pcm.output >> 4;
-
+				pcm.output =  (pcm_table_data[0] + pcm_table_data[1] << 1 + pcm_table_data[2] + pcm_table_data[2] << 1 + pcm_table_data[3] << 2 + pcm_table_data[4] << 2 + pcm_table_data[5] + pcm_table_data[5] << 1 + pcm_table_data[6] << 1 + pcm_table_data[7]) >> 8;
 				if(++pcm.ptr >= pcm_len)
 				{
 					pcm.count = 0;
@@ -363,97 +357,130 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 			if(++pcm_table_smooth_index >= PCM_TABLE_SMOOTH_SIZE)
 				pcm_table_smooth_index = 0;
 			int64_t v = pcm_table_smooth[0];
-			for(int i = PCM_TABLE_SMOOTH_SIZE-1; i > 0; i--)
+			for(int i = PCM_TABLE_SMOOTH_SIZE-1; --i > 0; )
 				v += pcm_table_smooth[i];
-			vol += v>>3;	// Optimization for: vol += v/PCM_TABLE_SMOOTH_SIZE;
-		}
+			vol += v>>3;	// Quick optimization for: vol += v/PCM_TABLE_SMOOTH_SIZE;
 
-		// mix tone
-		if(tone.volume && tone.period)
+//			// Saturate
+//			if(vol > INT16_MAX)
+//				vol = INT16_MAX;
+//			else if(vol < INT16_MIN)
+//			vol = INT16_MIN;
+
+			// Mix
+			*buffer++ = vol;	// Mono
+		}
+	}
+	// mix tone
+	else// if(tone.volume && tone.period)
+	{
+		for(int i = cnt+1; --i != 0; )
 		{
-			tone.count -= tone.diff;
-			while(tone.count <= 0)
+			vol = 0;
+
+			// mix tone
+			if(tone.volume && tone.period)
 			{
-				tone.count += tone.period;
-				if(++tone.ptr >= 256)
-					tone.ptr = tone.offset;
-				tone.output = (timbre_table[tone.timbre][tone.ptr] * tone.volume) >> 8;
-			}
-			vol += tone.output;
-		}
-
-		// Mix noise
-		if(noise.volume)
-		{
-			if(noise.period)
-			{		
-				noise.count -= noise.diff;
-				while(noise.count <= 0)
+				tone.count -= tone.diff;
+				while(tone.count <= 0)
 				{
-					noise.count += noise.period;
-					noise.ptr    = (noise.ptr + 1) & (NOISE_TABLE_SIZE - 1);
-					noise.output = (noise_table[noise.ptr] * noise.volume) >> 8;
+					tone.count += tone.period;
+					if(++tone.ptr >= 256)
+						tone.ptr = tone.offset;
+					tone.output = (timbre_table[tone.timbre][tone.ptr] * tone.volume) >> 8;
 				}
+				vol += tone.output;
 			}
-			else if(noise.timbre)	// Patch for Star Speeder
+
+//			// Saturate
+//			if(vol > INT16_MAX)
+//				vol = INT16_MAX;
+//			else if(vol < INT16_MIN)
+//			vol = INT16_MIN;
+
+//			// Mix
+//			*buffer++ = vol;	// Mono
+//		}
+//	}
+//	else
+//	{
+//		for(int i = cnt+1; --i != 0; )
+//		{
+//			vol = 0;
+
+			// Mix noise
+			if(noise.volume)
 			{
-				noise.count -= noise.diff;
-				while(noise.count <= 0)
+				if(noise.period)
+				{		
+					noise.count -= noise.diff;
+					while(noise.count <= 0)
+					{
+						noise.count += noise.period;
+						noise.ptr    = (noise.ptr + 1) & (NOISE_TABLE_SIZE - 1);
+						noise.output = (noise_table[noise.ptr] * noise.volume) >> 8;
+					}
+				}
+				else if(noise.timbre)	// Patch for Star Speeder
 				{
-					noise.count += noise.timbre;
-					noise.ptr    = (noise.ptr + 1) & (NOISE_TABLE_SIZE - 1);
-					noise.output = (noise_table[noise.ptr] * noise.volume) >> 9;
+					noise.count -= noise.diff;
+					while(noise.count <= 0)
+					{
+						noise.count += noise.timbre;
+						noise.ptr    = (noise.ptr + 1) & (NOISE_TABLE_SIZE - 1);
+						noise.output = (noise_table[noise.ptr] * noise.volume) >> 9;
+					}
 				}
+				vol += noise.output;
 			}
-			vol += noise.output;
-		}
 
-		// Mix square 1
-		if(square1.volume && square1.period)
-		{
-			square1.count -= square1.diff;
-			while(square1.count <= 0)
+			// Mix square 1
+			if(square1.volume && square1.period)
 			{
-				square1.count  += square1.period;
-				square1.ptr     = (square1.ptr + 1) & 0xFF;
-				square1.output  = (square_table[square1.ptr] * square1.volume) >> 8;
+				square1.count -= square1.diff;
+				while(square1.count <= 0)
+				{
+					square1.count  += square1.period;
+					square1.ptr     = (square1.ptr + 1) & 0xFF;
+					square1.output  = (square_table[square1.ptr] * square1.volume) >> 8;
+				}
+				vol += square1.output;
 			}
-			vol += square1.output;
-		}
 
-		// Mix square 2
-		if(square2.volume && square2.period)
-		{
-			square2.count -= square2.diff;
-			while(square2.count <= 0)
+			// Mix square 2
+			if(square2.volume && square2.period)
 			{
-				square2.count  += square2.period;
-				square2.ptr     = (square2.ptr + 1) & 0xFF;
-				square2.output  = (square_table[square2.ptr] * square2.volume) >> 8;
+				square2.count -= square2.diff;
+				while(square2.count <= 0)
+				{
+					square2.count  += square2.period;
+					square2.ptr     = (square2.ptr + 1) & 0xFF;
+					square2.output  = (square_table[square2.ptr] * square2.volume) >> 8;
+				}
+				vol += square2.output;
 			}
-			vol += square2.output;
-		}
 
-		// Mix square 3
-		if(square3.volume && square3.period)
-		{
-			square3.count -= square3.diff;
-			while(square3.count <= 0)
+			// Mix square 3
+			if(square3.volume && square3.period)
 			{
-				square3.count  += square3.period;
-				square3.ptr     = (square3.ptr + 1) & 0xFF;
-				square3.output  = (square_table[square3.ptr] * square3.volume) >> 8;
+				square3.count -= square3.diff;
+				while(square3.count <= 0)
+				{
+					square3.count  += square3.period;
+					square3.ptr     = (square3.ptr + 1) & 0xFF;
+					square3.output  = (square_table[square3.ptr] * square3.volume) >> 8;
+				}
+				vol += square3.output;
 			}
-			vol += square3.output;
+
+//			// Mix all channels
+//			if(vol > INT16_MAX)
+//				vol = INT16_MAX;
+//			else if(vol < INT16_MIN)
+//				vol = INT16_MIN;
+
+			*buffer++ = vol;	// Mono
 		}
-
-		// Mix all channels
-		if(vol > INT16_MAX)
-			vol = INT16_MAX;
-		else if(vol < INT16_MIN)
-			vol = INT16_MIN;
-
-		*buffer++ = vol;	// Mono
 	}
 }
 

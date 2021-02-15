@@ -109,11 +109,10 @@ void VDP::draw_screen()
 	// YENO
 	if(config.screen_display == SETTING_DISPLAY_YENO_VAL)
 	{
-		for(int y = 0; y < 256; y++)
-			for(int x = 215; x < 218; x++)
-					d[int(x+y*SCREEN_WIDTH)] = palette_pc[0x1];
-		for(int y = 256; y < 264; y++)
-			for(int x = 32; x < 218; x++)
+		for(int y = 256; --y >= 0; )
+			d[int(215+y*SCREEN_WIDTH)] = d[int(216+y*SCREEN_WIDTH)] = d[int(217+y*SCREEN_WIDTH)] = palette_pc[0x1];
+		for(int y = 264; --y > 255; )
+			for(int x = 218; --x > 31; )
 					d[int(x+y*SCREEN_WIDTH)] = palette_pc[0x1];
 	}
 
@@ -124,43 +123,25 @@ void VDP::draw_screen()
 		{
 			case SETTING_DISPLAY_EPOCH_VAL:
 				// EPOCH
-				for(int x = 26; x < 226; x++)
-				{
-					d[int(x+23*SCREEN_WIDTH)] = palette_pc[0x8];
-					d[int(x+248*SCREEN_WIDTH)] = palette_pc[0x8];
-				}
-				for(int y = 24; y < 248; y++)
-				{
-					d[int(26+y*SCREEN_WIDTH)] = palette_pc[0x8];
-					d[int(225+y*SCREEN_WIDTH)] = palette_pc[0x8];
-				}
+				for(int x = 226; --x > 25; )
+					d[int(x+23*SCREEN_WIDTH)] = d[int(x+248*SCREEN_WIDTH)] = palette_pc[0x8];
+				for(int y = 248; --y > 23; )
+					d[int(26+y*SCREEN_WIDTH)] = d[int(225+y*SCREEN_WIDTH)] = palette_pc[0x8];
 				break;
 			case SETTING_DISPLAY_YENO_VAL:
 				// YENO
-				for(int x = 31; x < 219; x++)
-				{
-//					d[int(x-1*SCREEN_WIDTH)] = palette_pc[0x2];
+				for(int x = 219; --x > 30; )
 					d[int(x+264*SCREEN_WIDTH)] = palette_pc[0x2];
-				}
-				for(int y = 0; y < 264; y++)
-				{
-					d[int(31+y*SCREEN_WIDTH)] = palette_pc[0x2];
-					d[int(218+y*SCREEN_WIDTH)] = palette_pc[0x2];
-				}
+				for(int y = 264; --y >= 0; )
+					d[int(31+y*SCREEN_WIDTH)] = d[int(218+y*SCREEN_WIDTH)] = palette_pc[0x2];
 				break;
 			case SETTING_DISPLAY_EMUSCV_VAL:
 			default:
 				// EMUSCV
-				for(int x = 29; x < 223; x++)
-				{
-					d[int(x+27*SCREEN_WIDTH)] = palette_pc[0x4];
-					d[int(x+244*SCREEN_WIDTH)] = palette_pc[0x4];
-				}
-				for(int y = 28; y < 244; y++)
-				{
-					d[int(29+y*SCREEN_WIDTH)] = palette_pc[0x4];
-					d[int(222+y*SCREEN_WIDTH)] = palette_pc[0x4];
-				}
+				for(int x = 223; --x > 28; x++)
+					d[int(x+27*SCREEN_WIDTH)] = d[int(x+244*SCREEN_WIDTH)] = palette_pc[0x4];
+				for(int y = 244; --y > 27; )
+					d[int(29+y*SCREEN_WIDTH)] = d[int(222+y*SCREEN_WIDTH)] = palette_pc[0x4];
 				break;
 		}
 	}
@@ -229,54 +210,41 @@ inline void VDP::draw_block(int dx, int dy, uint8_t data)
 
 	if (cu != 0)
 	{
-    unsigned int* p = (unsigned int*)&text[dy16][dx8];
-	  uint32_t c = cu + ((uint32_t)cu << 8); c = c + (c << 16);
-	  for(int i = 8; --i >= 0; p += 320 >> 2)
-	    p[0] = p[1] = c;
+		unsigned int* p = (unsigned int*)&text[dy16][dx8];
+		uint32_t c = cu + ((uint32_t)cu << 8); c = c + (c << 16);
+		for(int i = 8; --i >= 0; p += 320 >> 2)
+			p[0] = p[1] = c;
 	}
 	if (cl != 0)
 	{
-    unsigned int* p = (unsigned int*)&text[dy16 + 8][dx8];
-    uint32_t c = cl + ((uint32_t)cl << 8); c = c + (c << 16);
-    for(int i = 8; --i >= 0; p += 320 >> 2)
-      p[0] = p[1] = c;
+    	unsigned int* p = (unsigned int*)&text[dy16 + 8][dx8];
+    	uint32_t c = cl + ((uint32_t)cl << 8); c = c + (c << 16);
+    	for(int i = 8; --i >= 0; p += 320 >> 2)
+			p[0] = p[1] = c;
 	}
 }
 
 inline void VDP::draw_graph(int dx, int dy, uint8_t data, uint8_t col)
 {
-	int dx8l = dx << 3;
-	int dy16 = dy << 4;
-
-  uint32_t c = col + (col << 8); c = c + (c << 16);
-  unsigned int* p = (unsigned int*)&text[dy16][dx8l];
-
+	uint32_t c = col + (col << 8);
+	c = c + (c << 16);
+	uint32_t *p = (uint32_t *)&text[dy << 4][dx << 3];
 	if(data & 0x80)
-	  p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
-
+		p[0] = p[80] = p[160] = p[240] = c;
 	if(data & 0x40)
-    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
-
-	p += 320 * 4;
+		p[1] = p[81] = p[161] = p[241] = c;
 	if(data & 0x20)
-    p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
-
+		p[320] = p[400] = p[480] = p[560] = c;
 	if(data & 0x10)
-    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
-
-  p += 320 * 4;
+		p[321] = p[401] = p[481] = p[561] = c;
 	if(data & 0x08)
-    p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
-
+		p[640] = p[720] = p[800] = p[880] = c;
 	if(data & 0x04)
-    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
-
-  p += 320 * 4;
+		p[641] = p[721] = p[801] = p[881] = c;
 	if(data & 0x02)
-    p[0] = p[320 >> 2] = p[640 >> 2] = p[960 >> 2] = c;
-
+		p[960] = p[1040] = p[1120] = p[1200] = c;
 	if(data & 0x01)
-    p[1] = p[(320  >> 2) + 1] = p[(640 >> 2) + 1] = p[(960 >> 2) + 1] = c;
+		p[961] = p[1041] = p[1121] = p[1201] = c;
 }
 
 inline void VDP::draw_sprite_screen()

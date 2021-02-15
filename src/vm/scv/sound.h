@@ -23,11 +23,11 @@
 #define SQUARE_CLOCK   175000.0
 #define PCM_CLOCK     1500000.0
 
-#define MAX_TONE           9000
-#define MAX_NOISE          3000
-#define MAX_SQUARE1        1500
-#define MAX_SQUARE2        1500
-#define MAX_SQUARE3        1500
+#define MAX_TONE          12000
+#define MAX_NOISE          9000
+#define MAX_SQUARE1        1000
+#define MAX_SQUARE2        1000
+#define MAX_SQUARE3        1000
 #define MAX_PCM           12000
 
 #define MAX_PARAM        0x8000

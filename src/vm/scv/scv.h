@@ -19,7 +19,7 @@
 
 // Device informations for virtual machine
 #define LINES_PER_FRAME				262
-#define CPU_CLOCKS					3800000
+#define CPU_CLOCKS					4000000
 #define FRAMES_PER_SEC				60
 #define FRAMES_PER_SEC_MAX			FRAMES_PER_SEC
 #define FRAMES_PER_SEC_MIN			50
