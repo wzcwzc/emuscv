@@ -1326,10 +1326,13 @@ cEmuSCV::cEmuSCV()
 
 	escv_emu = NULL;
 
-	frame_surface = NULL;
-	frame_renderer = NULL;
-	noise_surface = NULL;
-	noise_renderer = NULL;
+	frame_surface		= NULL;
+	frame_renderer		= NULL;
+	noise_surface		= NULL;
+	noise_renderer		= NULL;
+	keyboard_surface	= NULL;
+	keyboard_renderer	= NULL;
+	keyboard_counter	= 0;
 
 	run_frames_last				= 0;
 	run_frames_total			= 0;
@@ -1359,6 +1362,12 @@ cEmuSCV::cEmuSCV()
 	key_pressed_power = false;
 	key_pressed_pause = false;
 	key_pressed_reset = false;
+	key_pressed_up = false;
+	key_pressed_down = false;
+	key_pressed_left = false;
+	key_pressed_right = false;
+	key_pressed_keyboard_stay_opened = false;
+	key_pressed_keyboard_close = false;
 
 	button_keyboard_pressed = false;
 	button_menu_pressed = false;
@@ -1895,6 +1904,13 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 //	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroLoadGame()\n", EMUSCV_NAME);
 
+	unsigned char *image;
+	uint32_t posx			= 0;
+	uint32_t posy			= 0;
+	uint32_t sizx			= 0;
+	uint32_t sizy			= 0;
+
+
 	keyboard_x = 1;
 	keyboard_y = 2;
 
@@ -1949,6 +1965,11 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
     }
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface renderer created\n", EMUSCV_NAME);
 
+	// Paint frame surface in black
+	SDL_SetRenderDrawColor(frame_renderer, 0, 0, 0, 255);
+	SDL_RenderClear(frame_renderer);
+//	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface cleared\n", EMUSCV_NAME);
+
 	// create SDL TV static noise surface
     noise_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 2*NOISE_WIDTH, 2*NOISE_HEIGHT, 8*sizeof(uint32_t), 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
     if (noise_surface == NULL)
@@ -1978,10 +1999,9 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 	}
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] TV static noise drawn\n", EMUSCV_NAME);
 
-	// Paint it black
-	SDL_SetRenderDrawColor(frame_renderer, 0, 0, 0, 255);
-	SDL_RenderClear(frame_renderer);
-//	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface cleared\n", EMUSCV_NAME);
+	// Create quick menu SDL surface & renderer
+	if(!CreateKeyboardSurface())
+		return FALSE;
 
 	// reset the frame counter
 	retro_frame_counter = 0;
@@ -2367,6 +2387,11 @@ void cEmuSCV::RetroRun(void)
 	uint32_t sizy			= 0;
 	uint32_t space			= 4;
 
+	uint8_t spacex			= 0;
+	uint8_t spacey			= 0;
+	uint8_t sizex			= 0;
+	uint8_t sizey			= 0;
+
 	int16_t joyposx			= 0;
 	int16_t joyposy			= 0;
 	uint32_t color			= 0xFF000000;
@@ -2481,7 +2506,6 @@ void cEmuSCV::RetroRun(void)
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Imputs parsed\n", EMUSCV_NAME);
 
 	bool updated = false;
-
 	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
 	{
 		RetroLoadSettings();
@@ -2491,10 +2515,130 @@ void cEmuSCV::RetroRun(void)
 //	else
 //		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Settings (variables) unchanged, already loaded\n", EMUSCV_NAME);
 
-//	if(!is_keyboard_displayed && !is_menu_displayed && escv_emu)
-//	{
-//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] escv_emu exists\n", EMUSCV_NAME);
 
+	// Button SELECT
+	// open configuration
+/*
+	if ((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT)))
+	{
+		if(!button_menu_pressed)
+		{
+			button_menu_pressed = true;
+			is_menu_displayed = !is_menu_displayed
+			if(is_menu_displayed)
+				is_keyboard_displayed = false;
+		}
+	}
+	else
+		button_menu_pressed = false;
+*/
+
+	// Other buttons
+	// open the console keyboard overlay
+	if ((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
+	|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L3)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))
+	|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L3)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R3)))
+	{
+		if(!button_keyboard_pressed)
+		{
+			button_keyboard_pressed = true;
+			is_keyboard_displayed = !is_keyboard_displayed;
+			if(is_keyboard_displayed)
+				is_menu_displayed = false;
+		}
+	}
+	else
+		button_keyboard_pressed = false;
+
+	// Open or close fading the keyboard
+	if(is_keyboard_displayed)
+	{
+		if(keyboard_counter < EMUSCV_KEYBOARD_DELAY)
+		{
+			keyboard_counter += 300/config.window_fps;
+			if(keyboard_counter >= EMUSCV_KEYBOARD_DELAY)
+				keyboard_counter = EMUSCV_KEYBOARD_DELAY;
+		}
+	}
+	else
+	{
+		if(keyboard_counter > 0)
+		{
+			keyboard_counter -= 300/config.window_fps;
+			if(keyboard_counter < 0)
+				keyboard_counter = 0;
+		}
+	}
+
+	// Key UP with controller
+	if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_UP)) || (analoglefty0 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrighty0 <= EMUSCV_AXIS_NEUTRAL_MIN)
+	|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_UP)) || (analoglefty1 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrighty1 <= EMUSCV_AXIS_NEUTRAL_MIN))
+	{
+		if(!key_pressed_up)
+		{
+			key_pressed_up = true;
+			if(is_keyboard_displayed && keyboard_y > 0)
+			{
+				if(keyboard_x == 0 && (keyboard_y == 1 || keyboard_y == 2))
+					keyboard_y = 0;
+				else
+					keyboard_y--;
+			}
+		}
+	}
+	else
+		key_pressed_up = false;
+
+	// Key DOWN with controller
+	if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)) || (analoglefty0 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrighty0 >= EMUSCV_AXIS_NEUTRAL_MAX)
+	|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)) || (analoglefty1 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrighty1 >= EMUSCV_AXIS_NEUTRAL_MAX))
+	{
+		if(!key_pressed_down)
+		{
+			key_pressed_down = true;
+			if(is_keyboard_displayed && keyboard_y < 3)
+			{
+				if(keyboard_x == 0 && (keyboard_y == 1 || keyboard_y == 2))
+					keyboard_y = 3;
+				else
+					keyboard_y++;
+			}
+		}
+	}
+	else
+		key_pressed_down = false;
+
+	// Key LEFT with controller
+	if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)) || (analogleftx0 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrightx0 <= EMUSCV_AXIS_NEUTRAL_MIN)
+	|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)) || (analogleftx1 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrightx1 <= EMUSCV_AXIS_NEUTRAL_MIN))
+	{
+		if(!key_pressed_left)
+		{
+			key_pressed_left = true;
+			if(is_keyboard_displayed && keyboard_x > 0)
+				keyboard_x--;
+		}
+	}
+	else
+		key_pressed_left = false;
+
+	// Key RIGHT with controller
+	if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)) || (analogleftx0 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrightx0 >= EMUSCV_AXIS_NEUTRAL_MAX)
+	|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)) || (analogleftx1 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrightx1 >= EMUSCV_AXIS_NEUTRAL_MAX))
+	{
+		if(!key_pressed_right)
+		{
+			key_pressed_right = true;
+			if(is_keyboard_displayed && keyboard_x < 3)
+				keyboard_x++;
+		}
+	}
+	else
+		key_pressed_right = false;
+
+	// Controllers
+	if(!is_keyboard_displayed && !is_menu_displayed && escv_emu)
+	{
 		// LEFT CONTROLLER 1, orange
 		// Directionnal cross, analog stick left or analog stick right
 		escv_emu->get_osd()->set_joy_status(	0,
@@ -2516,51 +2660,29 @@ void cEmuSCV::RetroRun(void)
 												(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
 												(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
 												false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
-//	}
-//	else
-//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] escv_emu don't exists\n", EMUSCV_NAME);	
+	}
 
-	// Button SELECT
-	// open configuration
-	if ((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT)))
-	{
-		if(!button_menu_pressed)
-		{
-			button_menu_pressed = true;
-//			is_menu_displayed = !is_menu_displayed
-			if(is_menu_displayed)
-				is_keyboard_displayed = false;
-		}
-	}
-	else
-		button_menu_pressed = false;
-	
-	// Other buttons
-	// open the console keyboard overlay
-	if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L3)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))
-	|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L3)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R3)))
-	{
-		if(!button_keyboard_pressed)
-		{
-			button_keyboard_pressed = true;
-			is_keyboard_displayed = !is_keyboard_displayed;
-			if(is_keyboard_displayed)
-				is_menu_displayed = false;
-		}
-	}
-	else
-		button_menu_pressed = false;
+	key_pressed_keyboard_stay_opened = false;
+	key_pressed_keyboard_close = false;
 
 	if(start_up_counter_power < 150)
 	{
 		// Auto power ON after 0,5 seconds
+		// Power button inactive
 		start_up_counter_power += 300/config.window_fps;
 		is_power_on = (start_up_counter_power >= 150);
 	}
 	else
 	{
 		// Key POWER ON/OFF
-		if(keyPower != 0)
+		if(keyPower != 0
+		|| (is_keyboard_displayed && keyboard_x == 0 && keyboard_y == 0
+		&& (
+			(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+			|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+			|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+			|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		)))
 		{
 			if (!key_pressed_power)
 			{
@@ -2569,6 +2691,13 @@ void cEmuSCV::RetroRun(void)
 					RetroReset();
 			}
 			key_pressed_power = true;
+			keyboard_x = 0;
+			keyboard_y = 0;
+			if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+			|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+				key_pressed_keyboard_close = true;
+			else
+				key_pressed_keyboard_stay_opened = true;
 		}
 		else if(key_pressed_power)
 			key_pressed_power = false;
@@ -2587,20 +2716,51 @@ void cEmuSCV::RetroRun(void)
 //	}
 
     // Key RESET
-	if (keyReset != 0)
+	if (keyReset != 0
+	|| (is_keyboard_displayed && keyboard_x == 0 && (keyboard_y == 1 || keyboard_y == 2)
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 		key_pressed_reset = true;
 		RetroReset();
+		keyboard_x = 0;
+		if(keyboard_y < 2)
+			keyboard_y = 1;
+		else
+			keyboard_y = 2;
+		if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
-	else if(key_pressed_reset)
+	else
 		key_pressed_reset = false;
 
     // Key PAUSE
-	if (keyPause != 0)
+	if (keyPause != 0
+	|| (is_keyboard_displayed && keyboard_x == 0 && keyboard_y == 3
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 		if(escv_emu)
 			escv_emu->key_down(VK_SPACE, false, key_pressed_pause);
 		key_pressed_pause = true;
+		keyboard_x = 0;
+		keyboard_y = 3;
+		if((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_pause)
 	{
@@ -2610,11 +2770,26 @@ void cEmuSCV::RetroRun(void)
 	}
 
 	// Key 0
-	if (key0 != 0)
+	if (key0 != 0
+	|| (is_keyboard_displayed && keyboard_x == 1 && keyboard_y == 3
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD0, false, key_pressed_0);
 		key_pressed_0 = true;
+		keyboard_x = 1;
+		keyboard_y = 3;
+		if(key0 != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_0)
 	{
@@ -2624,7 +2799,14 @@ void cEmuSCV::RetroRun(void)
 	}
 
 	// Key 1
-	if (key1 != 0)
+	if (key1 != 0
+	|| (is_keyboard_displayed && keyboard_x == 1 && keyboard_y == 2
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 //		if(!key_pressed_1)
 //		{
@@ -2634,6 +2816,14 @@ void cEmuSCV::RetroRun(void)
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD1, false, key_pressed_1);
 		key_pressed_1 = true;
+		keyboard_x = 1;
+		keyboard_y = 2;
+		if(key1 != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_1)
 	{
@@ -2643,13 +2833,28 @@ void cEmuSCV::RetroRun(void)
 	}
 
 	// Key 2
-	if (key2 != 0)
+	if (key2 != 0
+	|| (is_keyboard_displayed && keyboard_x == 2 && keyboard_y == 2
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 //		config.scv_display = SETTING_DISPLAY_EPOCH_VAL;
 //		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD2, false, key_pressed_2);
 		key_pressed_2 = true;
+		keyboard_x = 2;
+		keyboard_y = 2;
+		if(key2 != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_2)
 	{
@@ -2659,13 +2864,28 @@ void cEmuSCV::RetroRun(void)
 	}
 
 	// Key 3
-	if (key3 != 0)
+	if (key3 != 0
+	|| (is_keyboard_displayed && keyboard_x == 3 && keyboard_y == 2
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 //		config.scv_display = SETTING_DISPLAY_YENO_VAL;
 //		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD3, false, key_pressed_3);
 		key_pressed_3 = true;
+		keyboard_x = 3;
+		keyboard_y = 2;
+		if(key3 != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_3)
 	{
@@ -2675,13 +2895,28 @@ void cEmuSCV::RetroRun(void)
 	}
 
 	// Key 4
-	if (key4 != 0)
+	if (key4 != 0
+	|| (is_keyboard_displayed && keyboard_x == 1 && keyboard_y == 1
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 //		config.scv_displayfull = SETTING_DISPLAYFULL_NO_VAL;
 //		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD4, false, key_pressed_4);
 		key_pressed_4 = true;
+		keyboard_x = 1;
+		keyboard_y = 1;
+		if(key4 != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_4)
 	{
@@ -2691,13 +2926,28 @@ void cEmuSCV::RetroRun(void)
 	}
 
 	// Key 5
-	if (key5 != 0)
+	if (key5 != 0
+	|| (is_keyboard_displayed && keyboard_x == 2 && keyboard_y == 1
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 //		config.scv_displayfull = SETTING_DISPLAYFULL_YES_VAL;
 //		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD5, false, key_pressed_5);
 		key_pressed_5 = true;
+		keyboard_x = 2;
+		keyboard_y = 1;
+		if(key5 != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_5)
 	{
@@ -2707,11 +2957,26 @@ void cEmuSCV::RetroRun(void)
 	}
 
 	// Key 6
-	if (key6 != 0)
+	if (key6 != 0
+	|| (is_keyboard_displayed && keyboard_x == 3 && keyboard_y == 1
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD6, false, key_pressed_6);
 		key_pressed_6 = true;
+		keyboard_x = 3;
+		keyboard_y = 1;
+		if(key6 != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_6)
 	{
@@ -2721,13 +2986,28 @@ void cEmuSCV::RetroRun(void)
 	}
 
 	// Key 7
-	if (key7 != 0)
+	if (key7 != 0
+	|| (is_keyboard_displayed && keyboard_x == 1 && keyboard_y == 0
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 //		config.scv_displayfps = SETTING_DISPLAYFPS_EPOCH60_VAL;
 //		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD7, false, key_pressed_7);
 		key_pressed_7 = true;
+		keyboard_x = 1;
+		keyboard_y = 0;
+		if(key7 != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_7)
 	{
@@ -2737,13 +3017,28 @@ void cEmuSCV::RetroRun(void)
 	}
 
 	// Key 8
-	if (key8 != 0)
+	if (key8 != 0
+	|| (is_keyboard_displayed && keyboard_x == 2 && keyboard_y == 0
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 //		config.scv_displayfps = SETTING_DISPLAYFPS_YENO50_VAL;
 //		config_changed = true;
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD8, false, key_pressed_8);
 		key_pressed_8 = true;
+		keyboard_x = 2;
+		keyboard_y = 0;
+		if(key8 != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_8)
 	{
@@ -2753,11 +3048,26 @@ void cEmuSCV::RetroRun(void)
 	}
 
 	// Key 9
-	if (key9 != 0)
+	if (key9 != 0
+	|| (is_keyboard_displayed && keyboard_x == 3 && keyboard_y == 0
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 		if(escv_emu)
 			escv_emu->key_down(VK_NUMPAD9, false, key_pressed_9);
 		key_pressed_9 = true;
+		keyboard_x = 3;
+		keyboard_y = 0;
+		if(key9 != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_9)
 	{
@@ -2767,11 +3077,26 @@ void cEmuSCV::RetroRun(void)
 	}
 
 	// Key CL
-	if (keyClear != 0)
+	if (keyClear != 0
+	|| (is_keyboard_displayed && keyboard_x == 2 && keyboard_y == 3
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 		if(escv_emu)
 			escv_emu->key_down(VK_BACK, false, key_pressed_cl);
 		key_pressed_cl = true;
+		keyboard_x = 2;
+		keyboard_y = 3;
+		if(keyClear != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_cl)
 	{
@@ -2782,11 +3107,26 @@ void cEmuSCV::RetroRun(void)
 
 	// Key EN
 	// Controllers 1 & 2, Button START
-	if (keyEnter != 0 || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)))
+	if (keyEnter != 0 || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START))
+	|| (is_keyboard_displayed && keyboard_x == 3 && keyboard_y == 3
+	&& (
+		(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+	)))
 	{
 		if(escv_emu)
 			escv_emu->key_down(VK_RETURN, false, key_pressed_en);
 		key_pressed_en = true;
+		keyboard_x = 3;
+		keyboard_y = 3;
+		if(keyEnter != 0
+		|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)))
+			key_pressed_keyboard_close = true;
+		else
+			key_pressed_keyboard_stay_opened = true;
 	}
 	else if(key_pressed_en)
 	{
@@ -2794,6 +3134,9 @@ void cEmuSCV::RetroRun(void)
 			escv_emu->key_up(VK_RETURN, false);
 		key_pressed_en = false;
 	}
+
+	if(key_pressed_keyboard_close)
+		is_keyboard_displayed = false;
 
 	if(config_changed)
 	{
@@ -2885,7 +3228,7 @@ void cEmuSCV::RetroRun(void)
 	}
 	if(start_up_counter_logo < 1200)
 	{
-		// Draw an embedded binary image (64x97 pixels in ARGB8888 format)
+		// Draw an embedded binary image (128x128 or 64x64 or 32x32 pixels in ARGB8888 format)
 		uint8_t alpha = (start_up_counter_logo < 1200-100 ? 255: 255*(1200-start_up_counter_logo)/100);
 		unsigned char *image;
 		if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
@@ -2917,8 +3260,8 @@ void cEmuSCV::RetroRun(void)
 		}
 		posx = config.window_width - sizx - sizy;
 		posy = config.window_height - sizx - sizy;
-		for (uint32_t y = 0; y < sizx; y++)
-			for (uint32_t x = 0; x < sizx; x++)
+		for (int y = sizx; --y >= 0; )
+			for (int x = sizx; --x >= 0; )
 				pixelRGBA(frame_renderer, posx+x, posy+y, image[4*(x+y*sizx)], image[4*(x+y*sizx)+1], image[4*(x+y*sizx)+2], alpha*image[4*(x+y*sizx)+3]/255);
 //		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Logo drawn\n", EMUSCV_NAME);
 	}
@@ -2936,19 +3279,308 @@ void cEmuSCV::RetroRun(void)
 //	}
 
 	// Display keyboard over picture?
-	if(is_keyboard_displayed)
+	if(keyboard_counter > 0)
 	{
-		
-	}
-	// Display menu over picture?
-	else if(is_menu_displayed)
-	{
+/*
+		// Draw power button
+		SDL_Rect RectSrc2;
+		SDL_Rect RectDst2;
+		if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
+		{
+			if(is_power_on)
+			{
+				RectSrc2.x = 48;
+				RectSrc2.w = RectDst2.w = 66;
+				RectDst2.x = RectDst.x + RectSrc2.x + 40;
+			}
+			else
+			{
+			}
+			
+			RectSrc2.h = RectDst2.h = 40;
+			RectSrc2.y = 60;
+			RectDst2.y = RectDst.y + RectSrc2.y;
+		}
+		else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
+		{
+			RectSrc2.w = RectDst2.w = 8;
+			RectSrc2.h = RectDst2.h = 8;
+			RectSrc2.x = 0;
+			RectSrc2.y = 0;
+			RectDst2.x += RectSrc.x;
+		}
+		else
+		{
+			RectSrc2.w = RectDst2.w = 4;
+			RectSrc2.h = RectDst2.h = 4;
+			RectSrc2.x = 0;
+			RectSrc2.y = 0;
+			RectDst2.x += RectSrc.x;
+		}
+//		RectDst2.y += RectSrc.y;
+		SDL_SetSurfaceBlendMode(keyboard_surface, SDL_BLENDMODE_BLEND);
+		SDL_SetSurfaceAlphaMod(keyboard_surface, EMUSCV_KEYBOARD_ALPHA * keyboard_counter / EMUSCV_KEYBOARD_DELAY);
+		if(SDL_BlitScaled(keyboard_surface, &RectSrc2, frame_surface, &RectDst2) != 0)
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL blit scaled secondary->main failed! %s\n", EMUSCV_NAME, SDL_GetError());
+//		else
+//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL blit scaled secondary->main ok\n", EMUSCV_NAME);
 
+//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Quick keyboard drawn\n", EMUSCV_NAME);
+*/
+
+
+
+		// Draw quick keyboard
+		SDL_Rect RectSrc;
+		SDL_Rect RectDst;
+
+		// Bottom
+		RectSrc.x = 0;
+		RectSrc.w = RectDst.w = keyboard_surface->w;
+		if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
+			RectSrc.y = 100;
+		else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
+			RectSrc.y = 50;
+		else
+			RectSrc.y = 25;
+		RectSrc.h = RectDst.h = keyboard_surface->h - RectSrc.y;
+		RectDst.x = config.window_width - RectDst.w - 8 * config.window_space;
+		RectDst.y = RectSrc.y + 4 * config.window_space;
+		SDL_SetSurfaceBlendMode(keyboard_surface, SDL_BLENDMODE_BLEND);
+		SDL_SetSurfaceAlphaMod(keyboard_surface, EMUSCV_KEYBOARD_ALPHA * keyboard_counter / EMUSCV_KEYBOARD_DELAY);
+		if(SDL_BlitScaled(keyboard_surface, &RectSrc, frame_surface, &RectDst) != 0)
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL blit scaled secondary->main failed! %s\n", EMUSCV_NAME, SDL_GetError());
+//		else
+//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL blit scaled secondary->main ok\n", EMUSCV_NAME);
+
+		// Left
+		RectSrc.x = 0;
+		if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
+		{
+			RectSrc.y = 60;
+			RectSrc.h = RectDst.h = 40;
+			RectSrc.w = RectDst.w = 64;
+		}
+		else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
+		{
+			RectSrc.y = 30;
+			RectSrc.h = RectDst.h = 20;
+			RectSrc.w = RectDst.w = 32;
+		}
+		else
+		{
+			RectSrc.y = 15;
+			RectSrc.h = RectDst.h = 10;
+			RectSrc.w = RectDst.w = 16;
+		}
+		RectDst.x = config.window_width - keyboard_surface->w - 8 * config.window_space;
+		RectDst.y = RectSrc.y + 4 * config.window_space;
+		SDL_SetSurfaceBlendMode(keyboard_surface, SDL_BLENDMODE_BLEND);
+		SDL_SetSurfaceAlphaMod(keyboard_surface, EMUSCV_KEYBOARD_ALPHA * keyboard_counter / EMUSCV_KEYBOARD_DELAY);
+		if(SDL_BlitScaled(keyboard_surface, &RectSrc, frame_surface, &RectDst) != 0)
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL blit scaled secondary->main failed! %s\n", EMUSCV_NAME, SDL_GetError());
+//		else
+//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL blit scaled secondary->main ok\n", EMUSCV_NAME);
+
+		// Power button
+		if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
+		{
+			RectSrc.x = (is_power_on ? 52 : 76);
+			RectDst.x = config.window_width - keyboard_surface->w - 8 * config.window_space + 64;
+			RectSrc.y = 60;
+			RectSrc.h = RectDst.h = 40;
+			RectSrc.w = RectDst.w = 68;
+		}
+		else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
+		{
+			RectSrc.x = (is_power_on ? 26 : 38);
+			RectDst.x = config.window_width - keyboard_surface->w - 8 * config.window_space + 32;
+			RectSrc.y = 30;
+			RectSrc.h = RectDst.h = 20;
+			RectSrc.w = RectDst.w = 34;
+		}
+		else
+		{
+			RectSrc.x = (is_power_on ? 13 : 19);
+			RectDst.x = config.window_width - keyboard_surface->w - 8 * config.window_space + 16;
+			RectSrc.y = 15;
+			RectSrc.h = RectDst.h = 10;
+			RectSrc.w = RectDst.w = 17;
+		}
+		RectDst.y = RectSrc.y + 4 * config.window_space;
+		SDL_SetSurfaceBlendMode(keyboard_surface, SDL_BLENDMODE_BLEND);
+		SDL_SetSurfaceAlphaMod(keyboard_surface, EMUSCV_KEYBOARD_ALPHA * keyboard_counter / EMUSCV_KEYBOARD_DELAY);
+		if(SDL_BlitScaled(keyboard_surface, &RectSrc, frame_surface, &RectDst) != 0)
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL blit scaled secondary->main failed! %s\n", EMUSCV_NAME, SDL_GetError());
+//		else
+//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL blit scaled secondary->main ok\n", EMUSCV_NAME);
+
+		// Right
+		if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
+		{
+			RectSrc.x = 132;
+			RectSrc.y = 60;
+			RectSrc.h = RectDst.h = 40;
+		}
+		else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
+		{
+			RectSrc.x = 66;
+			RectSrc.y = 30;
+			RectSrc.h = RectDst.h = 20;
+		}
+		else
+		{
+			RectSrc.x = 33;
+			RectSrc.y = 15;
+			RectSrc.h = RectDst.h = 10;
+		}
+		RectSrc.w = RectDst.w = keyboard_surface->w - RectSrc.x;
+		RectDst.x = config.window_width - RectSrc.w - 8 * config.window_space;
+		RectDst.y = RectSrc.y + 4 * config.window_space;
+		SDL_SetSurfaceBlendMode(keyboard_surface, SDL_BLENDMODE_BLEND);
+		SDL_SetSurfaceAlphaMod(keyboard_surface, EMUSCV_KEYBOARD_ALPHA * keyboard_counter / EMUSCV_KEYBOARD_DELAY);
+		if(SDL_BlitScaled(keyboard_surface, &RectSrc, frame_surface, &RectDst) != 0)
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL blit scaled secondary->main failed! %s\n", EMUSCV_NAME, SDL_GetError());
+//		else
+//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL blit scaled secondary->main ok\n", EMUSCV_NAME);
+
+		// Top
+		RectSrc.x = 0;
+		RectSrc.y = 0;
+		RectSrc.w = RectDst.w = keyboard_surface->w;
+		if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
+			RectSrc.h = RectDst.h = 60;
+		else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
+			RectSrc.h = RectDst.h = 30;
+		else
+			RectSrc.h = RectDst.h = 15;
+		RectDst.x = config.window_width - RectDst.w - 8 * config.window_space;
+		RectDst.y = 4 * config.window_space;
+		SDL_SetSurfaceBlendMode(keyboard_surface, SDL_BLENDMODE_BLEND);
+		SDL_SetSurfaceAlphaMod(keyboard_surface, EMUSCV_KEYBOARD_ALPHA * keyboard_counter / EMUSCV_KEYBOARD_DELAY);
+		if(SDL_BlitScaled(keyboard_surface, &RectSrc, frame_surface, &RectDst) != 0)
+			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL blit scaled secondary->main failed! %s\n", EMUSCV_NAME, SDL_GetError());
+//		else
+//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL blit scaled secondary->main ok\n", EMUSCV_NAME);
+
+		// Draw current selected key
+		if(config.window_console == SETTING_CONSOLE_EPOCHLADY_VAL)
+			color = palette_pc[0xA];	// Magenta
+		else
+			color = palette_pc[0x4];	// Green
+		if(key_pressed_keyboard_stay_opened || key_pressed_keyboard_close)
+			alpha = EMUSCV_KEYBOARD_ALPHAKEYDOWN;
+		else
+			alpha = EMUSCV_KEYBOARD_ALPHAKEYUP;
+		if(keyboard_x == 0)
+		{
+			if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
+			{
+				if(keyboard_y == 0)
+				{
+					posy = 60;
+					sizey = 40;
+				}
+				else
+				{
+					posy = 78;
+					sizey = 38;
+					spacey = 42;
+				}
+				posx = 47;
+				sizex = 102;
+			}
+			else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
+			{
+				if(keyboard_y == 0)
+				{
+					posy = 30;
+					sizey = 20;
+				}
+				else
+				{
+					posy = 39;
+					sizey = 19;
+					spacey = 21;
+				}
+				posx = 23;
+				sizex = 51;
+			}
+			else
+			{
+				if(keyboard_y == 0)
+				{
+					posy = 15;
+					sizey = 10;
+				}
+				else
+				{
+					posy = 19;
+					sizey = 10;
+					spacey = 10;
+				}
+				posx = 11;
+				sizex = 26;
+			}
+			uint8_t keyboard_y0 = keyboard_y;
+			if(keyboard_y0 > 1)
+				keyboard_y0--;
+			boxRGBA(frame_renderer, RectDst.x + posx, RectDst.y + posy + keyboard_y0 * (sizey + spacey), RectDst.x + posx + sizex, RectDst.y + posy + keyboard_y0 * (sizey + spacey) + sizey, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+
+//			switch (keyboard_y)
+//			{
+//				case 0:
+//					break;
+//				case 1:
+//					break;
+//				case 2:
+//				default:
+//					break;
+//			}
+		}
+		else
+		{
+			if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
+			{
+				posx = 240;
+				posy = 67;
+				sizex = 38;
+				sizey = 31;
+				spacex = 20;
+				spacey = 26;
+			}
+			else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
+			{
+				posx = 120;
+				posy = 34;
+				sizex = 18;
+				sizey = 17;
+				spacex = 11;
+				spacey = 11;
+			}
+			else
+			{
+				posx = 60;
+				posy = 16;
+				sizex = 10;
+				sizey = 8;
+				spacex = 4;
+				spacey = 6;
+			}
+			boxRGBA(frame_renderer, RectDst.x + posx + (keyboard_x - 1) * (sizex + spacex), RectDst.y + posy + keyboard_y * (sizey + spacey), RectDst.x + posx + (keyboard_x - 1) * (sizex + spacex) + sizex, RectDst.y + posy + keyboard_y * (sizey + spacey) + sizey, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+		}
 	}
+//	// Display menu over picture?
+//	else if(is_menu_displayed)
+//	{
+//
+//	}
 
 	// Display controls over all?
 	if(config.scv_displayinputs == SETTING_DISPLAYINPUTS_YES_VAL)
 	{
+		alpha = EMUSCV_CONTROLS_ALPHA;
+
 		if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
 			space = 16;
 		else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
@@ -3296,8 +3928,8 @@ void cEmuSCV::RetroRun(void)
 
 
 		// KEYBOARD
-		posx = config.window_width-1-12*space;
-		posy = space;
+		posx = config.window_width/2-6*space;
+		posy = config.window_height-1-12*space;
 		// Contour
 		color = palette_pc[1];	// Black
 		rectangleRGBA(frame_renderer, posx,           posy,           posx+4+4*space,  posy+1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);	// POWER ON/OFF BUTTON
@@ -3324,11 +3956,13 @@ void cEmuSCV::RetroRun(void)
 		boxRGBA(frame_renderer, posx+1, posy+1, posx+2+4*space, posy-1+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		color = palette_pc[1];	// Black
 		if (is_power_on)
-			rectangleRGBA(frame_renderer, posx+3+3*space, posy+1, posx+3+4*space, posy+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+//			rectangleRGBA(frame_renderer, posx+3+3*space, posy+1, posx+3+4*space, posy+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+			rectangleRGBA(frame_renderer, posx+3+2*space, posy+1, posx+3+3*space, posy+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		else
-			rectangleRGBA(frame_renderer, posx+1, posy+1, posx+1+space, posy+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+//			rectangleRGBA(frame_renderer, posx+1, posy+1, posx+1+space, posy+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
+			rectangleRGBA(frame_renderer, posx+1+space, posy+1, posx+1+2*space, posy+2*space, R_OF_COLOR(color), G_OF_COLOR(color), B_OF_COLOR(color), alpha);
 		// Key RESET
-		if (keyReset != 0)
+		if (key_pressed_reset)
 			color = palette_pc[4];	// Green light
 		else
 			color = palette_pc[14];	// Gray
@@ -3777,6 +4411,9 @@ void cEmuSCV::RetroLoadSettings(void)
 	}
 	sound_buffer_samples = (AUDIO_SAMPLING_RATE / config.window_fps + 0.5);
 
+	// Create quick keyboard SDL surface & renderer
+	CreateKeyboardSurface();
+
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] apply_display_config()\n", EMUSCV_NAME);
 }
 
@@ -4018,4 +4655,95 @@ void *cEmuSCV::RetroSaveStateData(void)
 //	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSaveStateData()\n", EMUSCV_NAME);
 
 	return NULL;
+}
+
+bool cEmuSCV::CreateKeyboardSurface()
+{
+	int x, y, w, h = 0;
+	unsigned char *image;
+
+
+	DestroyKeyboardSurface();
+
+	if(config.window_resolution == SETTING_RESOLUTION_HIGH_VAL)
+	{
+		w = 460;
+		h = 312;
+		if(config.window_console == SETTING_CONSOLE_EPOCHLADY_VAL)
+			image = (unsigned char *)src_res_keyboardlady460x312xrgba8888_data;
+		else if(config.window_console == SETTING_CONSOLE_YENO_VAL)
+			image = (unsigned char *)src_res_keyboardyeno460x312xrgba8888_data;
+		else
+			image = (unsigned char *)src_res_keyboardepoch460x312xrgba8888_data;
+	}
+	else if(config.window_resolution == SETTING_RESOLUTION_MEDIUM_VAL)
+	{
+		w = 230;
+		h = 156;
+		if(config.window_console == SETTING_CONSOLE_EPOCHLADY_VAL)
+			image = (unsigned char *)src_res_keyboardlady230x156xrgba8888_data;
+		else if(config.window_console == SETTING_CONSOLE_YENO_VAL)
+			image = (unsigned char *)src_res_keyboardyeno230x156xrgba8888_data;
+		else
+			image = (unsigned char *)src_res_keyboardepoch230x156xrgba8888_data;
+	}
+	else
+	{
+		w = 115;
+		h = 78;
+		if(config.window_console == SETTING_CONSOLE_EPOCHLADY_VAL)
+			image = (unsigned char *)src_res_keyboardlady115x78xrgba8888_data;
+		else if(config.window_console == SETTING_CONSOLE_YENO_VAL)
+			image = (unsigned char *)src_res_keyboardyeno115x78xrgba8888_data;
+		else
+			image = (unsigned char *)src_res_keyboardepoch115x78xrgba8888_data;
+	}
+
+	// Create SDL quick keyboard surface
+    keyboard_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 8*sizeof(uint32_t), 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+    if (keyboard_surface == NULL)
+	{
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL secondary surface creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
+        return false;
+	}
+//	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL secondary surface created\n", EMUSCV_NAME);
+
+	// Create SDL quick keyboard renderer
+    keyboard_renderer = SDL_CreateSoftwareRenderer(keyboard_surface);
+    if (keyboard_renderer == NULL)
+	{
+		RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL secondary surface renderer creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
+        return false;
+    }
+//	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL secondary surface renderer created\n", EMUSCV_NAME);
+
+	// Draw an embedded binary image
+	for (int y = h; --y >= 0; )
+		for (int x = w; --x >= 0; )
+			pixelRGBA(keyboard_renderer, x, y, image[4*(x+y*w)], image[4*(x+y*w)+1], image[4*(x+y*w)+2], image[4*(x+y*w)+3]);
+
+	return true;
+}
+
+bool cEmuSCV::DestroyKeyboardSurface()
+{
+	// Free SDL quick keyboard renderer
+	if (keyboard_renderer != NULL)
+	{
+		SDL_DestroyRenderer(keyboard_renderer);
+		keyboard_renderer = NULL;
+//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL secondary surface renderer destroyed\n", EMUSCV_NAME);
+	}
+//	else
+//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL secondary surface renderer, nothing to destroy\n", EMUSCV_NAME);
+
+	// Free SDL quick keyboard surface
+	if (keyboard_surface != NULL)
+	{
+		SDL_FreeSurface(keyboard_surface);
+		keyboard_surface = NULL;
+//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL secondary surface destroyed\n", EMUSCV_NAME);
+	}
+
+	return true;
 }

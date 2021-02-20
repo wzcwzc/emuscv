@@ -294,6 +294,7 @@ typedef struct {
 		int window_palette;
 		int window_width;
 		int window_height;
+		int window_space;
 		float window_aspect_ratio;
 		double window_fps;
 		int window_displayfullmemory;

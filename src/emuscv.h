@@ -75,6 +75,13 @@ class EMU;
 
 #define EMUSCV_NOISE_SAMPLES			16384
 
+#define EMUSCV_CONTROLS_ALPHA			127
+
+#define EMUSCV_KEYBOARD_ALPHA			200
+#define EMUSCV_KEYBOARD_DELAY			20
+#define EMUSCV_KEYBOARD_ALPHAKEYUP		80
+#define EMUSCV_KEYBOARD_ALPHAKEYDOWN	160
+
 
 // /!\ Must be static
 class cEmuSCV
@@ -106,6 +113,7 @@ class cEmuSCV
 		void RetroLoadSettings();											// Libretro: load core settings
 		void RetroSaveSettings();											// Libretro: save core settings
 
+
 		retro_log_printf_t			RetroLogPrintf;
 		retro_environment_t 		RetroEnvironment;
 		retro_video_refresh_t		RetroVideoRefresh;
@@ -134,10 +142,12 @@ class cEmuSCV
 
 		EMU *escv_emu;	// eSCV emulation core
 
-		SDL_Surface *frame_surface;		// SDL2 main frame surface
-		SDL_Renderer *frame_renderer;	// SDL2 main frame renderer
-		SDL_Surface *noise_surface;		// SDL2 TV static noise surface
-		SDL_Renderer *noise_renderer;	// SDL2 TV static noise renderer
+		SDL_Surface *frame_surface;			// SDL2 main frame surface
+		SDL_Renderer *frame_renderer;		// SDL2 main frame renderer
+		SDL_Surface *noise_surface;			// SDL2 TV static noise surface
+		SDL_Renderer *noise_renderer;		// SDL2 TV static noise renderer
+		SDL_Surface *keyboard_surface;		// SDL2 quick keyboard surface
+		SDL_Renderer *keyboard_renderer;	// SDL2 quick keyboard renderer
 		
 		// To drive eSCV
 		int run_frames_last;
@@ -159,6 +169,12 @@ class cEmuSCV
 		bool key_pressed_power;
 		bool key_pressed_pause;
 		bool key_pressed_reset;
+		bool key_pressed_up;
+		bool key_pressed_down;
+		bool key_pressed_left;
+		bool key_pressed_right;
+		bool key_pressed_keyboard_stay_opened;
+		bool key_pressed_keyboard_close;
 
 		bool button_keyboard_pressed;
 		bool button_menu_pressed;
@@ -170,12 +186,16 @@ class cEmuSCV
 		bool is_menu_displayed;
 		uint8_t keyboard_x;
 		uint8_t keyboard_y;
+		int64_t keyboard_counter;
 
 		int16_t sound_buffer_noise[EMUSCV_NOISE_SAMPLES];	// Mono noise
 		size_t sound_buffer_noise_index;
 		size_t sound_buffer_samples;
 		size_t sound_buffer_size;
 
+	private:
+		bool CreateKeyboardSurface();				
+		bool DestroyKeyboardSurface();				
 };
 
 #endif	// _EMUSCV_INC_EMUSCV_H_

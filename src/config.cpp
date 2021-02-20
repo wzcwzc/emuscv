@@ -778,14 +778,17 @@ void DLL_PREFIX apply_display_config()
 	switch(config.window_resolution)
 	{
 		case SETTING_RESOLUTION_HIGH_VAL:
-				config.window_width *= 4;
-				config.window_height *= 4;
+			config.window_width *= 4;
+			config.window_height *= 4;
+			config.window_space = 4;
 			break;
 		case SETTING_RESOLUTION_MEDIUM_VAL:
-				config.window_width *= 2;
-				config.window_height *= 2;
+			config.window_width *= 2;
+			config.window_height *= 2;
+			config.window_space = 2;
 			break;
 		default:
+			config.window_space = 1;
 			break;
 	}
 

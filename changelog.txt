@@ -16,13 +16,13 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 
 
 ***********************************************************
-* Libretro-EmuSCV v0.08.20210215084500
+* Libretro-EmuSCV v0.08.20210220231500
 ***********************************************************
 - Added old NTSC wrong color palette (aka Never The Same Color) like in eSCV
 - Enhanced audio quality for PCM 1-bit channel
 - Corrected options (resolution)
 - Added Epoch Lady icon at startup
-- Added graphics for quick menu overlay
+- Added quick menu overlay
 - Corrected video optmizations
 - Added sound optimizations
 
