@@ -33,7 +33,8 @@ public:
 	int count();
 	bool full();
 	bool empty();
-	bool process_state(void *f, bool loading);
+	void save_state(STATE *state);
+	bool load_state(STATE *state);
 };
 
 #endif	// _EMUSCV_INC_FIFO_H_

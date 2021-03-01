@@ -1435,51 +1435,96 @@ void MEMORY::close_cart()
 	memset(sram, 0xff, sizeof(sram));
 }
 
-#define STATE_VERSION	2
+#define MEMORY_STATE_ID	601
 
-bool MEMORY::process_state(FILEIO* state_fio, bool loading)
+void MEMORY::save_state(STATE* state)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION))
-		return false;
-	if(!state_fio->StateCheckInt32(this_device_id))
-		return false;
-	state_fio->StateArray(cart_header.id, sizeof(cart_header.id), 1);
-	state_fio->StateArray(cart_header.type, sizeof(cart_header.type), 1);
-	state_fio->StateValue(cart_header.version);
-	state_fio->StateValue(cart_header.nb_block);
-	state_fio->StateValue(cart_header.block[0]);
-	state_fio->StateValue(cart_header.block[1]);
-	state_fio->StateValue(cart_header.block[2]);
-	state_fio->StateValue(cart_header.block[3]);
-	state_fio->StateValue(cart_header.block[4]);
-	state_fio->StateValue(cart_header.block[5]);
-	state_fio->StateValue(cart_header.crc32);
-	state_fio->StateValue(bios_found);
-	state_fio->StateValue(bios_present);
-	state_fio->StateValue(bios_ok);
-	state_fio->StateValue(cart_found);
-	state_fio->StateValue(cart_inserted);
-	state_fio->StateValue(cart_ok);
-	state_fio->StateArray(ram_path, sizeof(ram_path), 1);
-	state_fio->StateValue(ram_block);
-	state_fio->StateValue(ram_used);
-	state_fio->StateValue(ram_save);
-	state_fio->StateValue(ram_bank0);
-	state_fio->StateValue(ram_bank1);
-	state_fio->StateValue(ram_bank2);
-	state_fio->StateValue(ram_bank3);
-	state_fio->StateValue(ram_offset);
-	state_fio->StateValue(ram_size);
-	state_fio->StateValue(ram_crc32);
-	state_fio->StateArray(vram, sizeof(vram), 1);
-	state_fio->StateArray(wreg, sizeof(wreg), 1);
-	state_fio->StateArray(sram, sizeof(sram), 1);
-	state_fio->StateValue(cur_bank);
+	state->SetValue((uint16_t)MEMORY_STATE_ID);
+	state->SetValue(this_device_id);
+	state->SetArray(cart_header.id, sizeof(cart_header.id), 1);
+	state->SetArray(cart_header.type, sizeof(cart_header.type), 1);
+	state->SetValue(cart_header.version);
+	state->SetValue(cart_header.nb_block);
+	state->SetArray(cart_header.block, sizeof(cart_header.block), 1);
+	state->SetValue(cart_header.crc32);
+	state->SetArray(ram_header.id, sizeof(ram_header.id), 1);
+	state->SetArray(ram_header.type, sizeof(ram_header.type), 1);
+	state->SetValue(ram_header.version);
+	state->SetValue(ram_header.nb_block);
+	state->SetArray(ram_header.block, sizeof(ram_header.block), 1);
+	state->SetArray(ram_header.reserved, sizeof(ram_header.reserved), 1);
+	state->SetValue(ram_header.cart_crc32);
+	state->SetValue(ram_header.save_crc32);
+	state->SetValue(bios_found);
+	state->SetValue(bios_present);
+	state->SetValue(bios_ok);
+	state->SetValue(cart_found);
+	state->SetValue(cart_inserted);
+	state->SetValue(cart_ok);
+	uint16_t len = strlen(ram_path)+1;
+	state->SetValue(len);
+	state->SetArray(ram_path, len, 1);
+	state->SetValue(ram_block);
+	state->SetValue(ram_used);
+	state->SetValue(ram_save);
+	state->SetValue(ram_bank0);
+	state->SetValue(ram_bank1);
+	state->SetValue(ram_bank2);
+	state->SetValue(ram_bank3);
+	state->SetValue(ram_offset);
+	state->SetValue(ram_size);
+	state->SetValue(ram_crc32);
+	state->SetArray(vram, sizeof(vram), 1);
+	state->SetArray(wreg, sizeof(wreg), 1);
+	state->SetArray(sram, sizeof(sram), 1);
+	state->SetValue(cur_bank);
+}
+
+bool MEMORY::load_state(STATE* state)
+{
+	uint16_t len;
 	
-	// post process
-	if(loading)
-		set_bank(cur_bank);
-	state_fio->StateValue(ram_used);
+	if(!state->CheckValue((uint16_t)MEMORY_STATE_ID))
+		return false;
+	if(!state->CheckValue(this_device_id))
+		return false;
+	state->GetArray(cart_header.id, sizeof(cart_header.id), 1);
+	state->GetArray(cart_header.type, sizeof(cart_header.type), 1);
+	state->GetValue(cart_header.version);
+	state->GetValue(cart_header.nb_block);
+	state->GetArray(cart_header.block, sizeof(cart_header.block), 1);
+	state->GetValue(cart_header.crc32);
+	state->GetArray(ram_header.id, sizeof(ram_header.id), 1);
+	state->GetArray(ram_header.type, sizeof(ram_header.type), 1);
+	state->GetValue(ram_header.version);
+	state->GetValue(ram_header.nb_block);
+	state->GetArray(ram_header.block, sizeof(ram_header.block), 1);
+	state->GetArray(ram_header.reserved, sizeof(ram_header.reserved), 1);
+	state->GetValue(ram_header.cart_crc32);
+	state->GetValue(ram_header.save_crc32);
+	state->GetValue(bios_found);
+	state->GetValue(bios_present);
+	state->GetValue(bios_ok);
+	state->GetValue(cart_found);
+	state->GetValue(cart_inserted);
+	state->GetValue(cart_ok);
+	state->GetValue(len);
+	state->GetArray(ram_path, len, 1);
+	state->GetValue(ram_block);
+	state->GetValue(ram_used);
+	state->GetValue(ram_save);
+	state->GetValue(ram_bank0);
+	state->GetValue(ram_bank1);
+	state->GetValue(ram_bank2);
+	state->GetValue(ram_bank3);
+	state->GetValue(ram_offset);
+	state->GetValue(ram_size);
+	state->GetValue(ram_crc32);
+	state->GetArray(vram, sizeof(vram), 1);
+	state->GetArray(wreg, sizeof(wreg), 1);
+	state->GetArray(sram, sizeof(sram), 1);
+	state->GetValue(cur_bank);
+	set_bank(cur_bank);
 	
 	return true;
 }

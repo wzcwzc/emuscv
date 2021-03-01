@@ -160,7 +160,8 @@ public:
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
-	bool process_state(FILEIO* state_fio, bool loading);
+	void save_state(STATE* state);
+	bool load_state(STATE* state);
 
 	// unique functions
 	void set_context_mem(DEVICE* device)

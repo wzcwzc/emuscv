@@ -14,6 +14,7 @@
 #include "event.h"
 
 #include "../emu.h"
+#include "../state.h"
 
 #define EVENT_MIX	0
 
@@ -596,81 +597,99 @@ void EVENT::update_config()
 	}
 }
 
-#define STATE_VERSION	4
+#define DEVICE_STATE_ID 301
 
-bool EVENT::process_state(FILEIO* state_fio, bool loading)
+void EVENT::save_state(STATE* state)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION))
+	state->SetValue((uint16_t)DEVICE_STATE_ID);
+	state->SetValue(this_device_id);
+	state->SetValue(dcount_cpu);
+	for(int i = 0; i < dcount_cpu; i++)
+	{
+		state->SetValue(d_cpu[i].cpu_clocks);
+		state->SetValue(d_cpu[i].update_clocks);
+		state->SetValue(d_cpu[i].accum_clocks);
+	}
+	state->SetArray(vclocks, sizeof(vclocks), 1);
+	state->SetValue(event_remain);
+	state->SetValue(event_extra);
+	state->SetValue(cpu_remain);
+	state->SetValue(cpu_accum);
+	state->SetValue(cpu_done);
+	state->SetValue(event_clocks);
+	for(int i = 0; i < MAX_EVENT; i++)
+	{
+		state->SetInt32_LE(event[i].device != NULL ? event[i].device->this_device_id : -1);
+		state->SetValue(event[i].event_id);
+		state->SetValue(event[i].expired_clock);
+		state->SetValue(event[i].loop_clock);
+		state->SetValue(event[i].accum_clocks);
+		state->SetValue(event[i].active);
+		state->SetInt32_LE(event[i].next != NULL ? event[i].next->index : -1);
+		state->SetInt32_LE(event[i].prev != NULL ? event[i].prev->index : -1);
+	}
+	state->SetInt32_LE(first_free_event != NULL ? first_free_event->index : -1);
+	state->SetInt32_LE(first_fire_event != NULL ? first_fire_event->index : -1);
+	state->SetValue(frames_per_sec);
+	state->SetValue(next_frames_per_sec);
+	state->SetValue(lines_per_frame);
+	state->SetValue(next_lines_per_frame);
+	state->SetArray(dev_need_mix, sizeof(dev_need_mix), 1);
+	state->SetValue(need_mix);
+}
+
+bool EVENT::load_state(STATE* state)
+{
+	if(!state->CheckValue((uint16_t)DEVICE_STATE_ID))
 		return false;
-	if(!state_fio->StateCheckInt32(this_device_id))
+	if(!state->CheckValue(this_device_id))
 		return false;
-	if(!state_fio->StateCheckInt32(dcount_cpu))
+	if(!state->CheckValue(dcount_cpu))
 		return false;
 	for(int i = 0; i < dcount_cpu; i++)
 	{
-		state_fio->StateValue(d_cpu[i].cpu_clocks);
-		state_fio->StateValue(d_cpu[i].update_clocks);
-		state_fio->StateValue(d_cpu[i].accum_clocks);
+		state->GetValue(d_cpu[i].cpu_clocks);
+		state->GetValue(d_cpu[i].update_clocks);
+		state->GetValue(d_cpu[i].accum_clocks);
 	}
-	state_fio->StateArray(vclocks, sizeof(vclocks), 1);
-	state_fio->StateValue(event_remain);
-	state_fio->StateValue(event_extra);
-	state_fio->StateValue(cpu_remain);
-	state_fio->StateValue(cpu_accum);
-	state_fio->StateValue(cpu_done);
-	state_fio->StateValue(event_clocks);
+	state->GetArray(vclocks, sizeof(vclocks), 1);
+	state->GetValue(event_remain);
+	state->GetValue(event_extra);
+	state->GetValue(cpu_remain);
+	state->GetValue(cpu_accum);
+	state->GetValue(cpu_done);
+	state->GetValue(event_clocks);
 	for(int i = 0; i < MAX_EVENT; i++)
 	{
-		if(loading)
-			event[i].device = vm->get_device(state_fio->FgetInt32_LE());
-		else
-			state_fio->FputInt32_LE(event[i].device != NULL ? event[i].device->this_device_id : -1);
-		state_fio->StateValue(event[i].event_id);
-		state_fio->StateValue(event[i].expired_clock);
-		state_fio->StateValue(event[i].loop_clock);
-		state_fio->StateValue(event[i].accum_clocks);
-		state_fio->StateValue(event[i].active);
-		if(loading)
-		{
-			event[i].next = (event_t *)get_event(state_fio->FgetInt32_LE());
-			event[i].prev = (event_t *)get_event(state_fio->FgetInt32_LE());
-		}
-		else
-		{
-			state_fio->FputInt32_LE(event[i].next != NULL ? event[i].next->index : -1);
-			state_fio->FputInt32_LE(event[i].prev != NULL ? event[i].prev->index : -1);
-		}
+		event[i].device = vm->get_device(state->GetInt32_LE());
+		state->GetValue(event[i].event_id);
+		state->GetValue(event[i].expired_clock);
+		state->GetValue(event[i].loop_clock);
+		state->GetValue(event[i].accum_clocks);
+		state->GetValue(event[i].active);
+		event[i].next = (event_t *)get_event(state->GetInt32_LE());
+		event[i].prev = (event_t *)get_event(state->GetInt32_LE());
 	}
-	if(loading)
-	{
-		first_free_event = (event_t *)get_event(state_fio->FgetInt32_LE());
-		first_fire_event = (event_t *)get_event(state_fio->FgetInt32_LE());
-	}
-	else
-	{
-		state_fio->FputInt32_LE(first_free_event != NULL ? first_free_event->index : -1);
-		state_fio->FputInt32_LE(first_fire_event != NULL ? first_fire_event->index : -1);
-	}
-	state_fio->StateValue(frames_per_sec);
-	state_fio->StateValue(next_frames_per_sec);
-	state_fio->StateValue(lines_per_frame);
-	state_fio->StateValue(next_lines_per_frame);
-	state_fio->StateArray(dev_need_mix, sizeof(dev_need_mix), 1);
-	state_fio->StateValue(need_mix);
+	first_free_event = (event_t *)get_event(state->GetInt32_LE());
+	first_fire_event = (event_t *)get_event(state->GetInt32_LE());
+	state->GetValue(frames_per_sec);
+	state->GetValue(next_frames_per_sec);
+	state->GetValue(lines_per_frame);
+	state->GetValue(next_lines_per_frame);
+	state->GetArray(dev_need_mix, sizeof(dev_need_mix), 1);
+	state->GetValue(need_mix);
 	
 	// post process
-	if(loading)
-	{
-		if(sound_buffer_1)
-			memset(sound_buffer_1, 0, sound_size);
-		if(sound_buffer_2)
-			memset(sound_buffer_2, 0, sound_size);
-		sound_buffer_read = sound_buffer_2_start;
-		sound_buffer_write = sound_buffer_1_start;
-		sound_buffer_write_index = 0;
-		mix_counter = 1;
-		mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0));  // per 0.5ms.
-	}
+	if(sound_buffer_1)
+		memset(sound_buffer_1, 0, sound_size);
+	if(sound_buffer_2)
+		memset(sound_buffer_2, 0, sound_size);
+	sound_buffer_read = sound_buffer_2_start;
+	sound_buffer_write = sound_buffer_1_start;
+	sound_buffer_write_index = 0;
+	mix_counter = 1;
+	mix_limit = (int)((double)(emu->get_sound_rate() / 2000.0));  // per 0.5ms.
+
 	return true;
 }
 

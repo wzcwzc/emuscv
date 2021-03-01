@@ -79,24 +79,15 @@ public:
 	virtual void release() {}
 
 	virtual void update_config() {}
-	virtual void save_state(FILEIO* state_fio) {}
-	virtual bool load_state(FILEIO* state_fio)
+	virtual void save_state(STATE* state) {}
+	virtual bool load_state(STATE* state)
 	{
 		return true;
 	}
-	virtual bool process_state(FILEIO* state_fio, bool loading)
-	{
-		if(loading) {
-			return load_state(state_fio);
-		} else {
-			save_state(state_fio);
-			return true;
-		}
-	}
-
+	
 	// control
 	virtual void reset() {}
-	virtual void special_reset()
+	virtual void special_reset() 
 	{
 		reset();
 	}
@@ -959,6 +950,7 @@ public:
 	DEVICE* prev_device;
 	DEVICE* next_device;
 	int this_device_id;
-	_TCHAR this_device_name[128];};
+	_TCHAR this_device_name[128];
+};
 
 #endif	// _EMUSCV_INC_VM_DEVICE_H_

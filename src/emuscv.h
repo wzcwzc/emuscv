@@ -23,6 +23,7 @@
 #include <unzip/unzip.h>
 #include <lpng/png.h>
 #include "common.h"
+#include "state.h"
 
 // SCV includes
 #ifndef EMUSCV
@@ -113,6 +114,8 @@ class cEmuSCV
 		void RetroLoadSettings();											// Libretro: load core settings
 		void RetroSaveSettings();											// Libretro: save core settings
 
+		bool RetroSaveState(void *data, size_t size);
+		bool RetroLoadState(void *data, size_t size);
 
 		retro_log_printf_t			RetroLogPrintf;
 		retro_environment_t 		RetroEnvironment;
@@ -193,9 +196,11 @@ class cEmuSCV
 		size_t sound_buffer_samples;
 		size_t sound_buffer_size;
 
-	private:
-		bool CreateKeyboardSurface();				
-		bool DestroyKeyboardSurface();				
+		bool CreateKeyboardSurface();
+		bool DestroyKeyboardSurface();
+		
+		STATE state;
+
 };
 
 #endif	// _EMUSCV_INC_EMUSCV_H_

@@ -545,18 +545,28 @@ inline void VDP::draw_sprite(int dx, int dy, int sx, int ex, int sy, int ey, int
 */
 }
 
-#define STATE_VERSION	1
+#define VDP_STATE_ID	901
 
-bool VDP::process_state(FILEIO* state_fio, bool loading)
+void VDP::save_state(STATE* state)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION))
+	state->SetValue((uint16_t)VDP_STATE_ID);
+	state->SetValue(this_device_id);
+	state->SetValue(vdc0);
+	state->SetValue(vdc1);
+	state->SetValue(vdc2);
+	state->SetValue(vdc3);
+}
+
+bool VDP::load_state(STATE* state)
+{
+	if(!state->CheckValue((uint16_t)VDP_STATE_ID))
 		return false;
-	if(!state_fio->StateCheckInt32(this_device_id))
+	if(!state->CheckValue(this_device_id))
 		return false;
-	state_fio->StateValue(vdc0);
-	state_fio->StateValue(vdc1);
-	state_fio->StateValue(vdc2);
-	state_fio->StateValue(vdc3);
+	state->GetValue(vdc0);
+	state->GetValue(vdc1);
+	state->GetValue(vdc2);
+	state->GetValue(vdc3);
 	
 	return true;
 }

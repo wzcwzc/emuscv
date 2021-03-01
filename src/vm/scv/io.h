@@ -38,7 +38,8 @@ public:
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void save_state(STATE* state);
+	bool load_state(STATE* state);
 
 	// unique functions
 	void set_context_mem(DEVICE* device)

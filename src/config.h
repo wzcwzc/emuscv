@@ -85,7 +85,8 @@
 void DLL_PREFIX initialize_config();
 void DLL_PREFIX load_config(const _TCHAR* config_path);
 void DLL_PREFIX save_config(const _TCHAR* config_path);
-bool DLL_PREFIX process_config_state(void *f, bool loading);
+void DLL_PREFIX save_config_state(STATE* state);
+bool DLL_PREFIX load_config_state(STATE* state);
 #if defined(_LIBRETRO)
 void DLL_PREFIX apply_display_config();
 #endif
@@ -303,5 +304,6 @@ typedef struct {
 } config_t;
 
 extern DLL_PREFIX config_t config;
+
 
 #endif	// _EMUSCV_INC_CONFIG_H_

@@ -3,7 +3,7 @@ TARGET_NAME := emuscv
 EMUSCV_VERSION_MAJOR := 0
 EMUSCV_VERSION_MINOR := 08
 #EMUSCV_VERSION_DATETIME := $(shell date -u +'%Y%m%d%H%M%S')
-EMUSCV_VERSION_DATETIME := '20210220231500'
+EMUSCV_VERSION_DATETIME := '20210301133500'
 EMUSCV_VERSION := $(EMUSCV_VERSION_MAJOR).$(EMUSCV_VERSION_MINOR).$(EMUSCV_VERSION_DATETIME)
 
 DEBUG = 1
@@ -368,7 +368,7 @@ else ifeq ($(platform),osx)
 #	CFLAGS := $(DEFINES) -g -O2 -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -Wl,--allow-multiple-definition -specs=$(LIBNX)/switch.specs
 #	CFLAGS += $(INCDIRS)
 #	CFLAGS += $(INCLUDE)  -D__SWITCH__ -DHAVE_LIBNX
-#	CXXFLAGS := $(ASFLAGS) $(CFLAGS) -fno-rtti -std=gnu++11
+#	CXXFLAGS := $(ASFLAGS) $(CFLAGS) -std=gnu++11
 #	CFLAGS += -std=gnu11
 #	STATIC_LINKING = 1
 
@@ -638,8 +638,7 @@ else
 endif
 
 ifeq (,$(findstring msvc,$(platform)))
-	CXXFLAGS += -fno-rtti
-	CXXFLAGS += -std=c++98
+	CXXFLAGS += -std=c++11
 endif
 
 CFLAGS   += -DHAVE_STDINT_H

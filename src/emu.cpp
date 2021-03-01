@@ -128,6 +128,10 @@ EMU::EMU()
 		}
 	}
 #endif
+#ifdef USE_STATE
+	state_counter = 0;
+#endif
+
 	vm->reset();
 
 	now_suspended = false;
@@ -2840,192 +2844,61 @@ void EMU::free_sound_file(int id, int16_t **data)
 // ----------------------------------------------------------------------------
 
 #ifdef USE_STATE
-#define STATE_VERSION	2
 
-void EMU::save_state(const _TCHAR* file_path)
+#define EMU_STATE_ID	101
+
+void EMU::save_state(STATE* state)
 {
-	/*
-	FILEIO* fio = new FILEIO();
+	state->SetValue(++state_counter);
+
+	state->SetValue((uint16_t)EMU_STATE_ID);
+
 	osd->lock_vm();
-#ifdef USE_ZLIB
-	if(config.compress_state) {
-		fio->Gzopen(file_path, FILEIO_WRITE_BINARY);
-	}
-#endif
-	if(!fio->IsOpened()) {
-		fio->Fopen(file_path, FILEIO_WRITE_BINARY);
-	}
-	if(fio->IsOpened()) {
-		// save state file version
-		fio->FputUint32(STATE_VERSION);
-		// save config
-		process_config_state((void *)fio, false);
-		// save inserted medias
+
+	// save inserted medias
 #ifdef USE_CART
-		fio->Fwrite(&cart_status, sizeof(cart_status), 1);
-#endif
-#ifdef USE_FLOPPY_DISK
-		fio->Fwrite(floppy_disk_status, sizeof(floppy_disk_status), 1);
-		fio->Fwrite(d88_file, sizeof(d88_file), 1);
-#endif
-#ifdef USE_QUICK_DISK
-		fio->Fwrite(&quick_disk_status, sizeof(quick_disk_status), 1);
-#endif
-#ifdef USE_HARD_DISK
-		fio->Fwrite(&hard_disk_status, sizeof(hard_disk_status), 1);
-#endif
-#ifdef USE_TAPE
-		fio->Fwrite(&tape_status, sizeof(tape_status), 1);
-#endif
-#ifdef USE_COMPACT_DISC
-		fio->Fwrite(&compact_disc_status, sizeof(compact_disc_status), 1);
-#endif
-#ifdef USE_LASER_DISC
-		fio->Fwrite(&laser_disc_status, sizeof(laser_disc_status), 1);
-#endif
-#ifdef USE_BUBBLE
-		fio->Fwrite(&bubble_casette_status, sizeof(bubble_casette_status), 1);
-#endif
-		// save vm state
-		vm->process_state(fio, false);
-		// end of state file
-		fio->FputInt32_LE(-1);
-		fio->Fclose();
+	size_t len;
+	for(int x = 0; x < USE_CART; x++)
+	{
+		state->SetValue(cart_status[x].bank);
+		len = strlen(cart_status[x].path)+1;
+		state->SetValue(len);
+		state->SetArray(cart_status[x].path, len, 1);
+		state->SetValue(cart_status[x].play);
+		state->SetValue(cart_status[x].wait_count);
 	}
+#endif	// #ifdef USE_CART
+	vm->save_state(state);
+
 	osd->unlock_vm();
-	delete fio;
-	*/
 }
 
-void EMU::load_state(const _TCHAR* file_path)
+bool EMU::load_state(STATE* state)
 {
-	/*
-	if(FILEIO::IsFileExisting(file_path)) {
-#ifdef USE_AUTO_KEY
-		stop_auto_key();
-		config.romaji_to_kana = false;
-#endif
+	state->GetValue(state_counter);
 
-		save_state(create_local_path(_T("$temp$.sta")));
-		if(!load_state_tmp(file_path)) {
-			out_debug_log(_T("failed to load state file\n"));
-			load_state_tmp(create_local_path(_T("$temp$.sta")));
-		}
-		FILEIO::RemoveFile(create_local_path(_T("$temp$.sta")));
-	}
-	*/
-}
+	if(!state->CheckValue((uint16_t)EMU_STATE_ID))
+		return false;
 
-bool EMU::load_state_tmp(const _TCHAR* file_path)
-{
-	bool result = false;
-	/*
-	FILEIO* fio = new FILEIO();
 	osd->lock_vm();
-#ifdef USE_ZLIB
-//	if(config.compress_state) {
-		fio->Gzopen(file_path, FILEIO_READ_BINARY);
-//	}
-#endif
-	if(!fio->IsOpened()) {
-		fio->Fopen(file_path, FILEIO_READ_BINARY);
-	}
-	if(fio->IsOpened()) {
-		// check state file version
-		if(fio->FgetUint32() == STATE_VERSION) {
-			// load config
-			if(process_config_state((void *)fio, true)) {
-				// load inserted medias
 #ifdef USE_CART
-				fio->Fread(&cart_status, sizeof(cart_status), 1);
-#endif
-#ifdef USE_FLOPPY_DISK
-				fio->Fread(floppy_disk_status, sizeof(floppy_disk_status), 1);
-				fio->Fread(d88_file, sizeof(d88_file), 1);
-#endif
-#ifdef USE_QUICK_DISK
-				fio->Fread(&quick_disk_status, sizeof(quick_disk_status), 1);
-#endif
-#ifdef USE_HARD_DISK
-				fio->Fread(&hard_disk_status, sizeof(hard_disk_status), 1);
-#endif
-#ifdef USE_TAPE
-				fio->Fread(&tape_status, sizeof(tape_status), 1);
-#endif
-#ifdef USE_COMPACT_DISC
-				fio->Fread(&compact_disc_status, sizeof(compact_disc_status), 1);
-#endif
-#ifdef USE_LASER_DISC
-				fio->Fread(&laser_disc_status, sizeof(laser_disc_status), 1);
-#endif
-#ifdef USE_BUBBLE
-				fio->Fread(&bubble_casette_status, sizeof(bubble_casette_status), 1);
-#endif
-				// check if virtual machine should be reinitialized
-				bool reinitialize = false;
-#ifdef USE_CPU_TYPE
-				reinitialize |= (cpu_type != config.cpu_type);
-				cpu_type = config.cpu_type;
-#endif
-#ifdef USE_DIPSWITCH
-				reinitialize |= (dipswitch != config.dipswitch);
-				dipswitch = config.dipswitch;
-#endif
-#ifdef USE_SOUND_TYPE
-				reinitialize |= (sound_type != config.sound_type);
-				sound_type = config.sound_type;
-#endif
-#ifdef USE_PRINTER_TYPE
-				reinitialize |= (printer_type != config.printer_type);
-				printer_type = config.printer_type;
-#endif
-				if(!(0 <= config.sound_frequency && config.sound_frequency < 8)) {
-					config.sound_frequency = 6;	// default: 48KHz
-				}
-				if(!(0 <= config.sound_latency && config.sound_latency < 5)) {
-					config.sound_latency = 1;	// default: 100msec
-				}
-				reinitialize |= (sound_frequency != config.sound_frequency);
-				reinitialize |= (sound_latency != config.sound_latency);
-				sound_frequency = config.sound_frequency;
-				sound_latency = config.sound_latency;
 
-				if(reinitialize) {
-					// stop sound
-					osd->stop_sound();
-					// reinitialize virtual machine
-//					osd->lock_vm();
-					delete vm;
-					osd->vm = vm = new VM(this);
-#if defined(_USE_QT)
-					osd->reset_vm_node();
-#endif
-					sound_rate = sound_frequency_table[config.sound_frequency];
-					sound_samples = (int)(sound_rate * sound_latency_table[config.sound_latency] + 0.5);
-					vm->initialize_sound(sound_rate, sound_samples);
-#ifdef USE_SOUND_VOLUME
-					for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-						vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
-					}
-#endif
-					restore_media();
-					vm->reset();
-//					osd->unlock_vm();
-				} else {
-					restore_media();
-				}
-				// load vm state
-				if(vm->process_state(fio, true)) {
-					// check end of state
-					result = (fio->FgetInt32_LE() == -1);
-				}
-			}
-		}
-		fio->Fclose();
+	size_t len;
+	for(int x = 0; x < USE_CART; x++)
+	{
+		state->GetValue(cart_status[x].bank);
+		state->GetValue(len);
+		state->GetArray(cart_status[x].path, len, 1);
+		state->GetValue(cart_status[x].play);
+		state->GetValue(cart_status[x].wait_count);
 	}
+#endif	// #ifdef USE_CART
+
+	vm->load_state(state);
+
 	osd->unlock_vm();
-	delete fio;
-	*/
-	return result;
+
+	return true;
 }
-#endif
+
+#endif	// #ifdef USE_STATE

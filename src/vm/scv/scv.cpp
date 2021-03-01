@@ -210,39 +210,36 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define VM_STATE_ID	201
 
-bool VM::process_state(FILEIO* state_fio, bool loading)
+void VM::save_state(STATE* state)
 {
-/*
-// TODO_MM
-	if(!state_fio->StateCheckUint32(STATE_VERSION))
-	{
-		return false;
-	}
+	state->SetValue((uint16_t)VM_STATE_ID);
 	for(DEVICE* device = first_device; device; device = device->next_device)
 	{
-		device->get_device_name();
-		const char *name = typeid(*device).name() + 6; // skip "class "
-		int len = strlen(name);
-
-		if(!state_fio->StateCheckInt32(len))
-		{
-			return false;
-		}
-		if(!state_fio->StateCheckBuffer(name, len, 1))
-		{
-			return false;
-		}
-		if(!device->process_state(state_fio, loading))
-		{
-			return false;
-		}
+		const char *name = device->get_device_name();
+		uint16_t len = strlen(name)+1;
+		state->SetValue(len);
+		state->SetArray((_TCHAR *)name, len, 1);
+		device->save_state(state);
 	}
-	
+}
+bool VM::load_state(STATE* state)
+{
+	if(!state->CheckValue((uint16_t)VM_STATE_ID))
+		return false;
+	for(DEVICE* device = first_device; device; device = device->next_device)
+	{
+		const char *name = device->get_device_name();
+		uint16_t len = strlen(name)+1;
+		if(!state->CheckValue(len))
+			return false;
+		if(!state->CheckArray((_TCHAR *)name, len, 1))
+			return false;
+		if(!device->load_state(state))
+			return false;
+	}
 	return true;
-*/
-	return false;
 }
 
 bool VM::is_bios_found()

@@ -17,6 +17,7 @@
 #endif
 #include "fifo.h"
 #include "fileio.h"
+#include "state.h"
 
 FIFO::FIFO(int s)
 {
@@ -97,20 +98,21 @@ bool FIFO::empty()
 	return (cnt == 0);
 }
 
-#define STATE_VERSION	1
-
-bool FIFO::process_state(void *f, bool loading)
+void FIFO::save_state(STATE *state)
 {
-	FILEIO *state_fio = (FILEIO *)f;
-
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
-		return false;
-	}
-	state_fio->StateValue(size);
-	state_fio->StateArray(buf, size * sizeof(int), 1);
-	state_fio->StateValue(cnt);
-	state_fio->StateValue(rpt);
-	state_fio->StateValue(wpt);
-	return true;
+	state->SetValue(size);
+	state->SetArray(buf, size * sizeof(int), 1);
+	state->SetValue(cnt);
+	state->SetValue(rpt);
+	state->SetValue(wpt);
 }
 
+bool FIFO::load_state(STATE *state)
+{
+	state->GetValue(size);
+	state->GetArray(buf, size * sizeof(int), 1);
+	state->GetValue(cnt);
+	state->GetValue(rpt);
+	state->GetValue(wpt);
+	return true;
+}

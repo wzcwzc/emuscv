@@ -162,6 +162,8 @@
 
 using namespace std;
 
+class STATE;
+
 #ifndef _MAX_PATH
 	#define _MAX_PATH 2048
 #endif
@@ -1256,7 +1258,8 @@ typedef DLL_PREFIX struct cur_time_s {
 	void increment();
 	void update_year();
 	void update_day_of_week();
-	bool process_state(void *f, bool loading);
+	void save_state(STATE *state);
+	bool load_state(STATE *state);
 } cur_time_t;
 
 void DLL_PREFIX get_host_time(cur_time_t* cur_time);

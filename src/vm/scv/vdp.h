@@ -56,7 +56,8 @@ public:
 	void initialize();
 	void reset();
 	void event_vline(int v, int clock);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void save_state(STATE* state);
+	bool load_state(STATE* state);
 
 	// unique functions
 	void set_context_cpu(DEVICE* device)

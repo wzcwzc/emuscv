@@ -15,6 +15,7 @@
 #define _EMUSCV_INC_VM_VM_TEMPLATE_H_
 
 #include "../common.h"
+#include "../state.h"
 
 class EMU;
 class EVENT;
@@ -159,7 +160,8 @@ public:
 	virtual void push_apss_rewind(int drv) { }
 
 	virtual void update_config() { }
-	virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }
+	virtual void save_state(STATE* retro_savestate) { }
+	virtual bool load_state(STATE* retro_savestate) { return true; }
 
 	// devices
 	virtual void set_cpu_clock(DEVICE *cpu, uint32_t clocks) { }

@@ -206,15 +206,7 @@ size_t retro_serialize_size(void)
 // 
 bool retro_serialize(void *data, size_t size)
 {
-	size_t serialize_size = 0;
-
-	// If size is lower than serialize size, we must retrun false
-	serialize_size = oEmuSCV.RetroSaveStateSize();
-	if (size < serialize_size)
-		return false;
-	// Copy data
-	memcpy(data, oEmuSCV.RetroSaveStateData(), serialize_size);
-	return true;
+	return oEmuSCV.RetroSaveState((void *)data, size);
 }
 
 // 
@@ -222,15 +214,7 @@ bool retro_serialize(void *data, size_t size)
 // 
 bool retro_unserialize(const void *data, size_t size)
 {
-	size_t serialize_size = 0;
-
-	// If size is lower than serialize size, we must retrun false
-	serialize_size = oEmuSCV.RetroSaveStateSize();
-	if (serialize_size == 0 || size < serialize_size)
-		return false;
-	// Copy data
-	memcpy(oEmuSCV.RetroSaveStateData(), data, serialize_size);
-	return true;
+	return oEmuSCV.RetroLoadState((void *)data, size);
 }
 
 // 

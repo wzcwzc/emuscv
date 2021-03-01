@@ -51,8 +51,8 @@ typedef struct
 	int period;
 	int timbre;
 	int volume;
-	int output;
-	int ptr;
+	int16_t output;
+	uint32_t ptr;
 } channel_t;
 
 class SOUND : public DEVICE
@@ -69,19 +69,19 @@ private:
 	channel_t pcm;
 	inline void clear_channel(channel_t *ch);
 
-	int pcm_table[PCM_TABLE_SIZE+8];
+	int16_t pcm_table[PCM_TABLE_SIZE+8];
 	uint32_t cmd_addr;
-	int pcm_len;
-	int pcm_table_data[PCM_TABLE_DATA_SIZE];
-	int pcm_table_smooth[PCM_TABLE_SMOOTH_SIZE];
-	int pcm_table_smooth_index;
+	uint32_t pcm_len;
+	int16_t pcm_table_data[PCM_TABLE_DATA_SIZE];
+	int16_t pcm_table_smooth[PCM_TABLE_SMOOTH_SIZE];
+	int8_t pcm_table_smooth_index;
 
-	int volume_table[32];
-	int detune_table[32];
+	int16_t volume_table[32];
+	int16_t detune_table[32];
 
 	// command buffer
-	int param_cnt;
-	int param_ptr;
+	uint32_t param_cnt;
+	uint32_t param_ptr;
 	int register_id;
 	uint8_t params[MAX_PARAM];
 
@@ -101,7 +101,8 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
 	void mix(int16_t* buffer, uint32_t cnt);
-	bool process_state(FILEIO* state_fio, bool loading);
+	void save_state(STATE* state);
+	bool load_state(STATE* state);
 
 	// unique functions
 	void set_context_cpu(DEVICE* device)

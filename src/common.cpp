@@ -42,6 +42,7 @@
 #include <math.h>
 #include "common.h"
 #include "fileio.h"
+#include "state.h"
 
 // Already declared in shlwapi.h
 #ifndef _LIBRETRO
@@ -1626,23 +1627,28 @@ void DLL_PREFIX cur_time_t::update_day_of_week()
 	day_of_week = (y + y / 4 - y / 100 + y / 400 + t[month - 1] + day) % 7;
 }
 
-#define STATE_VERSION	1
-
-bool DLL_PREFIX cur_time_t::process_state(void *f, bool loading)
+void DLL_PREFIX cur_time_t::save_state(STATE *state)
 {
-	FILEIO *state_fio = (FILEIO *)f;
+	state->SetValue(year);
+	state->SetValue(month);
+	state->SetValue(day);
+	state->SetValue(day_of_week);
+	state->SetValue(hour);
+	state->SetValue(minute);
+	state->SetValue(second);
+	state->SetValue(initialized);
+}
 
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
-		return false;
-	}
-	state_fio->StateValue(year);
-	state_fio->StateValue(month);
-	state_fio->StateValue(day);
-	state_fio->StateValue(day_of_week);
-	state_fio->StateValue(hour);
-	state_fio->StateValue(minute);
-	state_fio->StateValue(second);
-	state_fio->StateValue(initialized);
+bool DLL_PREFIX cur_time_t::load_state(STATE *state)
+{
+	state->GetValue(year);
+	state->GetValue(month);
+	state->GetValue(day);
+	state->GetValue(day_of_week);
+	state->GetValue(hour);
+	state->GetValue(minute);
+	state->GetValue(second);
+	state->GetValue(initialized);
 	return true;
 }
 

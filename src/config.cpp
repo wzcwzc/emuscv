@@ -595,56 +595,60 @@ void save_config(const _TCHAR* config_path)
 	#endif
 }
 
-#define STATE_VERSION	6
+#define CONFIG_STATE_ID	100000006
 
-bool process_config_state(void *f, bool loading)
+void save_config_state(STATE* state)
 {
-	FILEIO *state_fio = (FILEIO *)f;
-
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
-		return false;
-	}
+	state->SetValue((uint32_t)CONFIG_STATE_ID);
+/*
 	#ifdef USE_BOOT_MODE
-		state_fio->StateValue(config.boot_mode);
+		state->StateValue(config.boot_mode);
 	#endif
 	#ifdef USE_CPU_TYPE
-		state_fio->StateValue(config.cpu_type);
+		state->StateValue(config.cpu_type);
 	#endif
 	#ifdef USE_DIPSWITCH
-		state_fio->StateValue(config.dipswitch);
+		state->StateValue(config.dipswitch);
 	#endif
 	#ifdef USE_DEVICE_TYPE
-		state_fio->StateValue(config.device_type);
+		state->StateValue(config.device_type);
 	#endif
 	#ifdef USE_DRIVE_TYPE
-		state_fio->StateValue(config.drive_type);
+		state->StateValue(config.drive_type);
 	#endif
 	#ifdef USE_KEYBOARD_TYPE
-		state_fio->StateValue(config.keyboard_type);
+		state->StateValue(config.keyboard_type);
 	#endif
 	#ifdef USE_MOUSE_TYPE
-		state_fio->StateValue(config.mouse_type);
+		state->StateValue(config.mouse_type);
 	#endif
 	#ifdef USE_JOYSTICK_TYPE
-		state_fio->StateValue(config.joystick_type);
+		state->StateValue(config.joystick_type);
 	#endif
 	#ifdef USE_SOUND_TYPE
-		state_fio->StateValue(config.sound_type);
+		state->StateValue(config.sound_type);
 	#endif
 	#ifdef USE_MONITOR_TYPE
-		state_fio->StateValue(config.monitor_type);
+		state->StateValue(config.monitor_type);
 	#endif
 	#ifdef USE_PRINTER_TYPE
-		state_fio->StateValue(config.printer_type);
+		state->StateValue(config.printer_type);
 	#endif
 	#ifdef USE_FLOPPY_DISK
 		for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
-			state_fio->StateValue(config.correct_disk_timing[drv]);
-			state_fio->StateValue(config.ignore_disk_crc[drv]);
+			state->StateValue(config.correct_disk_timing[drv]);
+			state->StateValue(config.ignore_disk_crc[drv]);
 		}
 	#endif
-	state_fio->StateValue(config.sound_frequency);
-	state_fio->StateValue(config.sound_latency);
+*/
+	state->SetValue(config.sound_frequency);
+	state->SetValue(config.sound_latency);
+}
+
+bool load_config_state(STATE* state)
+{
+	if(!state->CheckValue((uint32_t)CONFIG_STATE_ID))
+		return false;
 	return true;
 }
 

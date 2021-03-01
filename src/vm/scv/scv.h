@@ -243,7 +243,8 @@ public:
 	bool is_cart_inserted(int drv);
 
 	void update_config();
-	bool process_state(FILEIO* state_fio, bool loading);
+	void save_state(STATE* state);
+	bool load_state(STATE* state);
 
 	// bios
 	bool is_bios_found();

@@ -29,6 +29,7 @@
 #include <assert.h>
 
 #include "common.h"
+#include "state.h"
 #include "config.h"
 #include "fifo.h"
 #include "fileio.h"
@@ -144,8 +145,10 @@ private:
 	void update_joystick();
 #endif
 
-	// media
-	typedef struct {
+
+// media
+	typedef struct
+	{
 		_TCHAR path[_MAX_PATH];
 		bool play;
 		int bank;
@@ -186,11 +189,6 @@ private:
 		status->path[0] = _T('\0');
 		status->wait_count = 0;
 	}
-
-	// state
-#ifdef USE_STATE
-	bool load_state_tmp(const _TCHAR* file_path);
-#endif
 
 public:
 #if defined(OSD_QT)
@@ -510,8 +508,9 @@ public:
 
 	// state
 #ifdef USE_STATE
-	void save_state(const _TCHAR* file_path);
-	void load_state(const _TCHAR* file_path);
+	uint64_t state_counter;
+	void save_state(STATE* state);
+	bool load_state(STATE* state);
 #endif
 #ifdef OSD_QT
 	// New APIs

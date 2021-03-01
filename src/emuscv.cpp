@@ -31,7 +31,7 @@
 #include "res/binary.keyboardyeno230x156xrgba8888.data.h"
 #include "res/binary.keyboardyeno460x312xrgba8888.data.h"
 
-#define NOISE_WIDTH 444
+#define NOISE_WIDTH  444
 #define NOISE_HEIGHT 333
 
 // Not used in Libretro
@@ -2398,49 +2398,23 @@ void cEmuSCV::RetroRun(void)
 
 	bool config_changed = false;
 
-	// Recreate SDL surfaces and renderers if the size change
-	if(frame_surface->w != config.window_width || frame_surface->h != config.window_height)
+	// Load previous save state
+	if(state.IsReadyToLoad())
 	{
-		RetroLogPrintf(RETRO_LOG_INFO, "[%s] Resolution change detected\n", EMUSCV_NAME);
-
-		// Free SDL main frame renderer
-		if (frame_renderer != NULL)
-		{
-			SDL_DestroyRenderer(frame_renderer);
-			frame_renderer = NULL;
-//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface renderer destroyed\n", EMUSCV_NAME);
-		}
-//		else
-//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL main surface renderer, nothing to destroy\n", EMUSCV_NAME);
-
-		// Free SDL main frame surface
-		if (frame_surface != NULL)
-		{
-			SDL_FreeSurface(frame_surface);
-			frame_surface = NULL;
-//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface destroyed\n", EMUSCV_NAME);
-		}
-//		else
-//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL main surface, nothing to destroy\n", EMUSCV_NAME);
-
-		// Create SDL main frame surface
-		frame_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, config.window_width, config.window_height, 8*sizeof(uint32_t), 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
-		if (frame_surface == NULL)
-		{
-			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL main surface creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
-			return;
-		}
-//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface created\n", EMUSCV_NAME);
-
-		// Create SDL main frame renderer
-		frame_renderer = SDL_CreateSoftwareRenderer(frame_surface);
-		if (frame_renderer == NULL)
-		{
-			RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL main surface renderer creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
-			return;
-		}
-//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface renderer created\n", EMUSCV_NAME);
+		if(escv_emu)
+			escv_emu->load_state(&state);
+		RetroLoadSettings();
+		state.SetReadyToLoad(false);
 	}
+
+	bool updated = false;
+	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+	{
+		RetroLoadSettings();
+//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Settings (variables) loaded\n", EMUSCV_NAME);
+	}
+//	else
+//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Settings (variables) unchanged, already loaded\n", EMUSCV_NAME);
 
 	// Get inputs
 	RetroInputPoll();
@@ -2505,17 +2479,6 @@ void cEmuSCV::RetroRun(void)
 	keyPause = RetroInputState(port0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F9);
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Imputs parsed\n", EMUSCV_NAME);
 
-	bool updated = false;
-	if (RetroEnvironment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-	{
-		RetroLoadSettings();
-		config_changed = true;
-//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Settings (variables) loaded\n", EMUSCV_NAME);
-	}
-//	else
-//		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] Settings (variables) unchanged, already loaded\n", EMUSCV_NAME);
-
-
 	// Button SELECT
 	// open configuration
 /*
@@ -2536,8 +2499,8 @@ void cEmuSCV::RetroRun(void)
 	// Other buttons
 	// open the console keyboard overlay
 	if ((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
-	|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L3)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))
-	|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L3)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R3)))
+	|| (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R2))/* || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L3)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))*/
+	|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_X)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L2)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R2))/* || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L3)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R3))*/)
 	{
 		if(!button_keyboard_pressed)
 		{
@@ -3144,6 +3107,7 @@ void cEmuSCV::RetroRun(void)
 		RetroSaveSettings();
 	}
 
+	// If video config change
 	if (config.window_width != window_width_old || config.window_height != window_height_old || config.window_fps != window_fps_old)
 	{
 		struct retro_system_av_info av_info;
@@ -3154,6 +3118,50 @@ void cEmuSCV::RetroRun(void)
 		window_width_old = config.window_width;
 		window_height_old = config.window_height;
 		window_fps_old = config.window_fps;
+
+		// Recreate SDL surfaces and renderers if the size change
+		if(frame_surface->w != config.window_width || frame_surface->h != config.window_height)
+		{
+			RetroLogPrintf(RETRO_LOG_INFO, "[%s] Resolution change detected\n", EMUSCV_NAME);
+
+			// Free SDL main frame renderer
+			if (frame_renderer != NULL)
+			{
+				SDL_DestroyRenderer(frame_renderer);
+				frame_renderer = NULL;
+//				RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface renderer destroyed\n", EMUSCV_NAME);
+			}
+//			else
+//				RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL main surface renderer, nothing to destroy\n", EMUSCV_NAME);
+
+			// Free SDL main frame surface
+			if (frame_surface != NULL)
+			{
+				SDL_FreeSurface(frame_surface);
+				frame_surface = NULL;
+//				RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface destroyed\n", EMUSCV_NAME);
+			}
+//			else
+//				RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] No SDL main surface, nothing to destroy\n", EMUSCV_NAME);
+
+			// Create SDL main frame surface
+			frame_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, config.window_width, config.window_height, 8*sizeof(uint32_t), 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+			if (frame_surface == NULL)
+			{
+				RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL main surface creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
+				return;
+			}
+//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface created\n", EMUSCV_NAME);
+
+			// Create SDL main frame renderer
+			frame_renderer = SDL_CreateSoftwareRenderer(frame_surface);
+			if (frame_renderer == NULL)
+			{
+				RetroLogPrintf(RETRO_LOG_ERROR, "[%s] SDL main surface renderer creation failed! %s\n", EMUSCV_NAME, SDL_GetError());
+				return;
+			}
+//			RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL main surface renderer created\n", EMUSCV_NAME);
+		}
 
 		// Paint it black
 		SDL_SetRenderDrawColor(frame_renderer, 0, 0, 0, 255);
@@ -4642,7 +4650,7 @@ size_t cEmuSCV::RetroSaveStateSize(void)
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 //	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSaveStateSize()\n", EMUSCV_NAME);
 
-	return 0;
+	return STATE_MAX_DATA_SIZE;	//state.GetDataSize();
 }
 
 // 
@@ -4654,9 +4662,12 @@ void *cEmuSCV::RetroSaveStateData(void)
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 //	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSaveStateData()\n", EMUSCV_NAME);
 
-	return NULL;
+	return state.GetDataPtr();
 }
 
+// 
+// Create the SDL surface and the SDL renderer and load the pictureS for the quick keyboard overlay
+// 
 bool cEmuSCV::CreateKeyboardSurface()
 {
 	int x, y, w, h = 0;
@@ -4725,6 +4736,9 @@ bool cEmuSCV::CreateKeyboardSurface()
 	return true;
 }
 
+// 
+// Destroy the SDL surface and the SDL renderer for the quick keyboard overlay
+// 
 bool cEmuSCV::DestroyKeyboardSurface()
 {
 	// Free SDL quick keyboard renderer
@@ -4745,5 +4759,37 @@ bool cEmuSCV::DestroyKeyboardSurface()
 //		RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] SDL secondary surface destroyed\n", EMUSCV_NAME);
 	}
 
+	return true;
+}
+
+bool cEmuSCV::RetroSaveState(void *data, size_t size)
+{
+	size_t serialize_size = 0;
+
+	// Save current state
+	state.Init();
+	if(escv_emu)
+		escv_emu->save_state(&state);
+
+	// If size is lower than serialize size, we must retrun false
+	serialize_size = state.GetDataSize();
+	if (size < serialize_size)
+		return false;
+	// Copy data
+	memcpy(data, state.GetDataPtr(), serialize_size);
+	return true;
+}
+
+bool cEmuSCV::RetroLoadState(void *data, size_t size)
+{
+	size_t serialize_size = 0;
+
+	// If size is lower than serialize size, we must retrun false
+	serialize_size = state.GetDataSize();
+	if (size < serialize_size)
+		return false;
+	// Copy data
+	memcpy(state.GetDataPtr(), data, size);
+	state.SetReadyToLoad(true);
 	return true;
 }

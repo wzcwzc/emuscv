@@ -15,6 +15,7 @@
 #include "sound.h"
 #include "sound_tbl.h"
 #include "../upd7801.h"
+#include "../state.h"
 
 //#define SOUND_DEBUG
 #define ACK_WAIT 100
@@ -361,12 +362,6 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 				v += pcm_table_smooth[i];
 			vol += v>>3;	// Quick optimization for: vol += v/PCM_TABLE_SMOOTH_SIZE;
 
-//			// Saturate
-//			if(vol > INT16_MAX)
-//				vol = INT16_MAX;
-//			else if(vol < INT16_MIN)
-//			vol = INT16_MIN;
-
 			// Mix
 			*buffer++ = vol;	// Mono
 		}
@@ -391,22 +386,6 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 				}
 				vol += tone.output;
 			}
-
-//			// Saturate
-//			if(vol > INT16_MAX)
-//				vol = INT16_MAX;
-//			else if(vol < INT16_MIN)
-//			vol = INT16_MIN;
-
-//			// Mix
-//			*buffer++ = vol;	// Mono
-//		}
-//	}
-//	else
-//	{
-//		for(int i = cnt+1; --i != 0; )
-//		{
-//			vol = 0;
 
 			// Mix noise
 			if(noise.volume)
@@ -473,49 +452,75 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 				vol += square3.output;
 			}
 
-//			// Mix all channels
-//			if(vol > INT16_MAX)
-//				vol = INT16_MAX;
-//			else if(vol < INT16_MIN)
-//				vol = INT16_MIN;
-
 			*buffer++ = vol;	// Mono
 		}
 	}
 }
 
-#define STATE_VERSION	2
-
-void process_state_channel(channel_t* val, FILEIO* state_fio)
+void save_channel_state(STATE* state, channel_t* val)
 {
-	state_fio->StateValue(val->count);
-	state_fio->StateValue(val->diff);
-	state_fio->StateValue(val->period);
-	state_fio->StateValue(val->timbre);
-	state_fio->StateValue(val->volume);
-	state_fio->StateValue(val->output);
-	state_fio->StateValue(val->ptr);
+	state->SetValue(val->count);
+	state->SetValue(val->diff);
+	state->SetValue(val->period);
+	state->SetValue(val->timbre);
+	state->SetValue(val->volume);
+	state->SetValue(val->output);
+	state->SetValue(val->ptr);
 }
 
-bool SOUND::process_state(FILEIO* state_fio, bool loading)
+void load_channel_state(STATE* state, channel_t* val)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION))
+	state->GetValue(val->count);
+	state->GetValue(val->diff);
+	state->GetValue(val->period);
+	state->GetValue(val->timbre);
+	state->GetValue(val->volume);
+	state->GetValue(val->output);
+	state->GetValue(val->ptr);
+}
+
+#define SOUND_STATE_ID	701
+
+void SOUND::save_state(STATE* state)
+{
+	state->SetValue((uint16_t)SOUND_STATE_ID);
+	state->SetValue(this_device_id);
+	save_channel_state(state, &tone);
+	save_channel_state(state, &noise);
+	save_channel_state(state, &square1);
+	save_channel_state(state, &square2);
+	save_channel_state(state, &square3);
+	save_channel_state(state, &pcm);
+	state->SetValue(pcm_len);
+	if(pcm.count > 0 && pcm_len > 0 && pcm_len - pcm.ptr > 0)
+		state->SetArray(&pcm_table[pcm.ptr], pcm_len - pcm.ptr, 1);
+	state->SetValue(cmd_addr);
+	state->SetValue(param_cnt);
+	state->SetValue(param_ptr);
+	state->SetValue(register_id);
+	state->SetArray(params, sizeof(params), 1);
+}
+
+bool SOUND::load_state(STATE* state)
+{
+	if(!state->CheckValue((uint16_t)SOUND_STATE_ID))
 		return false;
-	if(!state_fio->StateCheckInt32(this_device_id))
+	if(!state->CheckValue(this_device_id))
 		return false;
-	process_state_channel(&tone, state_fio);
-	process_state_channel(&noise, state_fio);
-	process_state_channel(&square1, state_fio);
-	process_state_channel(&square2, state_fio);
-	process_state_channel(&square3, state_fio);
-	process_state_channel(&pcm, state_fio);
-	state_fio->StateArray(pcm_table, sizeof(pcm_table), 1);
-	state_fio->StateValue(cmd_addr);
-	state_fio->StateValue(pcm_len);
-	state_fio->StateValue(param_cnt);
-	state_fio->StateValue(param_ptr);
-	state_fio->StateValue(register_id);
-	state_fio->StateArray(params, sizeof(params), 1);
+	load_channel_state(state, &tone);
+	load_channel_state(state, &noise);
+	load_channel_state(state, &square1);
+	load_channel_state(state, &square2);
+	load_channel_state(state, &square3);
+	load_channel_state(state, &pcm);
+	state->GetValue(pcm_len);
+	if(pcm.count > 0 && pcm_len > 0 && pcm_len - pcm.ptr > 0)
+		state->GetArray(&pcm_table[pcm.ptr], pcm_len - pcm.ptr, 1);
+	state->GetValue(cmd_addr);
+	state->GetValue(param_cnt);
+	state->GetValue(param_ptr);
+	state->GetValue(register_id);
+	state->GetArray(params, sizeof(params), 1);
 
 	return true;
 }

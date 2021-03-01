@@ -3868,53 +3868,84 @@ void UPD7801::OP74()
 	}
 }
 
-#define STATE_VERSION	4
+#define UPD7801_STATE_ID	401
 
-bool UPD7801::process_state(FILEIO* state_fio, bool loading)
+void UPD7801::save_state(STATE* state)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
-		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
-		return false;
-	}
+	state->SetValue((uint16_t)UPD7801_STATE_ID);
+	state->SetValue(this_device_id);
 #ifdef USE_DEBUGGER
-	state_fio->StateValue(total_count);
+	state->SetValue(total_count);
 #endif
-	state_fio->StateValue(count);
-	state_fio->StateValue(period);
-	state_fio->StateValue(scount);
-	state_fio->StateValue(tcount);
-	state_fio->StateValue(wait);
-	state_fio->StateArray(regs, sizeof(regs), 1);
-	state_fio->StateValue(SP);
-	state_fio->StateValue(PC);
-	state_fio->StateValue(prevPC);
-	state_fio->StateValue(PSW);
-	state_fio->StateValue(IRR);
-	state_fio->StateValue(IFF);
-	state_fio->StateValue(SIRQ);
-	state_fio->StateValue(HALT);
-	state_fio->StateValue(MK);
-	state_fio->StateValue(MB);
-	state_fio->StateValue(MC);
-	state_fio->StateValue(TM0);
-	state_fio->StateValue(TM1);
-	state_fio->StateValue(SR);
-	state_fio->StateValue(SAK);
-	state_fio->StateValue(TO);
-	state_fio->StateValue(HLDA);
-	state_fio->StateValue(PORTC);
-	state_fio->StateValue(SI);
-	state_fio->StateValue(SCK);
-	state_fio->StateValue(sio_count);
+	state->SetValue(count);
+	state->SetValue(period);
+	state->SetValue(scount);
+	state->SetValue(tcount);
+	state->SetValue(wait);
+	state->SetArray(regs, sizeof(regs), 1);
+	state->SetValue(SP);
+	state->SetValue(PC);
+	state->SetValue(prevPC);
+	state->SetValue(PSW);
+	state->SetValue(IRR);
+	state->SetValue(IFF);
+	state->SetValue(SIRQ);
+	state->SetValue(HALT);
+	state->SetValue(MK);
+	state->SetValue(MB);
+	state->SetValue(MC);
+	state->SetValue(TM0);
+	state->SetValue(TM1);
+	state->SetValue(SR);
+	state->SetValue(SAK);
+	state->SetValue(TO);
+	state->SetValue(HLDA);
+	state->SetValue(PORTC);
+	state->SetValue(SI);
+	state->SetValue(SCK);
+	state->SetValue(sio_count);
+}
+
+bool UPD7801::load_state(STATE* state)
+{
+	if(!state->CheckValue((uint16_t)UPD7801_STATE_ID))
+		return false;
+	if(!state->CheckValue(this_device_id))
+		return false;
+#ifdef USE_DEBUGGER
+	state->GetValue(total_count);
+#endif
+	state->GetValue(count);
+	state->GetValue(period);
+	state->GetValue(scount);
+	state->GetValue(tcount);
+	state->GetValue(wait);
+	state->GetArray(regs, sizeof(regs), 1);
+	state->GetValue(SP);
+	state->GetValue(PC);
+	state->GetValue(prevPC);
+	state->GetValue(PSW);
+	state->GetValue(IRR);
+	state->GetValue(IFF);
+	state->GetValue(SIRQ);
+	state->GetValue(HALT);
+	state->GetValue(MK);
+	state->GetValue(MB);
+	state->GetValue(MC);
+	state->GetValue(TM0);
+	state->GetValue(TM1);
+	state->GetValue(SR);
+	state->GetValue(SAK);
+	state->GetValue(TO);
+	state->GetValue(HLDA);
+	state->GetValue(PORTC);
+	state->GetValue(SI);
+	state->GetValue(SCK);
+	state->GetValue(sio_count);
 
 #ifdef USE_DEBUGGER
 	// post process
-	if(loading) {
-		prev_total_count = total_count;
-	}
+	prev_total_count = total_count;
 #endif
 	return true;
 }
-

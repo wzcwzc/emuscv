@@ -13,6 +13,7 @@
 
 #include "io.h"
 #include "../upd7801.h"
+#include "../state.h"
 
 void IO::initialize()
 {
@@ -116,20 +117,26 @@ uint32_t IO::read_io8(uint32_t addr)
 	return 0xff;
 }
 
-#define STATE_VERSION	2
+#define IO_STATE_ID	501
 
-bool IO::process_state(FILEIO* state_fio, bool loading)
+void IO::save_state(STATE* state)
 {
-	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
+	state->SetValue((uint16_t)IO_STATE_ID);
+	state->SetValue(this_device_id);
+	state->SetValue(pa);
+	state->SetValue(pb);
+	state->SetValue(pc);
+}
+
+bool IO::load_state(STATE* state)
+{
+	if(!state->CheckValue((uint16_t)IO_STATE_ID))
 		return false;
-	}
-	if(!state_fio->StateCheckInt32(this_device_id)) {
+	if(!state->CheckValue(this_device_id))
 		return false;
-	}
-	state_fio->StateValue(pa);
-	state_fio->StateValue(pb);
-	state_fio->StateValue(pc);
+	state->SetValue(pa);
+	state->SetValue(pb);
+	state->SetValue(pc);
 	
 	return true;
 }
-

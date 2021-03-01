@@ -51,6 +51,7 @@ SOURCES_C   :=	$(DEPENDENCIES_DIR)/SDL2_gfx/SDL2_framerate.c \
 				$(DEPENDENCIES_DIR)/lpng/pngwutil.c
 
 SOURCES_CXX :=	$(CORE_DIR)/common.cpp \
+				$(CORE_DIR)/state.cpp \
 				$(CORE_DIR)/config.cpp \
 				$(CORE_DIR)/emu.cpp \
 				$(CORE_DIR)/emuscv.cpp \
