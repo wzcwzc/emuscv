@@ -28,6 +28,8 @@
 // Mix buffer size
 #define SCREEN_WIDTH				324
 #define SCREEN_HEIGHT				322
+#define BUFFER_WIDTH				320
+#define BUFFER_HEIGHT				320
 
 // EPOCH console:	198x224
 // YENO Console:	186x248 (including a black band of 3 pixels on right side and a black band of 8 pixels on the bottom)
@@ -51,8 +53,59 @@
 #define DRAW_HEIGHT_YENO			264
 #define DRAW_X_FULL					0
 #define DRAW_Y_FULL					0
-#define DRAW_WIDTH_FULL				SCREEN_WIDTH
-#define DRAW_HEIGHT_FULL			SCREEN_HEIGHT
+#define DRAW_WIDTH_FULL				324
+#define DRAW_HEIGHT_FULL			322
+
+#define MIX_X_MIN_EMUSCV			30
+#define MIX_X_MAX_EMUSCV			222
+#define MIX_Y_MIN_EMUSCV			28
+#define MIX_Y_MAX_EMUSCV			244
+#define MIX_X_MIN_EPOCH				27
+#define MIX_X_MAX_EPOCH				225
+#define MIX_Y_MIN_EPOCH				23
+#define MIX_Y_MAX_EPOCH				248
+#define MIX_X_MIN_YENO				32
+#define MIX_X_MAX_YENO				215
+#define MIX_Y_MIN_YENO				0
+#define MIX_Y_MAX_YENO				256
+#define MIX_X_MIN_FULL				0
+#define MIX_X_MAX_FULL				320
+#define MIX_Y_MIN_FULL				0
+#define MIX_Y_MAX_FULL				320
+
+#define TEXT_X_MIN_EMUSCV			3
+#define TEXT_X_MAX_EMUSCV			28
+#define TEXT_Y_MIN_EMUSCV			1
+#define TEXT_Y_MAX_EMUSCV			16
+#define TEXT_X_MIN_EPOCH			2
+#define TEXT_X_MAX_EPOCH			28
+#define TEXT_Y_MIN_EPOCH			1
+#define TEXT_Y_MAX_EPOCH			16
+#define TEXT_X_MIN_YENO				23
+#define TEXT_X_MAX_YENO				27
+#define TEXT_Y_MIN_YENO				0
+#define TEXT_Y_MAX_YENO				16
+#define TEXT_X_MIN_FULL				0
+#define TEXT_X_MAX_FULL				32
+#define TEXT_Y_MIN_FULL				0
+#define TEXT_Y_MAX_FULL				16
+
+#define SPRITE_X_MIN_EMUSCV			15
+#define SPRITE_X_MAX_EMUSCV			221
+#define SPRITE_Y_MIN_EMUSCV			11
+#define SPRITE_Y_MAX_EMUSCV			241
+#define SPRITE_X_MIN_EPOCH			12
+#define SPRITE_X_MAX_EPOCH			270
+#define SPRITE_Y_MIN_EPOCH			7
+#define SPRITE_Y_MAX_EPOCH			245
+#define SPRITE_X_MIN_YENO			17
+#define SPRITE_X_MAX_YENO			214
+#define SPRITE_Y_MIN_YENO			0
+#define SPRITE_Y_MAX_YENO			253
+#define SPRITE_X_MIN_FULL			0
+#define SPRITE_X_MAX_FULL			311
+#define SPRITE_Y_MIN_FULL			0
+#define SPRITE_Y_MAX_FULL			311
 
 // Final window
 #define WINDOW_COLORS				256*256*256	// 16 Millions of colors

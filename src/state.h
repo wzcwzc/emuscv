@@ -13,7 +13,8 @@
 
 #include "common.h"
 
-#define STATE_MAX_DATA_SIZE  131072	// 128KB
+//#define STATE_MAX_DATA_SIZE  131072	// 128KB
+#define STATE_MAX_DATA_SIZE  96*1024	//  96KB
 
 class STATE
 {

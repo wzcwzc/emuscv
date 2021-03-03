@@ -6,13 +6,17 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ***********************************************************
 * To do list
 ***********************************************************
-- Quick keyboard overlay (to do all with a controller, when there is any keyboard)
-- Savestates
 - In-game configuration menu
 - Native .zip ROMs support (actually supported via frontend's autoextract if supported)
 - In-game display of the resources contained in .zip ROMs
 - Enhance audio PCM 1-bitchannel quality
 
+
+***********************************************************
+* Libretro-EmuSCV v0.09.20210303183000
+***********************************************************
+- Optimized save states
+- optimized video
 
 
 ***********************************************************
@@ -25,7 +29,7 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 - Added quick menu overlay
 - Corrected video optmizations
 - Added sound optimizations
-- Added Satestates and rewind support
+- Added state states and rewind support
 
 
 ***********************************************************

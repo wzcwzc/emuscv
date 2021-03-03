@@ -744,6 +744,18 @@ void DLL_PREFIX apply_display_config()
 		config.draw_y = DRAW_Y_FULL;
 		config.draw_width = DRAW_WIDTH_FULL;
 		config.draw_height = DRAW_HEIGHT_FULL;
+		config.mix_x_min = MIX_X_MIN_FULL;
+		config.mix_x_max = MIX_X_MAX_FULL;
+		config.mix_y_min = MIX_Y_MIN_FULL;
+		config.mix_y_max = MIX_Y_MAX_FULL;
+		config.text_x_min = TEXT_X_MIN_FULL;
+		config.text_x_max = TEXT_X_MAX_FULL;
+		config.text_y_min = TEXT_Y_MIN_FULL;
+		config.text_y_max = TEXT_Y_MAX_FULL;
+		config.sprite_x_min = SPRITE_X_MIN_FULL;
+		config.sprite_x_max = SPRITE_X_MAX_FULL;
+		config.sprite_y_min = SPRITE_Y_MIN_FULL;
+		config.sprite_y_max = SPRITE_Y_MAX_FULL;
 	}
 	else
 	{
@@ -755,12 +767,36 @@ void DLL_PREFIX apply_display_config()
 					config.draw_y = DRAW_Y_EPOCH;
 					config.draw_width = DRAW_WIDTH_EPOCH;
 					config.draw_height = DRAW_HEIGHT_EPOCH;
+					config.mix_x_min = MIX_X_MIN_EPOCH;
+					config.mix_x_max = MIX_X_MAX_EPOCH;
+					config.mix_y_min = MIX_Y_MIN_EPOCH;
+					config.mix_y_max = MIX_Y_MAX_EPOCH;
+					config.text_x_min = TEXT_X_MIN_EPOCH;
+					config.text_x_max = TEXT_X_MAX_EPOCH;
+					config.text_y_min = TEXT_Y_MIN_EPOCH;
+					config.text_y_max = TEXT_Y_MAX_EPOCH;
+					config.sprite_x_min = SPRITE_X_MIN_EPOCH;
+					config.sprite_x_max = SPRITE_X_MAX_EPOCH;
+					config.sprite_y_min = SPRITE_Y_MIN_EPOCH;
+					config.sprite_y_max = SPRITE_Y_MAX_EPOCH;
 				break;
 			case SETTING_DISPLAY_YENO_VAL:
 				config.draw_x = DRAW_X_YENO;
 				config.draw_y = DRAW_Y_YENO;
 				config.draw_width = DRAW_WIDTH_YENO;
 				config.draw_height = DRAW_HEIGHT_YENO;
+				config.mix_x_min = MIX_X_MIN_YENO;
+				config.mix_x_max = MIX_X_MAX_YENO;
+				config.mix_y_min = MIX_Y_MIN_YENO;
+				config.mix_y_max = MIX_Y_MAX_YENO;
+				config.text_x_min = TEXT_X_MIN_YENO;
+				config.text_x_max = TEXT_X_MAX_YENO;
+				config.text_y_min = TEXT_Y_MIN_YENO;
+				config.text_y_max = TEXT_Y_MAX_YENO;
+				config.sprite_x_min = SPRITE_X_MIN_YENO;
+				config.sprite_x_max = SPRITE_X_MAX_YENO;
+				config.sprite_y_min = SPRITE_Y_MIN_YENO;
+				config.sprite_y_max = SPRITE_Y_MAX_YENO;
 				break;
 			case SETTING_DISPLAY_EMUSCV_VAL:
 			case SETTING_DISPLAY_AUTO_VAL:
@@ -769,6 +805,18 @@ void DLL_PREFIX apply_display_config()
 				config.draw_y = DRAW_Y_EMUSCV;
 				config.draw_width = DRAW_WIDTH_EMUSCV;
 				config.draw_height = DRAW_HEIGHT_EMUSCV;
+				config.mix_x_min = MIX_X_MIN_EMUSCV;
+				config.mix_x_max = MIX_X_MAX_EMUSCV;
+				config.mix_y_min = MIX_Y_MIN_EMUSCV;
+				config.mix_y_max = MIX_Y_MAX_EMUSCV;
+				config.text_x_min = TEXT_X_MIN_EMUSCV;
+				config.text_x_max = TEXT_X_MAX_EMUSCV;
+				config.text_y_min = TEXT_Y_MIN_EMUSCV;
+				config.text_y_max = TEXT_Y_MAX_EMUSCV;
+				config.sprite_x_min = SPRITE_X_MIN_EMUSCV;
+				config.sprite_x_max = SPRITE_X_MAX_EMUSCV;
+				config.sprite_y_min = SPRITE_Y_MIN_EMUSCV;
+				config.sprite_y_max = SPRITE_Y_MAX_EMUSCV;
 				break;
 		}
 	}
@@ -822,5 +870,7 @@ void DLL_PREFIX apply_display_config()
 			}
 			break;
 	}
+
+	config.window_clear = true;
 }
 #endif

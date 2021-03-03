@@ -289,6 +289,21 @@ typedef struct {
 		int draw_width;
 		int draw_height;
 
+		int mix_x_min;
+		int mix_x_max;
+		int mix_y_min;
+		int mix_y_max;
+
+		int text_x_min;
+		int text_x_max;
+		int text_y_min;
+		int text_y_max;
+
+		int sprite_x_min;
+		int sprite_x_max;
+		int sprite_y_min;
+		int sprite_y_max;
+
 		int window_console;
 		int window_pixelaspect;
 		int window_resolution;
@@ -299,6 +314,8 @@ typedef struct {
 		float window_aspect_ratio;
 		double window_fps;
 		int window_displayfullmemory;
+
+		bool window_clear;
 		
 	#endif
 } config_t;

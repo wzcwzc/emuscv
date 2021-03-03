@@ -492,8 +492,8 @@ void SOUND::save_state(STATE* state)
 	save_channel_state(state, &square3);
 	save_channel_state(state, &pcm);
 	state->SetValue(pcm_len);
-	if(pcm.count > 0 && pcm_len > 0 && pcm_len - pcm.ptr > 0)
-		state->SetArray(&pcm_table[pcm.ptr], pcm_len - pcm.ptr, 1);
+//	if(pcm.count > 0 && pcm_len > 0 && pcm_len - pcm.ptr > 0)
+//		state->SetArray(&pcm_table[pcm.ptr], pcm_len - pcm.ptr, 1);
 	state->SetValue(cmd_addr);
 	state->SetValue(param_cnt);
 	state->SetValue(param_ptr);
@@ -514,8 +514,9 @@ bool SOUND::load_state(STATE* state)
 	load_channel_state(state, &square3);
 	load_channel_state(state, &pcm);
 	state->GetValue(pcm_len);
-	if(pcm.count > 0 && pcm_len > 0 && pcm_len - pcm.ptr > 0)
-		state->GetArray(&pcm_table[pcm.ptr], pcm_len - pcm.ptr, 1);
+//	if(pcm.count > 0 && pcm_len > 0 && pcm_len - pcm.ptr > 0)
+//		state->GetArray(&pcm_table[pcm.ptr], pcm_len - pcm.ptr, 1);
+memset(pcm_table, 0, sizeof(pcm_table));
 	state->GetValue(cmd_addr);
 	state->GetValue(param_cnt);
 	state->GetValue(param_ptr);

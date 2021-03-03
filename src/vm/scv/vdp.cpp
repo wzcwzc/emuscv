@@ -64,57 +64,78 @@ void VDP::draw_screen()
 	// draw sprite screen
 	memset(sprite, 0, sizeof(sprite));
 	if(vdc0 & 0x10)
-	{
-		//clipy = ((vdc0 & 0xf7) == 0x17 && (vdc2 & 0xef) == 0x4f) ? 31 : 0;
 		draw_sprite_screen();
-	}
 
 	// Mix buffers
 	scrntype_t* d = emu->get_screen_ptr();
-	//memset(d, 0, SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(uint32_t));
-	for(int y = 320; --y >= 0; )
-  {
-    scrntype_t* pt = &d[4 + y * SCREEN_WIDTH];
-    unsigned char *st = text[y];
-    scrntype_t* ps = &d[(y + 2) * SCREEN_WIDTH];
-    unsigned char *ss = sprite[y];
+	if(config.window_clear)
+	{
+		memset(d, 0, SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(uint32_t));
+		config.window_clear = false;
+	}
+	if(config.window_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL)
+	{
+		for(int y = config.mix_y_max; --y >= config.mix_y_min; )
+		{
+			scrntype_t* pt = &d[4 + y * SCREEN_WIDTH];
+			scrntype_t* ps = &d[(y + 2) * SCREEN_WIDTH];
+			unsigned char *st = text[y];
+			unsigned char *ss = sprite[y];
+			for (int x = config.mix_x_min - 1; ++x < config.mix_x_max;)
+			{
+				*pt++ = palette_pc[*st++];
+				unsigned int s = *ss++;
+				if (s != 0)
+					ps[x] = palette_pc[s];
+			}
+		}
+	}
+	else
+	{
+		int16_t ymin = (config.mix_y_min > 1 ? config.mix_y_min : 1);
+		scrntype_t *dd = d + config.mix_x_max - 1 + (config.mix_y_max - 1) * SCREEN_WIDTH;
+		for(int16_t y = config.mix_y_max; --y >= ymin; )
+		{
+			for (int16_t x = config.mix_x_max; --x >= config.mix_x_min; )
+			{
+				uint8_t s = sprite[y - 2][x];
+				if(s)
+					*dd = palette_pc[s];
+				else
+					*dd = palette_pc[text[y][x - 4]];
+				dd--;
+			}
+			dd += config.mix_x_max - config.mix_x_min - SCREEN_WIDTH;
+		}
+		if(config.mix_y_min < 2)
+		{
+			dd = d + config.mix_x_max - 1 + SCREEN_WIDTH;
+			for(int16_t y = 2; --y >= config.mix_y_min; )
+			{
+				for (int16_t x = config.mix_x_max; --x >= config.mix_x_min; )
+					*dd-- = palette_pc[text[y][x - 4]];
+				dd += config.mix_x_max - config.mix_x_min - SCREEN_WIDTH;
+			}
 
-    for (int x = -1; ++x < 320;)
-    {
-      *pt++ = palette_pc[*st++];
-      unsigned int s = *ss++;
-      if (s != 0)
-        ps[x & 0xFF] = palette_pc[s];
-    }
-  }
+		}
+	}
 
 	// Reset scanline
 	if(resetting)
 	{
-    scrntype_t color = palette_pc[0x1];
+		scrntype_t color = palette_pc[0x1];
 		for(int y = resetscanband+30 ; --y >= resetscanband; )
-      if((unsigned int)y < SCREEN_HEIGHT)
-      {
-        scrntype_t* p = &d[y * SCREEN_WIDTH];
-        for (int x = SCREEN_WIDTH; --x >= 0; )
-          *p++ = color;
-      }
+			if((unsigned int)y < SCREEN_HEIGHT)
+			{
+				scrntype_t* p = &d[y * SCREEN_WIDTH];
+				for (int x = SCREEN_WIDTH; --x >= 0; )
+				*p++ = color;
+			}
 	}
 	resetscanband -= 2;
 	if(resetscanband < -30)
 		resetscanband = SCREEN_HEIGHT+60;
 	resetting = false;
-
-	// Screen border
-	// YENO
-	if(config.screen_display == SETTING_DISPLAY_YENO_VAL)
-	{
-		for(int y = 256; --y >= 0; )
-			d[int(215+y*SCREEN_WIDTH)] = d[int(216+y*SCREEN_WIDTH)] = d[int(217+y*SCREEN_WIDTH)] = palette_pc[0x1];
-		for(int y = 264; --y > 255; )
-			for(int x = 218; --x > 31; )
-					d[int(x+y*SCREEN_WIDTH)] = palette_pc[0x1];
-	}
 
 	// Screen contour
 	if(config.window_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL)
@@ -123,6 +144,7 @@ void VDP::draw_screen()
 		{
 			case SETTING_DISPLAY_EPOCH_VAL:
 				// EPOCH
+				// Screen contour RED
 				for(int x = 226; --x > 25; )
 					d[int(x+23*SCREEN_WIDTH)] = d[int(x+248*SCREEN_WIDTH)] = palette_pc[0x8];
 				for(int y = 248; --y > 23; )
@@ -130,6 +152,13 @@ void VDP::draw_screen()
 				break;
 			case SETTING_DISPLAY_YENO_VAL:
 				// YENO
+				// Screen border BLACK
+				for(int y = 256; --y >= 0; )
+					d[int(215+y*SCREEN_WIDTH)] = d[int(216+y*SCREEN_WIDTH)] = d[int(217+y*SCREEN_WIDTH)] = palette_pc[0x1];
+				for(int y = 264; --y > 255; )
+					for(int x = 218; --x > 31; )
+							d[int(x+y*SCREEN_WIDTH)] = palette_pc[0x1];
+				// Screen contour BLUE
 				for(int x = 219; --x > 30; )
 					d[int(x+264*SCREEN_WIDTH)] = palette_pc[0x2];
 				for(int y = 264; --y >= 0; )
@@ -138,7 +167,8 @@ void VDP::draw_screen()
 			case SETTING_DISPLAY_EMUSCV_VAL:
 			default:
 				// EMUSCV
-				for(int x = 223; --x > 28; x++)
+				// Screen contour GREEN
+				for(int x = 223; --x > 28; )
 					d[int(x+27*SCREEN_WIDTH)] = d[int(x+244*SCREEN_WIDTH)] = palette_pc[0x4];
 				for(int y = 244; --y > 27; )
 					d[int(29+y*SCREEN_WIDTH)] = d[int(222+y*SCREEN_WIDTH)] = palette_pc[0x4];
@@ -149,22 +179,30 @@ void VDP::draw_screen()
 
 inline void VDP::draw_text_screen()
 {
-	int xmax = (vdc2 & 0xf) * 2;
-	int ymax = vdc2 >> 4;
-	int xs = (vdc0 & 0x40) ? xmax : 0;
-	int xe = (vdc0 & 0x40) ? 32 : xmax;
-	int ys = (vdc0 & 0x80) ? ymax : 0;
-	int ye = (vdc0 & 0x80) ? 16 : ymax;
+	uint8_t xmax = (vdc2 & 0xf) * 2;
+	uint8_t ymax = vdc2 >> 4;
+	uint8_t xs = (vdc0 & 0x40) ? xmax : 0;
+	uint8_t xe = (vdc0 & 0x40) ? 32 : xmax;
+	uint8_t ys = (vdc0 & 0x80) ? ymax : 0;
+	uint8_t ye = (vdc0 & 0x80) ? 16 : ymax;
 
 	uint8_t ct = vdc3 >> 4;
 	uint8_t cb = vdc3 & 0xf;
 	uint8_t cg = vdc1 >> 4;
 
-	for(int y = 16; --y >= 0; )
+//	for(int y = 16; --y >= 0; )	// Full
+//	for(int32_t y = 16; --y >= 1; )	// EmuSCV
+//	for(int32_t y = 16; --y >= 1; )	// Epoch
+//	for(int32_t y = 16; --y >= 0; )	// Yeno
+	for(int32_t y = config.text_y_max; --y >= config.text_y_min; )
 	{
 		bool t = (ys <= y && y < ye);
-		int y32 = y << 5;
-		for(int x = 32; --x >= 0; )
+		int32_t y32 = y << 5;
+//		for(int x = 32; --x >= 0; )	// Full
+//		for(int32_t x = 28; --x >= 3; )	// EmuSCV
+//		for(int32_t x = 28; --x >= 2; )	// Epoch
+//		for(int32_t x = 27; --x >= 3; )	// Yeno
+		for(int32_t x = config.text_x_max; --x >= config.text_x_min; )
 		{
 			if (t && (xs <= x && x < xe)) draw_text(x, y, vram1[y32 + x] & 0x7f, ct, cb); // draw text
 			else if ((vdc0 & 3) == 1) draw_graph(x, y, vram1[y32 + x], cg); // semi graph
@@ -173,58 +211,56 @@ inline void VDP::draw_text_screen()
 	}
 }
 
-inline void VDP::draw_text(int dx, int dy, uint8_t data, uint8_t tcol, uint8_t bcol)
+inline void VDP::draw_text(int32_t dx, int32_t dy, uint8_t data, uint8_t tcol, uint8_t bcol)
 {
-	int dx8 = (dx << 3)+2;
-	int dy16 = dy << 4;
-
-	const unsigned char* f = font[data];
-	unsigned char* p = (unsigned char*)&text[dy16][dx8];
-	unsigned int c = (tcol << 8) + bcol;
+	int32_t dx8 = (dx << 3)+2;
+	int32_t dy16 = dy << 4;
+	const uint8_t *f = font[data];
+	uint8_t *p = (uint8_t *)&text[dy16][dx8];
+	uint32_t c = (tcol << 8) + bcol;
 	if (data)
-	  for(int l = 8; --l >= 0; f++, p += 320)
-    {
-	    unsigned int pat = *f;
-      p[0] = (unsigned char)(c >> ((pat >> (7 - 3)) & 8));
-      p[1] = (unsigned char)(c >> ((pat >> (6 - 3)) & 8));
-      p[2] = (unsigned char)(c >> ((pat >> (5 - 3)) & 8));
-      p[3] = (unsigned char)(c >> ((pat >> (4 - 3)) & 8));
-      p[4] = (unsigned char)(c >> ((pat >> (3 - 3)) & 8));
-      p[5] = (unsigned char)(c >> ((pat << (3 - 2)) & 8));
-      p[6] = (unsigned char)(c >> ((pat << (3 - 1)) & 8));
-      p[7] = (unsigned char)(c >> ((pat << (3 - 0)) & 8));
-    }
-
-  unsigned int* p2 = (unsigned int*)&text[dy16 + ((data != 0) ? 8 : 0)][dx8];
-  c = bcol + ((uint32_t)bcol << 8); c = c + (c << 16);
-	for(int l = (data ? 8 : 16); --l >= 0; p2 += 320 >> 2)
-	  p2[0] = p2[1] = c;
+		for(int32_t l = 8; --l >= 0; f++, p += 320)
+		{
+			uint32_t pat = *f;
+			p[0] = (uint8_t)(c >> ((pat >> (7 - 3)) & 8));
+			p[1] = (uint8_t)(c >> ((pat >> (6 - 3)) & 8));
+			p[2] = (uint8_t)(c >> ((pat >> (5 - 3)) & 8));
+			p[3] = (uint8_t)(c >> ((pat >> (4 - 3)) & 8));
+			p[4] = (uint8_t)(c >> ((pat >> (3 - 3)) & 8));
+			p[5] = (uint8_t)(c >> ((pat << (3 - 2)) & 8));
+			p[6] = (uint8_t)(c >> ((pat << (3 - 1)) & 8));
+			p[7] = (uint8_t)(c >> ((pat << (3 - 0)) & 8));
+		}
+	uint32_t *p2 = (uint32_t *)&text[dy16 + ((data != 0) ? 8 : 0)][dx8];
+	c = bcol + ((uint32_t)bcol << 8); c = c + (c << 16);
+	for(int32_t l = (data ? 8 : 16); --l >= 0; p2 += 320 >> 2)
+		p2[0] = p2[1] = c;
 }
 
-inline void VDP::draw_block(int dx, int dy, uint8_t data)
+inline void VDP::draw_block(int32_t dx, int32_t dy, uint8_t data)
 {
-	int dx8 = dx << 3; // Pointer to pixel is aligned to 8.
-	int dy16 = dy << 4;
+	int32_t dx8 = dx << 3; // Pointer to pixel is aligned to 8.
+	int32_t dy16 = dy << 4;
 	uint8_t cu = data >> 4;
 	uint8_t cl = data & 0xf;
 
-	if (cu != 0)
+	if(cu != 0)
 	{
-		unsigned int* p = (unsigned int*)&text[dy16][dx8];
+		uint32_t *p = (uint32_t *)&text[dy16][dx8];
 		uint32_t c = cu + ((uint32_t)cu << 8); c = c + (c << 16);
-		for(int i = 8; --i >= 0; p += 320 >> 2)
+		for(int32_t i = 8; --i >= 0; p += 320 >> 2)
 			p[0] = p[1] = c;
 	}
-	if (cl != 0)
+	if(cl != 0)
 	{
-    	unsigned int* p = (unsigned int*)&text[dy16 + 8][dx8];
+    	uint32_t *p = (uint32_t *)&text[dy16 + 8][dx8];
     	uint32_t c = cl + ((uint32_t)cl << 8); c = c + (c << 16);
-    	for(int i = 8; --i >= 0; p += 320 >> 2)
+    	for(int32_t i = 8; --i >= 0; p += 320 >> 2)
 			p[0] = p[1] = c;
 	}
 }
 
-inline void VDP::draw_graph(int dx, int dy, uint8_t data, uint8_t col)
+inline void VDP::draw_graph(int32_t dx, int32_t dy, uint8_t data, uint8_t col)
 {
 	uint32_t c = col + (col << 8);
 	c = c + (c << 16);
@@ -249,12 +285,10 @@ inline void VDP::draw_graph(int dx, int dy, uint8_t data, uint8_t col)
 
 inline void VDP::draw_sprite_screen()
 {
-	int nbsprite = ((vdc0 & 0xf7) == 0x17 && (vdc2 & 0xef) == 0x4f) ? 64 : 128;
+	// Patch for Kung-Fu Road
+	int32_t nbsprite = ((vdc0 & 0xf7) == 0x17 && (vdc2 & 0xef) == 0x4f) ? 64 : 128;
 
-if(nbsprite == 64)	// Patch for Kung-Fu Road only?
-	bool stop_here = true;
-
-	for(int index = 0; index < nbsprite; index++)
+	for(int32_t index = 0; index < nbsprite; index++)
 	{
 		uint8_t atb0 = vram1[0x200 + (index << 2)];	// 11111110: position y (0 not displayed)
 													// 00000001: double height
@@ -266,20 +300,20 @@ if(nbsprite == 64)	// Patch for Kung-Fu Road only?
 													// 01000000: half height
 													// 01111111: sprite leaf
 
-		int dx = atb2 & 0xfe;
-		int dy = atb0 & 0xfe;
+		uint8_t col1 = atb1 & 0x0f;
+
+		int32_t dx = atb2 & 0xfe;
+		int32_t dy = atb0 & 0xfe;
 		if(index & 0xf0 && (dx == 0 || dy == 0))
 			continue;
 
 		bool conx = ((atb2 & 1) != 0);
 		bool cony = ((atb0 & 1) != 0);
-		
-		uint8_t col1 = atb1 & 0x0f;
 
-		int sx = 0;
-		int ex = 4;
-		int sy = atb1 >> 4;
-		int ey = 8;
+		int32_t sx = 0;
+		int32_t ex = 4;
+		int32_t sy = atb1 >> 4;
+		int32_t ey = 8;
 
 		if(atb3 & 0x80)
 		{
@@ -299,10 +333,8 @@ if(nbsprite == 64)	// Patch for Kung-Fu Road only?
 			atb3 &= 0x7f;
 		}
 
-
-
 /*
-		// R&D
+// R&D
 		int no1 = atb3;
 		draw_sprite(dx, dy, sx, ex, sy, ey, no1, col1);
 		if(conx && cony)
@@ -332,14 +364,13 @@ if(nbsprite == 64)	// Patch for Kung-Fu Road only?
 		}
 */
 
-
  		if((index & 0x20) && (vdc0 & 0x20))
  		{
 			// 2 colors sprite
-			int no1 = atb3;
+			int32_t no1 = atb3;
 			if(conx || cony)	// Normal 2 colors sprite
 			{
-				int no2;
+				int32_t no2;
 				uint8_t col2;
 				if(conx && cony)
 				{
@@ -365,7 +396,7 @@ if(nbsprite == 64)	// Patch for Kung-Fu Road only?
 					no2 = atb3 ^ 8;
 					col2 = color_pair_x[col1];
 				}
-
+// R&D
 if(col1 !=0 && col2 == 0x0)	// New color pair?
 {
 //	dx = 20;
@@ -386,14 +417,16 @@ if(col1 !=0 && col2 == 0x0)	// New color pair?
 				// No cart:			50	0
 				// Boulder Dash:	112	34
 
+// R&D
 //if((vdc0 & 0xf7) != 112 || (vdc2 & 0xef) != 34)
 //	int i = 0;
 //if(vdc0 != 120 || vdc1 != 17 || vdc2 != 50 || vdc3 != 241)
 //	int i = 0;
 
-				int no2 = 11;// or 9... but why?
+				int32_t no2 = 11;// or 9... but why?
 				uint8_t col2 = color_pair_xy[col1];
-/*
+
+// R&D
 if(col1 !=0 && col2 == 0x0)	// // New color pair?
 {
 //	dx = 20;
@@ -405,9 +438,7 @@ if(col1 !=0 && col2 == 0x0)	// // New color pair?
 //	col2 = 0x4;
 	col2 = 0x8;
 }
-*/
-//col1= 0x4;
-//col2= 0x8;
+
 				draw_sprite(dx, dy, sx, ex, sy, ey, no1, col2);
 				draw_sprite(dx, dy, sx, ex, sy, ey, no2, col1);
 			}
@@ -419,22 +450,22 @@ if(col1 !=0 && col2 == 0x0)	// // New color pair?
  		else
  		{
 			// mono color sprite
-			int no1 = atb3;
+			int32_t no1 = atb3;
 
 			draw_sprite(dx, dy, sx, ex, sy, ey, no1, col1);
 			if(cony)
 			{
-				int no2 = atb3 | 1;
+				int32_t no2 = atb3 | 1;
 				draw_sprite(dx, dy + 16, sx, ex, sy - 8, 8, no2, col1);
 			}
 			if(conx)
 			{
-				int no3 = atb3 | 8;
+				int32_t no3 = atb3 | 8;
 				draw_sprite(dx + 16, dy, 0, 4, sy, ey, no3, col1);
 			}
 			if(conx && cony)
 			{
-				int no4 = atb3 | 9;
+				int32_t no4 = atb3 | 9;
 				draw_sprite(dx + 16, dy + 16, 0, 4, sy - 8, 8, no4, col1);
 			}
 /*
@@ -461,81 +492,57 @@ if(index == 0)
 	}
 }
 
-inline void VDP::draw_sprite(int dx, int dy, int sx, int ex, int sy, int ey, int no, uint8_t col)
+inline void VDP::draw_sprite(int32_t dx, int32_t dy, int32_t sx, int32_t ex, int32_t sy, int32_t ey, int32_t no, uint8_t col)
 {
  	// color #0 is transparent
  	if(!col)
  		return;
 
+//dx = 311; dy = 200;
+//	if(dx < 0 || dx > 311 || dy < 0 || dy > 311)	// Full
+//	if(dx < 15 || dx > 221 || dy < 11 || dy > 241)	// EmuSCV
+//	if(dx < 12 || dx > 270 || dy < 7 || dy > 245)	// Epoch
+//	if(dx < 17 || dx > 214 || dy < 0 || dy > 253)	// Yeno
+	if(dx < config.sprite_x_min || dx > config.sprite_x_max || dy < config.sprite_y_min || dy > config.sprite_y_max)
+		return;
+
 	if(sy < 0)
 		sy = 0;
 
-	int no32 = no << 5;
- 	for(int y = sy; y < ey; y++)
+	int32_t no32 = no << 5;
+ 	for(int32_t y = ey; --y >= sy; )
 	 {
- 		int y2u = (y << 1) + dy;
-		int y2l = (y << 1) + dy + 1;
-		int y4 = (y << 2) + no32;
-//		if(y2u > 0 && y2u < 317 && y2l > 0 && y2l < 317)
-//		{
-			for(int x = sx; x < ex; x++)
-			{
-				int x4 = dx + (x << 2);
-//				if (x4 > 0 && x4 < 317)
-//				{
-					uint8_t* du = &sprite[y2u][x4];
-					uint8_t* dl = &sprite[y2l][x4];
-					uint8_t p = vram0[y4 + x];
+ 		int32_t y2u = (y << 1) + dy;
+		int32_t y2l = (y << 1) + dy + 1;
+		int32_t y4 = (y << 2) + no32;
+		for(int32_t x = ex; --x >= sx; )
+		{
+			int32_t x4 = (dx + (x << 2)) & 0xFF;
+				uint8_t* du = &sprite[y2u][x4];
+				uint8_t* dl = &sprite[y2l][x4];
+				uint8_t p = vram0[y4 + x];
 
-					if(p & 0x80)
-						du[0] = col;
-					if(p & 0x40)
-						du[1] = col;
-					if(p & 0x20)
-						du[2] = col;
-					if(p & 0x10)
-						du[3] = col;
-					if(p & 0x08)
-						dl[0] = col;
-					if(p & 0x04)
-						dl[1] = col;
-					if(p & 0x02)
-						dl[2] = col;
-					if(p & 0x01)
-						dl[3] = col;
-/*
-					if(y == sy)
-					{
-						du[0] = 0x8;
-						du[1] = 0x8;
-						du[2] = 0x8;
-						du[3] = 0x8;
-					}
-					if(y == ey-1)
-					{
-						dl[0] = 0x8;
-						dl[1] = 0x8;
-						dl[2] = 0x8;
-						dl[3] = 0x8;
-					}
-					if(x == sx)
-					{
-						du[0] = 0x8;
-						dl[0] = 0x8;
-					}
-					if(x == ex-1)
-					{
-						du[3] = 0x8;
-						dl[3] = 0x8;
-					}
-*/
-//				}
-			}
-//		}
+				if(p & 0x80)
+					du[0] = col;
+				if(p & 0x40)
+					du[1] = col;
+				if(p & 0x20)
+					du[2] = col;
+				if(p & 0x10)
+					du[3] = col;
+				if(p & 0x08)
+					dl[0] = col;
+				if(p & 0x04)
+					dl[1] = col;
+				if(p & 0x02)
+					dl[2] = col;
+				if(p & 0x01)
+					dl[3] = col;
+		}
  	}
-
-	// Patch for Lupin III only?
 /*
+	// R&D
+	// Try to patch for Lupin III
 	if(vdc0 == 83 && vdc2 == 64 && no == 43 && col == 0x9)
 	{
 		no = 42;
