@@ -165,7 +165,7 @@ using namespace std;
 class STATE;
 
 #ifndef _MAX_PATH
-	#define _MAX_PATH 2048
+	#define _MAX_PATH 4096
 #endif
 
 // endian
@@ -1258,7 +1258,7 @@ typedef DLL_PREFIX struct cur_time_s {
 	void increment();
 	void update_year();
 	void update_day_of_week();
-	void save_state(STATE *state);
+	void save_state(STATE *state, bool max_size);
 	bool load_state(STATE *state);
 } cur_time_t;
 

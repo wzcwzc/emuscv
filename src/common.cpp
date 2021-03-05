@@ -1627,8 +1627,11 @@ void DLL_PREFIX cur_time_t::update_day_of_week()
 	day_of_week = (y + y / 4 - y / 100 + y / 400 + t[month - 1] + day) % 7;
 }
 
-void DLL_PREFIX cur_time_t::save_state(STATE *state)
+#define CUR_TIME_STATE_ID	1001
+
+void DLL_PREFIX cur_time_t::save_state(STATE *state, bool max_size)
 {
+	state->SetValue((uint16_t)CUR_TIME_STATE_ID);
 	state->SetValue(year);
 	state->SetValue(month);
 	state->SetValue(day);
@@ -1641,6 +1644,8 @@ void DLL_PREFIX cur_time_t::save_state(STATE *state)
 
 bool DLL_PREFIX cur_time_t::load_state(STATE *state)
 {
+	if(!state->CheckValue((uint16_t)CUR_TIME_STATE_ID))
+		return false;
 	state->GetValue(year);
 	state->GetValue(month);
 	state->GetValue(day);

@@ -509,7 +509,7 @@ public:
 	// state
 #ifdef USE_STATE
 	uint64_t state_counter;
-	void save_state(STATE* state);
+	void save_state(STATE* state, bool max_size);
 	bool load_state(STATE* state);
 #endif
 #ifdef OSD_QT

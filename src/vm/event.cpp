@@ -599,7 +599,7 @@ void EVENT::update_config()
 
 #define DEVICE_STATE_ID 301
 
-void EVENT::save_state(STATE* state)
+void EVENT::save_state(STATE* state, bool max_size)
 {
 	state->SetValue((uint16_t)DEVICE_STATE_ID);
 	state->SetValue(this_device_id);

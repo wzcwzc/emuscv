@@ -141,7 +141,7 @@ public:
 	void reset();
 	void event_callback(int event_id, int err);
 	void update_config();
-	void save_state(STATE* state);
+	void save_state(STATE* state, bool max_size);
 	bool load_state(STATE* state);
 
 	// common event functions

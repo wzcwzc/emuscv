@@ -3870,7 +3870,7 @@ void UPD7801::OP74()
 
 #define UPD7801_STATE_ID	401
 
-void UPD7801::save_state(STATE* state)
+void UPD7801::save_state(STATE* state, bool max_size)
 {
 	state->SetValue((uint16_t)UPD7801_STATE_ID);
 	state->SetValue(this_device_id);

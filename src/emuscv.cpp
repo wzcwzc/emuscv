@@ -2599,34 +2599,54 @@ void cEmuSCV::RetroRun(void)
 	else
 		key_pressed_right = false;
 
-	// Controllers
-	if(!is_keyboard_displayed && !is_menu_displayed && escv_emu)
-	{
-		// LEFT CONTROLLER 1, orange
-		// Directionnal cross, analog stick left or analog stick right
-		escv_emu->get_osd()->set_joy_status(	0,
-												(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_UP)) || (analoglefty0 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrighty0 <= EMUSCV_AXIS_NEUTRAL_MIN),
-												(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)) || (analoglefty0 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrighty0 >= EMUSCV_AXIS_NEUTRAL_MAX),
-												(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)) || (analogleftx0 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrightx0 <= EMUSCV_AXIS_NEUTRAL_MIN),
-												(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)) || (analogleftx0 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrightx0 >= EMUSCV_AXIS_NEUTRAL_MAX),
-												(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
-												(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
-												false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
-
-		// LEFT CONTROLLER 2, blue
-		// Directionnal cross, analog stick left or analog stick right
-		escv_emu->get_osd()->set_joy_status(	1,
-												(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_UP)) || (analoglefty1 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrighty1 <= EMUSCV_AXIS_NEUTRAL_MIN),
-												(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)) || (analoglefty1 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrighty1 >= EMUSCV_AXIS_NEUTRAL_MAX),
-												(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)) || (analogleftx1 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrightx1 <= EMUSCV_AXIS_NEUTRAL_MIN),
-												(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)) || (analogleftx1 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrightx1 >= EMUSCV_AXIS_NEUTRAL_MAX),
-												(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
-												(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
-												false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
-	}
-
 	key_pressed_keyboard_stay_opened = false;
 	key_pressed_keyboard_close = false;
+
+	// Controllers
+	if(escv_emu)
+	{
+		if(!is_keyboard_displayed && keyboard_counter == 0 && !is_menu_displayed
+		&& !key_pressed_0 && !key_pressed_cl && !key_pressed_en
+		&& !key_pressed_1 && !key_pressed_2 && !key_pressed_3
+		&& !key_pressed_4 && !key_pressed_5 && !key_pressed_6
+		&& !key_pressed_7 && !key_pressed_8 && !key_pressed_9
+		&& !key_pressed_power && !key_pressed_reset && !key_pressed_pause)
+		{
+			// LEFT CONTROLLER 1, orange
+			// Directionnal cross, analog stick left or analog stick right
+			escv_emu->get_osd()->set_joy_status(	0,
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_UP)) || (analoglefty0 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrighty0 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)) || (analoglefty0 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrighty0 >= EMUSCV_AXIS_NEUTRAL_MAX),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)) || (analogleftx0 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrightx0 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)) || (analogleftx0 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrightx0 >= EMUSCV_AXIS_NEUTRAL_MAX),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_L)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													(ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_R)) || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
+
+			// LEFT CONTROLLER 2, blue
+			// Directionnal cross, analog stick left or analog stick right
+			escv_emu->get_osd()->set_joy_status(	1,
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_UP)) || (analoglefty1 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrighty1 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)) || (analoglefty1 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrighty1 >= EMUSCV_AXIS_NEUTRAL_MAX),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)) || (analogleftx1 <= EMUSCV_AXIS_NEUTRAL_MIN) || (analogrightx1 <= EMUSCV_AXIS_NEUTRAL_MIN),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)) || (analogleftx1 >= EMUSCV_AXIS_NEUTRAL_MAX) || (analogrightx1 >= EMUSCV_AXIS_NEUTRAL_MAX),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													(ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_A)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_R)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START)),
+													false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
+		}
+		else if ((is_keyboard_displayed || is_menu_displayed) && ((ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START))))
+		{
+			// LEFT CONTROLLER 1, orange
+			// Buttons A & B
+			escv_emu->get_osd()->set_joy_status(0, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
+
+			// LEFT CONTROLLER 2, blue
+			// Buttons A & B
+			escv_emu->get_osd()->set_joy_status(1, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0, 0, 0, 0, 0);
+
+			key_pressed_keyboard_close = true;
+		}
+	}
 
 	if(start_up_counter_power < 150)
 	{
@@ -2662,7 +2682,7 @@ void cEmuSCV::RetroRun(void)
 			else
 				key_pressed_keyboard_stay_opened = true;
 		}
-		else if(key_pressed_power)
+		else
 			key_pressed_power = false;
 	}
 
@@ -2688,8 +2708,8 @@ void cEmuSCV::RetroRun(void)
 		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
 	)))
 	{
-		key_pressed_reset = true;
 		RetroReset();
+		key_pressed_reset = true;
 		keyboard_x = 0;
 		if(keyboard_y < 2)
 			keyboard_y = 1;
@@ -2727,9 +2747,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_pause)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_SPACE, false);
-		key_pressed_pause = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_SPACE, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_SPACE, false);
+			key_pressed_pause = false;
+		}
 	}
 
 	// Key 0
@@ -2756,9 +2784,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_0)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_NUMPAD0, false);
-		key_pressed_0 = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_NUMPAD0, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_NUMPAD0, false);
+			key_pressed_0 = false;
+		}
 	}
 
 	// Key 1
@@ -2790,9 +2826,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_1)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_NUMPAD1, false);
-		key_pressed_1 = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_NUMPAD1, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_NUMPAD1, false);
+			key_pressed_1 = false;
+		}
 	}
 
 	// Key 2
@@ -2821,9 +2865,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_2)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_NUMPAD2, false);
-		key_pressed_2 = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_NUMPAD2, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_NUMPAD2, false);
+			key_pressed_2 = false;
+		}
 	}
 
 	// Key 3
@@ -2852,9 +2904,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_3)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_NUMPAD3, false);
-		key_pressed_3 = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_NUMPAD3, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_NUMPAD3, false);
+			key_pressed_3 = false;
+		}
 	}
 
 	// Key 4
@@ -2883,9 +2943,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_4)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_NUMPAD4, false);
-		key_pressed_4 = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_NUMPAD4, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_NUMPAD4, false);
+			key_pressed_4 = false;
+		}
 	}
 
 	// Key 5
@@ -2914,9 +2982,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_5)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_NUMPAD5, false);
-		key_pressed_5 = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_NUMPAD5, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_NUMPAD5, false);
+			key_pressed_5 = false;
+		}
 	}
 
 	// Key 6
@@ -2943,9 +3019,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_6)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_NUMPAD6, false);
-		key_pressed_6 = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_NUMPAD6, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_NUMPAD6, false);
+			key_pressed_6 = false;
+		}
 	}
 
 	// Key 7
@@ -2974,9 +3058,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_7)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_NUMPAD7, false);
-		key_pressed_7 = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_NUMPAD7, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_NUMPAD7, false);
+			key_pressed_7 = false;
+		}
 	}
 
 	// Key 8
@@ -3005,9 +3097,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_8)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_NUMPAD8, false);
-		key_pressed_8 = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_NUMPAD8, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_NUMPAD8, false);
+			key_pressed_8 = false;
+		}
 	}
 
 	// Key 9
@@ -3034,9 +3134,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_9)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_NUMPAD9, false);
-		key_pressed_9 = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_NUMPAD9, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_NUMPAD9, false);
+			key_pressed_0 = false;
+		}
 	}
 
 	// Key CL
@@ -3063,13 +3171,20 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_cl)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_BACK, false);
-		key_pressed_cl = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_BACK, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_BACK, false);
+			key_pressed_cl = false;
+		}
 	}
 
-	// Key EN
-	// Controllers 1 & 2, Button START
+	// Key EN + Controllers 1 & 2's Button START
 	if (keyEnter != 0 || (ret0 & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_START))
 	|| (is_keyboard_displayed && keyboard_x == 3 && keyboard_y == 3
 	&& (
@@ -3093,9 +3208,17 @@ void cEmuSCV::RetroRun(void)
 	}
 	else if(key_pressed_en)
 	{
-		if(escv_emu)
-			escv_emu->key_up(VK_RETURN, false);
-		key_pressed_en = false;
+		if(!is_keyboard_displayed && keyboard_counter > 0)
+		{
+			if(escv_emu)
+				escv_emu->key_down(VK_RETURN, false, true);
+		}
+		else
+		{
+			if(escv_emu)
+				escv_emu->key_up(VK_RETURN, false);
+			key_pressed_en = false;
+		}
 	}
 
 	if(key_pressed_keyboard_close)
@@ -4642,30 +4765,6 @@ void cEmuSCV::RetroReset(void)
 }
 
 // 
-// Libretro: return save state size
-// 
-size_t cEmuSCV::RetroSaveStateSize(void)
-{
-	// Log
-//	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
-//	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSaveStateSize()\n", EMUSCV_NAME);
-
-	return STATE_MAX_DATA_SIZE;	//state.GetDataSize();
-}
-
-// 
-// Libretro: return save state data pointer
-// 
-void *cEmuSCV::RetroSaveStateData(void)
-{
-	// Log
-//	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
-//	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSaveStateData()\n", EMUSCV_NAME);
-
-	return state.GetDataPtr();
-}
-
-// 
 // Create the SDL surface and the SDL renderer and load the pictureS for the quick keyboard overlay
 // 
 bool cEmuSCV::CreateKeyboardSurface()
@@ -4762,6 +4861,37 @@ bool cEmuSCV::DestroyKeyboardSurface()
 	return true;
 }
 
+// 
+// Libretro: return save state size
+// 
+size_t cEmuSCV::RetroSaveStateSize(void)
+{
+	// Log
+//	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
+//	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSaveStateSize()\n", EMUSCV_NAME);
+
+	// Save current state
+	state.Init();
+	if(escv_emu)
+		escv_emu->save_state(&state, true);
+	
+	return state.GetDataSize();
+
+//	return STATE_MAX_DATA_SIZE;
+}
+
+// 
+// Libretro: return save state data pointer
+// 
+void *cEmuSCV::RetroSaveStateData(void)
+{
+	// Log
+//	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
+//	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroSaveStateData()\n", EMUSCV_NAME);
+
+	return state.GetDataPtr();
+}
+
 bool cEmuSCV::RetroSaveState(void *data, size_t size)
 {
 	size_t serialize_size = 0;
@@ -4769,7 +4899,7 @@ bool cEmuSCV::RetroSaveState(void *data, size_t size)
 	// Save current state
 	state.Init();
 	if(escv_emu)
-		escv_emu->save_state(&state);
+		escv_emu->save_state(&state, false);
 
 	// If size is lower than serialize size, we must retrun false
 	serialize_size = state.GetDataSize();

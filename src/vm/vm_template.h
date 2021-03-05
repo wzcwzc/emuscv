@@ -160,7 +160,7 @@ public:
 	virtual void push_apss_rewind(int drv) { }
 
 	virtual void update_config() { }
-	virtual void save_state(STATE* retro_savestate) { }
+	virtual void save_state(STATE* retro_savestate, bool max_size) { }
 	virtual bool load_state(STATE* retro_savestate) { return true; }
 
 	// devices

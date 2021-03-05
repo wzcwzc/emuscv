@@ -296,7 +296,7 @@ public:
 	bool is_cart_inserted(int drv);
 
 	void update_config();
-	void save_state(STATE* state);
+	void save_state(STATE* state, bool max_size);
 	bool load_state(STATE* state);
 
 	// bios

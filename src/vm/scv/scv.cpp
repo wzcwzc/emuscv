@@ -212,16 +212,17 @@ void VM::update_config()
 
 #define VM_STATE_ID	201
 
-void VM::save_state(STATE* state)
+void VM::save_state(STATE* state, bool max_size)
 {
+	uint16_t len;
 	state->SetValue((uint16_t)VM_STATE_ID);
 	for(DEVICE* device = first_device; device; device = device->next_device)
 	{
 		const char *name = device->get_device_name();
-		uint16_t len = strlen(name)+1;
+		len = strlen(name)+1;
 		state->SetValue(len);
 		state->SetArray((_TCHAR *)name, len, 1);
-		device->save_state(state);
+		device->save_state(state, max_size);
 	}
 }
 bool VM::load_state(STATE* state)

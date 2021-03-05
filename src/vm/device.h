@@ -79,7 +79,7 @@ public:
 	virtual void release() {}
 
 	virtual void update_config() {}
-	virtual void save_state(STATE* state) {}
+	virtual void save_state(STATE* state, bool max_size) {}
 	virtual bool load_state(STATE* state)
 	{
 		return true;

@@ -152,7 +152,7 @@ public:
 	void write_data8w(uint32_t addr, uint32_t data, int *wait);
 	uint32_t read_data8w(uint32_t addr, int *wait);
 	void write_io8(uint32_t addr, uint32_t data);
-	void save_state(STATE *state);
+	void save_state(STATE *state, bool max_size);
 	bool load_state(STATE *state);
 
 	// unique functions

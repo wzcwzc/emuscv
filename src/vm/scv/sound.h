@@ -101,7 +101,7 @@ public:
 	void write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
 	void mix(int16_t* buffer, uint32_t cnt);
-	void save_state(STATE* state);
+	void save_state(STATE* state, bool max_size);
 	bool load_state(STATE* state);
 
 	// unique functions

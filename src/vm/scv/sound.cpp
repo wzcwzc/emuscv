@@ -481,7 +481,7 @@ void load_channel_state(STATE* state, channel_t* val)
 
 #define SOUND_STATE_ID	701
 
-void SOUND::save_state(STATE* state)
+void SOUND::save_state(STATE* state, bool max_size)
 {
 	state->SetValue((uint16_t)SOUND_STATE_ID);
 	state->SetValue(this_device_id);
@@ -492,8 +492,6 @@ void SOUND::save_state(STATE* state)
 	save_channel_state(state, &square3);
 	save_channel_state(state, &pcm);
 	state->SetValue(pcm_len);
-//	if(pcm.count > 0 && pcm_len > 0 && pcm_len - pcm.ptr > 0)
-//		state->SetArray(&pcm_table[pcm.ptr], pcm_len - pcm.ptr, 1);
 	state->SetValue(cmd_addr);
 	state->SetValue(param_cnt);
 	state->SetValue(param_ptr);

@@ -160,7 +160,7 @@ public:
 	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
-	void save_state(STATE* state);
+	void save_state(STATE* state, bool max_size);
 	bool load_state(STATE* state);
 
 	// unique functions

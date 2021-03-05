@@ -79,7 +79,7 @@ class EMU;
 #define EMUSCV_CONTROLS_ALPHA			127
 
 #define EMUSCV_KEYBOARD_ALPHA			200
-#define EMUSCV_KEYBOARD_DELAY			20
+#define EMUSCV_KEYBOARD_DELAY			40
 #define EMUSCV_KEYBOARD_ALPHAKEYUP		80
 #define EMUSCV_KEYBOARD_ALPHAKEYDOWN	160
 
@@ -109,11 +109,10 @@ class cEmuSCV
 		void RetroUnloadGame(void);											// Libretro: unload game
 		void RetroRun(void);												// Libretro: run for only one frame
 		void RetroReset(void);												// Libretro: reset the Libretro core
+		void RetroLoadSettings(void);										// Libretro: load core settings
+		void RetroSaveSettings(void);										// Libretro: save core settings
 		size_t RetroSaveStateSize(void);									// Libretro: return save state size
 		void *RetroSaveStateData(void);										// Libretro: return save state data pointer
-		void RetroLoadSettings();											// Libretro: load core settings
-		void RetroSaveSettings();											// Libretro: save core settings
-
 		bool RetroSaveState(void *data, size_t size);
 		bool RetroLoadState(void *data, size_t size);
 

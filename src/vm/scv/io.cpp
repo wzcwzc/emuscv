@@ -119,7 +119,7 @@ uint32_t IO::read_io8(uint32_t addr)
 
 #define IO_STATE_ID	501
 
-void IO::save_state(STATE* state)
+void IO::save_state(STATE* state, bool max_size)
 {
 	state->SetValue((uint16_t)IO_STATE_ID);
 	state->SetValue(this_device_id);

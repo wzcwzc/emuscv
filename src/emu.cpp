@@ -2847,7 +2847,7 @@ void EMU::free_sound_file(int id, int16_t **data)
 
 #define EMU_STATE_ID	101
 
-void EMU::save_state(STATE* state)
+void EMU::save_state(STATE* state, bool max_size)
 {
 	state->SetValue(++state_counter);
 
@@ -2861,14 +2861,17 @@ void EMU::save_state(STATE* state)
 	for(int x = 0; x < USE_CART; x++)
 	{
 		state->SetValue(cart_status[x].bank);
-		len = strlen(cart_status[x].path)+1;
+		if(max_size)
+			len = sizeof(cart_status[x].path);
+		else
+			len = strlen(cart_status[x].path)+1;
 		state->SetValue(len);
 		state->SetArray(cart_status[x].path, len, 1);
 		state->SetValue(cart_status[x].play);
 		state->SetValue(cart_status[x].wait_count);
 	}
 #endif	// #ifdef USE_CART
-	vm->save_state(state);
+	vm->save_state(state, max_size);
 
 	osd->unlock_vm();
 }

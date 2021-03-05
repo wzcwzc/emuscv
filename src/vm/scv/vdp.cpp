@@ -51,15 +51,34 @@ void VDP::event_vline(int v, int clock)
 
 void VDP::draw_screen()
 {
+	scrntype_t* d = emu->get_screen_ptr();
+
 	// get vdc control params
 	vdc0 = vram1[0x400];
 	vdc1 = vram1[0x401];
 	vdc2 = vram1[0x402];
 	vdc3 = vram1[0x403];
 
-	// draw text screen
-	memset(text, vdc1 & 0xf, sizeof(text));
-	draw_text_screen();
+	// Clear entire screen
+	if(config.window_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL && config.window_clear)
+	{
+		memset(d, 0, SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(uint32_t));
+		config.window_clear = false;
+	}
+	// Clear text zone
+	scrntype_t *dd = d + config.mix_x_max + 3 + (config.mix_y_max - 1) * SCREEN_WIDTH;
+	scrntype_t c = palette_pc[vdc1 & 0xf];
+	uint16_t yd = SCREEN_WIDTH + config.mix_x_min - config.mix_x_max;
+	for(int16_t y = config.mix_y_max; --y >= config.mix_y_min; )
+	{
+		for (int16_t x = config.mix_x_max; --x >= config.mix_x_min; )
+			*dd-- = c;
+		dd -= yd;
+	}
+
+//	// draw text screen
+//	memset(text, vdc1 & 0xf, sizeof(text));
+	draw_text_screen(d);
 
 	// draw sprite screen
 	memset(sprite, 0, sizeof(sprite));
@@ -67,23 +86,17 @@ void VDP::draw_screen()
 		draw_sprite_screen();
 
 	// Mix buffers
-	scrntype_t* d = emu->get_screen_ptr();
-	if(config.window_clear)
-	{
-		memset(d, 0, SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(uint32_t));
-		config.window_clear = false;
-	}
 	if(config.window_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL)
 	{
 		for(int y = config.mix_y_max; --y >= config.mix_y_min; )
 		{
-			scrntype_t* pt = &d[4 + y * SCREEN_WIDTH];
+//			scrntype_t* pt = &d[4 + y * SCREEN_WIDTH];
 			scrntype_t* ps = &d[(y + 2) * SCREEN_WIDTH];
-			unsigned char *st = text[y];
+//			unsigned char *st = text[y];
 			unsigned char *ss = sprite[y];
 			for (int x = config.mix_x_min - 1; ++x < config.mix_x_max;)
 			{
-				*pt++ = palette_pc[*st++];
+//				*pt++ = palette_pc[*st++];
 				unsigned int s = *ss++;
 				if (s != 0)
 					ps[x] = palette_pc[s];
@@ -101,24 +114,48 @@ void VDP::draw_screen()
 				uint8_t s = sprite[y - 2][x];
 				if(s)
 					*dd = palette_pc[s];
-				else
-					*dd = palette_pc[text[y][x - 4]];
+//				else
+//					*dd = palette_pc[text[y][x - 4]];
 				dd--;
 			}
 			dd += config.mix_x_max - config.mix_x_min - SCREEN_WIDTH;
 		}
-		if(config.mix_y_min < 2)
-		{
-			dd = d + config.mix_x_max - 1 + SCREEN_WIDTH;
-			for(int16_t y = 2; --y >= config.mix_y_min; )
-			{
-				for (int16_t x = config.mix_x_max; --x >= config.mix_x_min; )
-					*dd-- = palette_pc[text[y][x - 4]];
-				dd += config.mix_x_max - config.mix_x_min - SCREEN_WIDTH;
-			}
-
-		}
+//		if(config.mix_y_min < 2)
+//		{
+//			dd = d + config.mix_x_max - 1 + SCREEN_WIDTH;
+//			for(int16_t y = 2; --y >= config.mix_y_min; )
+//			{
+//				for (int16_t x = config.mix_x_max; --x >= config.mix_x_min; )
+//					*dd-- = palette_pc[text[y][x - 4]];
+//				dd += config.mix_x_max - config.mix_x_min - SCREEN_WIDTH;
+//			}
+//		}
 	}
+
+
+/*
+	// Clear entire screen
+	if(config.window_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL && config.window_clear)
+	{
+		memset(d, 0, SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(uint32_t));
+		config.window_clear = false;
+	}
+	// Clear text zone
+	scrntype_t *dd = d + config.mix_x_max + 3 + (config.mix_y_max - 1) * SCREEN_WIDTH;
+	scrntype_t c = palette_pc[vdc1 & 0xf];
+	uint16_t yd = SCREEN_WIDTH + config.mix_x_min - config.mix_x_max;
+	for(int16_t y = config.mix_y_max; --y >= config.mix_y_min; )
+	{
+		for (int16_t x = config.mix_x_max; --x >= config.mix_x_min; )
+			*dd-- = c;
+		dd -= yd;
+	}
+	// Draw text zone
+	draw_text_screen(d);
+*/
+
+
+
 
 	// Reset scanline
 	if(resetting)
@@ -177,7 +214,7 @@ void VDP::draw_screen()
 	}
 }
 
-inline void VDP::draw_text_screen()
+inline void VDP::draw_text_screen(scrntype_t *d)
 {
 	uint8_t xmax = (vdc2 & 0xf) * 2;
 	uint8_t ymax = vdc2 >> 4;
@@ -190,29 +227,22 @@ inline void VDP::draw_text_screen()
 	uint8_t cb = vdc3 & 0xf;
 	uint8_t cg = vdc1 >> 4;
 
-//	for(int y = 16; --y >= 0; )	// Full
-//	for(int32_t y = 16; --y >= 1; )	// EmuSCV
-//	for(int32_t y = 16; --y >= 1; )	// Epoch
-//	for(int32_t y = 16; --y >= 0; )	// Yeno
-	for(int32_t y = config.text_y_max; --y >= config.text_y_min; )
+	for(int16_t y = config.text_y_max; --y >= config.text_y_min; )
 	{
 		bool t = (ys <= y && y < ye);
 		int32_t y32 = y << 5;
-//		for(int x = 32; --x >= 0; )	// Full
-//		for(int32_t x = 28; --x >= 3; )	// EmuSCV
-//		for(int32_t x = 28; --x >= 2; )	// Epoch
-//		for(int32_t x = 27; --x >= 3; )	// Yeno
-		for(int32_t x = config.text_x_max; --x >= config.text_x_min; )
+		for(int16_t x = config.text_x_max; --x >= config.text_x_min; )
 		{
-			if (t && (xs <= x && x < xe)) draw_text(x, y, vram1[y32 + x] & 0x7f, ct, cb); // draw text
-			else if ((vdc0 & 3) == 1) draw_graph(x, y, vram1[y32 + x], cg); // semi graph
-			else if ((vdc0 & 3) == 3) draw_block(x, y, vram1[y32 + x]); // block
+			if (t && (xs <= x && x < xe)) draw_text(d, x, y, vram1[y32 + x] & 0x7f, ct, cb); // draw text
+			else if ((vdc0 & 3) == 1) draw_graph(d, x, y, vram1[y32 + x], cg); // semi graph
+			else if ((vdc0 & 3) == 3) draw_block(d, x, y, vram1[y32 + x]); // block
 		}
 	}
 }
 
-inline void VDP::draw_text(int32_t dx, int32_t dy, uint8_t data, uint8_t tcol, uint8_t bcol)
+inline void VDP::draw_text(scrntype_t *d, int32_t dx, int32_t dy, uint8_t data, uint8_t tcol, uint8_t bcol)
 {
+/*
 	int32_t dx8 = (dx << 3)+2;
 	int32_t dy16 = dy << 4;
 	const uint8_t *f = font[data];
@@ -235,10 +265,40 @@ inline void VDP::draw_text(int32_t dx, int32_t dy, uint8_t data, uint8_t tcol, u
 	c = bcol + ((uint32_t)bcol << 8); c = c + (c << 16);
 	for(int32_t l = (data ? 8 : 16); --l >= 0; p2 += 320 >> 2)
 		p2[0] = p2[1] = c;
+*/
+
+
+	int32_t dx8 = (dx << 3) + 6;
+	int32_t dy16 = dy << 4;
+	uint32_t *p = d + dx8 + (dy16 + 15) * SCREEN_WIDTH;
+	int32_t col = palette_pc[bcol];
+	int8_t l;
+	for(l = (data ? 8 : 16); --l >= 0; p -= SCREEN_WIDTH)
+		p[0] = p[1] = p[2] = p[3] = p[4] = p[5] = p[6] = p[7] = col;
+	if(data)
+	{
+		const uint8_t *f = font[data];
+		uint16_t c32 = (tcol << 8) + bcol;
+		p = d + dx8 + dy16 * SCREEN_WIDTH;;
+		for(l = 8; --l >= 0; f++, p += SCREEN_WIDTH)
+		{
+			p[0] = palette_pc[(uint8_t)(c32 >> ((*f >> 4) & 8))];
+			p[1] = palette_pc[(uint8_t)(c32 >> ((*f >> 3) & 8))];
+			p[2] = palette_pc[(uint8_t)(c32 >> ((*f >> 2) & 8))];
+			p[3] = palette_pc[(uint8_t)(c32 >> ((*f >> 1) & 8))];
+			p[4] = palette_pc[(uint8_t)(c32 >> ((*f >> 0) & 8))];
+			p[5] = palette_pc[(uint8_t)(c32 >> ((*f << 1) & 8))];
+			p[6] = palette_pc[(uint8_t)(c32 >> ((*f << 2) & 8))];
+			p[7] = palette_pc[(uint8_t)(c32 >> ((*f << 3) & 8))];
+		}
+	}
+
 }
 
-inline void VDP::draw_block(int32_t dx, int32_t dy, uint8_t data)
+//inline void VDP::draw_block(int32_t dx, int32_t dy, uint8_t data)
+inline void VDP::draw_block(scrntype_t *d, int32_t dx, int32_t dy, uint8_t data)
 {
+/*
 	int32_t dx8 = dx << 3; // Pointer to pixel is aligned to 8.
 	int32_t dy16 = dy << 4;
 	uint8_t cu = data >> 4;
@@ -258,10 +318,36 @@ inline void VDP::draw_block(int32_t dx, int32_t dy, uint8_t data)
     	for(int32_t i = 8; --i >= 0; p += 320 >> 2)
 			p[0] = p[1] = c;
 	}
+*/
+
+
+	int32_t dx8 = (dx << 3) + 4;
+	int32_t dy16 = dy << 4;
+	uint8_t cu = data >> 4;
+	uint8_t cl = data & 0xF;
+	uint32_t *p;
+	int8_t l;
+	int32_t col;
+	if(cu)
+	{
+		p = d + dx8 + dy16 * SCREEN_WIDTH;
+		col = palette_pc[cu];
+		for(l = 8; --l >= 0; p += SCREEN_WIDTH)
+			p[0] = p[1] = p[2] = p[3] = p[4] = p[5] = p[6] = p[7] = col;
+	}
+	if(cl)
+	{
+		p = d + dx8 + (dy16 + 8) * SCREEN_WIDTH;
+		col = palette_pc[cl];
+    	for(l = 8; --l >= 0; p += SCREEN_WIDTH)
+			p[0] = p[1] = p[2] = p[3] = p[4] = p[5] = p[6] = p[7] = col;
+	}
 }
 
-inline void VDP::draw_graph(int32_t dx, int32_t dy, uint8_t data, uint8_t col)
+//inline void VDP::draw_graph(int32_t dx, int32_t dy, uint8_t data, uint8_t col)
+inline void VDP::draw_graph(scrntype_t *d, int32_t dx, int32_t dy, uint8_t data, uint8_t col)
 {
+/*
 	uint32_t c = col + (col << 8);
 	c = c + (c << 16);
 	uint32_t *p = (uint32_t *)&text[dy << 4][dx << 3];
@@ -281,6 +367,65 @@ inline void VDP::draw_graph(int32_t dx, int32_t dy, uint8_t data, uint8_t col)
 		p[960] = p[1040] = p[1120] = p[1200] = c;
 	if(data & 0x01)
 		p[961] = p[1041] = p[1121] = p[1201] = c;
+
+*/
+	
+	int8_t l;
+	uint32_t *p = d + (dx << 3) + (dy << 4) * SCREEN_WIDTH;
+	uint32_t *pp;
+	uint32_t c = palette_pc[col];
+	uint16_t s = SCREEN_WIDTH << 2;
+	uint16_t ss = s;
+	if(data & 0x80)
+	{
+		pp = p;
+		for(l = 4; --l >= 0; pp += SCREEN_WIDTH)
+			pp[0] = pp[1] = pp[2] =  pp[3] = c;
+	}
+	if(data & 0x40)
+	{
+		pp = p + 4;
+		for(l = 4; --l >= 0; pp += SCREEN_WIDTH)
+			pp[0] = pp[1] = pp[2] =  pp[3] = c;
+	}
+	if(data & 0x20)
+	{
+		pp = p + ss;
+		for(l = 4; --l >= 0; pp += SCREEN_WIDTH)
+			pp[0] = pp[1] = pp[2] =  pp[3] = c;
+	}
+	if(data & 0x10)
+	{
+		pp = p + 4 + ss;
+		for(l = 4; --l >= 0; pp += SCREEN_WIDTH)
+			pp[0] = pp[1] = pp[2] =  pp[3] = c;
+	}
+	ss = ss << 1;
+	if(data & 0x08)
+	{
+		pp = p + ss;
+		for(l = 4; --l >= 0; pp += SCREEN_WIDTH)
+			pp[0] = pp[1] = pp[2] =  pp[3] = c;
+	}
+	if(data & 0x04)
+	{
+		pp = p + 4 + ss;
+		for(l = 4; --l >= 0; pp += SCREEN_WIDTH)
+			pp[0] = pp[1] = pp[2] =  pp[3] = c;
+	}
+	ss = ss + s;
+	if(data & 0x02)
+	{
+		pp = p + ss;
+		for(l = 4; --l >= 0; pp += SCREEN_WIDTH)
+			pp[0] = pp[1] = pp[2] =  pp[3] = c;
+	}
+	if(data & 0x01)
+	{
+		pp = p + 4 + ss;
+		for(l = 4; --l >= 0; pp += SCREEN_WIDTH)
+			pp[0] = pp[1] = pp[2] =  pp[3] = c;
+	}
 }
 
 inline void VDP::draw_sprite_screen()
@@ -301,10 +446,12 @@ inline void VDP::draw_sprite_screen()
 													// 01111111: sprite leaf
 
 		uint8_t col1 = atb1 & 0x0f;
+		if(!col1)
+			continue;
 
 		int32_t dx = atb2 & 0xfe;
 		int32_t dy = atb0 & 0xfe;
-		if(index & 0xf0 && (dx == 0 || dy == 0))
+		if((index & 0xf0) && (dx == 0 || dy == 0))
 			continue;
 
 		bool conx = ((atb2 & 1) != 0);
@@ -397,7 +544,7 @@ inline void VDP::draw_sprite_screen()
 					col2 = color_pair_x[col1];
 				}
 // R&D
-if(col1 !=0 && col2 == 0x0)	// New color pair?
+if(!col2)	// New color pair?
 {
 //	dx = 20;
 //	dy = 20;
@@ -427,7 +574,7 @@ if(col1 !=0 && col2 == 0x0)	// New color pair?
 				uint8_t col2 = color_pair_xy[col1];
 
 // R&D
-if(col1 !=0 && col2 == 0x0)	// // New color pair?
+if(!col2)	// // New color pair?
 {
 //	dx = 20;
 //	dy = 20;
@@ -494,9 +641,9 @@ if(index == 0)
 
 inline void VDP::draw_sprite(int32_t dx, int32_t dy, int32_t sx, int32_t ex, int32_t sy, int32_t ey, int32_t no, uint8_t col)
 {
- 	// color #0 is transparent
- 	if(!col)
- 		return;
+//	// color #0 is transparent
+//	if(!col)
+//		return;
 
 //dx = 311; dy = 200;
 //	if(dx < 0 || dx > 311 || dy < 0 || dy > 311)	// Full
@@ -518,26 +665,26 @@ inline void VDP::draw_sprite(int32_t dx, int32_t dy, int32_t sx, int32_t ex, int
 		for(int32_t x = ex; --x >= sx; )
 		{
 			int32_t x4 = (dx + (x << 2)) & 0xFF;
-				uint8_t* du = &sprite[y2u][x4];
-				uint8_t* dl = &sprite[y2l][x4];
-				uint8_t p = vram0[y4 + x];
+			uint8_t* du = &sprite[y2u][x4];
+			uint8_t* dl = &sprite[y2l][x4];
+			uint8_t p = vram0[y4 + x];
 
-				if(p & 0x80)
-					du[0] = col;
-				if(p & 0x40)
-					du[1] = col;
-				if(p & 0x20)
-					du[2] = col;
-				if(p & 0x10)
-					du[3] = col;
-				if(p & 0x08)
-					dl[0] = col;
-				if(p & 0x04)
-					dl[1] = col;
-				if(p & 0x02)
-					dl[2] = col;
-				if(p & 0x01)
-					dl[3] = col;
+			if(p & 0x80)
+				du[0] = col;
+			if(p & 0x40)
+				du[1] = col;
+			if(p & 0x20)
+				du[2] = col;
+			if(p & 0x10)
+				du[3] = col;
+			if(p & 0x08)
+				dl[0] = col;
+			if(p & 0x04)
+				dl[1] = col;
+			if(p & 0x02)
+				dl[2] = col;
+			if(p & 0x01)
+				dl[3] = col;
 		}
  	}
 /*
@@ -554,7 +701,7 @@ inline void VDP::draw_sprite(int32_t dx, int32_t dy, int32_t sx, int32_t ex, int
 
 #define VDP_STATE_ID	901
 
-void VDP::save_state(STATE* state)
+void VDP::save_state(STATE* state, bool max_size)
 {
 	state->SetValue((uint16_t)VDP_STATE_ID);
 	state->SetValue(this_device_id);

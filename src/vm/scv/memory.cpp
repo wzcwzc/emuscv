@@ -1437,8 +1437,9 @@ void MEMORY::close_cart()
 
 #define MEMORY_STATE_ID	601
 
-void MEMORY::save_state(STATE* state)
+void MEMORY::save_state(STATE* state, bool max_size)
 {
+	uint16_t len;
 	state->SetValue((uint16_t)MEMORY_STATE_ID);
 	state->SetValue(this_device_id);
 	state->SetArray(cart_header.id, sizeof(cart_header.id), 1);
@@ -1461,7 +1462,10 @@ void MEMORY::save_state(STATE* state)
 	state->SetValue(cart_found);
 	state->SetValue(cart_inserted);
 	state->SetValue(cart_ok);
-	uint16_t len = strlen(ram_path)+1;
+	if(max_size)
+		len = sizeof(ram_path);
+	else
+		len = strlen(ram_path)+1;
 	state->SetValue(len);
 	state->SetArray(ram_path, len, 1);
 	state->SetValue(ram_block);

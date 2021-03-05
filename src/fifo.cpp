@@ -98,8 +98,11 @@ bool FIFO::empty()
 	return (cnt == 0);
 }
 
-void FIFO::save_state(STATE *state)
+#define FIFO_STATE_ID	1101
+
+void FIFO::save_state(STATE *state, bool max_size)
 {
+	state->SetValue((uint16_t)FIFO_STATE_ID);
 	state->SetValue(size);
 	state->SetArray(buf, size * sizeof(int), 1);
 	state->SetValue(cnt);
@@ -109,6 +112,8 @@ void FIFO::save_state(STATE *state)
 
 bool FIFO::load_state(STATE *state)
 {
+	if(!state->CheckValue((uint16_t)FIFO_STATE_ID))
+		return false;
 	state->GetValue(size);
 	state->GetArray(buf, size * sizeof(int), 1);
 	state->GetValue(cnt);
