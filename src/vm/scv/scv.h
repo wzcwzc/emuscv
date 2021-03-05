@@ -81,7 +81,7 @@
 #define TEXT_X_MAX_EPOCH			28
 #define TEXT_Y_MIN_EPOCH			1
 #define TEXT_Y_MAX_EPOCH			16
-#define TEXT_X_MIN_YENO				23
+#define TEXT_X_MIN_YENO				3
 #define TEXT_X_MAX_YENO				27
 #define TEXT_Y_MIN_YENO				0
 #define TEXT_Y_MAX_YENO				16

@@ -51,166 +51,164 @@ void VDP::event_vline(int v, int clock)
 
 void VDP::draw_screen()
 {
-	scrntype_t* d = emu->get_screen_ptr();
-
 	// get vdc control params
 	vdc0 = vram1[0x400];
 	vdc1 = vram1[0x401];
 	vdc2 = vram1[0x402];
 	vdc3 = vram1[0x403];
 
-	// Clear entire screen
-	if(config.window_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL && config.window_clear)
-	{
-		memset(d, 0, SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(uint32_t));
-		config.window_clear = false;
-	}
-	// Clear text zone
-	scrntype_t *dd = d + config.mix_x_max + 3 + (config.mix_y_max - 1) * SCREEN_WIDTH;
-	scrntype_t c = palette_pc[vdc1 & 0xf];
-	uint16_t yd = SCREEN_WIDTH + config.mix_x_min - config.mix_x_max;
-	for(int16_t y = config.mix_y_max; --y >= config.mix_y_min; )
-	{
-		for (int16_t x = config.mix_x_max; --x >= config.mix_x_min; )
-			*dd-- = c;
-		dd -= yd;
-	}
+	// Get screen pointer
+	scrntype_t* d = emu->get_screen_ptr();
 
-//	// draw text screen
-//	memset(text, vdc1 & 0xf, sizeof(text));
-	draw_text_screen(d);
-
-	// draw sprite screen
-	memset(sprite, 0, sizeof(sprite));
-	if(vdc0 & 0x10)
-		draw_sprite_screen();
-
-	// Mix buffers
+	// Clear screen
+	scrntype_t *d1;
 	if(config.window_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL)
 	{
-		for(int y = config.mix_y_max; --y >= config.mix_y_min; )
+		// Clear sprite zone
+		uint16_t xmin = 0;
+		uint16_t xmax = 3;
+		uint16_t ymin = 0;
+		uint16_t ymax = SCREEN_HEIGHT - 1;
+		uint16_t ys = SCREEN_WIDTH - xmax - 1 + xmin;
+		scrntype_t c = palette_pc[0x1];
+		d1 = d + xmax + ymax * SCREEN_WIDTH;
+		for(int16_t x, y = ymax + 1; --y >= ymin; )
 		{
-//			scrntype_t* pt = &d[4 + y * SCREEN_WIDTH];
-			scrntype_t* ps = &d[(y + 2) * SCREEN_WIDTH];
-//			unsigned char *st = text[y];
-			unsigned char *ss = sprite[y];
-			for (int x = config.mix_x_min - 1; ++x < config.mix_x_max;)
-			{
-//				*pt++ = palette_pc[*st++];
-				unsigned int s = *ss++;
-				if (s != 0)
-					ps[x] = palette_pc[s];
-			}
+			for (x = xmax + 1; --x >= xmin; )
+				*d1-- = c;
+			d1 -= ys;
 		}
-	}
-	else
-	{
-		int16_t ymin = (config.mix_y_min > 1 ? config.mix_y_min : 1);
-		scrntype_t *dd = d + config.mix_x_max - 1 + (config.mix_y_max - 1) * SCREEN_WIDTH;
-		for(int16_t y = config.mix_y_max; --y >= ymin; )
+		xmin = 4;
+		xmax = SCREEN_WIDTH - 1;
+		ymin = SCREEN_HEIGHT - 2;
+		ys = SCREEN_WIDTH - xmax - 1 + xmin;
+		d1 = d + xmax + ymax * SCREEN_WIDTH;
+		for(int16_t x, y = ymax + 1; --y >= ymin; )
 		{
-			for (int16_t x = config.mix_x_max; --x >= config.mix_x_min; )
-			{
-				uint8_t s = sprite[y - 2][x];
-				if(s)
-					*dd = palette_pc[s];
-//				else
-//					*dd = palette_pc[text[y][x - 4]];
-				dd--;
-			}
-			dd += config.mix_x_max - config.mix_x_min - SCREEN_WIDTH;
+			for (x = xmax + 1; --x >= xmin; )
+				*d1-- = c;
+			d1 -= ys;
 		}
-//		if(config.mix_y_min < 2)
-//		{
-//			dd = d + config.mix_x_max - 1 + SCREEN_WIDTH;
-//			for(int16_t y = 2; --y >= config.mix_y_min; )
-//			{
-//				for (int16_t x = config.mix_x_max; --x >= config.mix_x_min; )
-//					*dd-- = palette_pc[text[y][x - 4]];
-//				dd += config.mix_x_max - config.mix_x_min - SCREEN_WIDTH;
-//			}
-//		}
-	}
+		// Clear text zone
+		ymin = 0;
+		ymax = SCREEN_HEIGHT - 3;
+		c = palette_pc[vdc1 & 0xf];
+		ys = SCREEN_WIDTH - xmax - 1 + xmin;
+		d1 = d + xmax + ymax * SCREEN_WIDTH;
+		for(int16_t x, y = ymax + 1; --y >= ymin; )
+		{
+			for (x = xmax + 1; --x >= xmin; )
+				*d1-- = c;
+			d1 -= ys;
+		}
 
+		draw_screen(d);
 
-/*
-	// Clear entire screen
-	if(config.window_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL && config.window_clear)
-	{
-		memset(d, 0, SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(uint32_t));
-		config.window_clear = false;
-	}
-	// Clear text zone
-	scrntype_t *dd = d + config.mix_x_max + 3 + (config.mix_y_max - 1) * SCREEN_WIDTH;
-	scrntype_t c = palette_pc[vdc1 & 0xf];
-	uint16_t yd = SCREEN_WIDTH + config.mix_x_min - config.mix_x_max;
-	for(int16_t y = config.mix_y_max; --y >= config.mix_y_min; )
-	{
-		for (int16_t x = config.mix_x_max; --x >= config.mix_x_min; )
-			*dd-- = c;
-		dd -= yd;
-	}
-	// Draw text zone
-	draw_text_screen(d);
-*/
-
-
-
-
-	// Reset scanline
-	if(resetting)
-	{
-		scrntype_t color = palette_pc[0x1];
-		for(int y = resetscanband+30 ; --y >= resetscanband; )
-			if((unsigned int)y < SCREEN_HEIGHT)
-			{
-				scrntype_t* p = &d[y * SCREEN_WIDTH];
-				for (int x = SCREEN_WIDTH; --x >= 0; )
-				*p++ = color;
-			}
-	}
-	resetscanband -= 2;
-	if(resetscanband < -30)
-		resetscanband = SCREEN_HEIGHT+60;
-	resetting = false;
-
-	// Screen contour
-	if(config.window_displayfullmemory == SETTING_DISPLAYFULLMEMORY_YES_VAL)
-	{
+		// Screen contour
+		scrntype_t *d2;
 		switch(config.screen_display)
 		{
 			case SETTING_DISPLAY_EPOCH_VAL:
 				// EPOCH
 				// Screen contour RED
-				for(int x = 226; --x > 25; )
-					d[int(x+23*SCREEN_WIDTH)] = d[int(x+248*SCREEN_WIDTH)] = palette_pc[0x8];
-				for(int y = 248; --y > 23; )
-					d[int(26+y*SCREEN_WIDTH)] = d[int(225+y*SCREEN_WIDTH)] = palette_pc[0x8];
+				d1 = d + 225 + 23 * SCREEN_WIDTH;
+				d2 = d + 225 + 248 * SCREEN_WIDTH;
+				c = palette_pc[0x8];
+				for(int16_t x = 226; --x > 25; )
+					*d1-- = *d2-- = c;
+				d1 = d + 26 + 247 * SCREEN_WIDTH;
+				d2 = d + 225 + 247 * SCREEN_WIDTH;
+				for(int16_t y = 248; --y > 23; d1 -= SCREEN_WIDTH, d2 -= SCREEN_WIDTH)
+					*d1 = *d2 = c;
 				break;
 			case SETTING_DISPLAY_YENO_VAL:
 				// YENO
 				// Screen border BLACK
-				for(int y = 256; --y >= 0; )
-					d[int(215+y*SCREEN_WIDTH)] = d[int(216+y*SCREEN_WIDTH)] = d[int(217+y*SCREEN_WIDTH)] = palette_pc[0x1];
-				for(int y = 264; --y > 255; )
-					for(int x = 218; --x > 31; )
-							d[int(x+y*SCREEN_WIDTH)] = palette_pc[0x1];
+				d1 = d + 215 + 255 * SCREEN_WIDTH;
+				c = palette_pc[0x1];
+				for(int16_t y = 256; --y >= 0; d1 -= SCREEN_WIDTH)
+					d1[0] = d1[1] = d1[2] = c;
+				d1 = d + 217 + 263 * SCREEN_WIDTH;
+				for(int16_t x, y = 264; --y > 255; )
+				{
+					for(x = 218; --x >= 31; )
+						*d1-- = c;
+					d1 -= SCREEN_WIDTH - 187;
+				}
 				// Screen contour BLUE
-				for(int x = 219; --x > 30; )
-					d[int(x+264*SCREEN_WIDTH)] = palette_pc[0x2];
-				for(int y = 264; --y >= 0; )
-					d[int(31+y*SCREEN_WIDTH)] = d[int(218+y*SCREEN_WIDTH)] = palette_pc[0x2];
+				d1 = d + 218 + 264 * SCREEN_WIDTH;
+				c = palette_pc[0x2];
+				for(int x = 219; --x >= 31; )
+					*d1-- = c;
+				d1 = d + 31 + 263 * SCREEN_WIDTH;
+				d2 = d + 218 + 263 * SCREEN_WIDTH;
+				for(int16_t y = 264; --y >= 0; d1 -= SCREEN_WIDTH, d2 -= SCREEN_WIDTH)
+					*d1 = *d2 = c;
 				break;
 			case SETTING_DISPLAY_EMUSCV_VAL:
 			default:
 				// EMUSCV
 				// Screen contour GREEN
+				d1 = d + 222 + 27 * SCREEN_WIDTH;
+				d2 = d + 222 + 244 * SCREEN_WIDTH;
+				c = palette_pc[0x4];
 				for(int x = 223; --x > 28; )
-					d[int(x+27*SCREEN_WIDTH)] = d[int(x+244*SCREEN_WIDTH)] = palette_pc[0x4];
-				for(int y = 244; --y > 27; )
-					d[int(29+y*SCREEN_WIDTH)] = d[int(222+y*SCREEN_WIDTH)] = palette_pc[0x4];
+					*d1-- = *d2-- = c;
+				d1 = d + 29 + 243 * SCREEN_WIDTH;
+				d2 = d + 222 + 243 * SCREEN_WIDTH;
+				for(int16_t y = 244; --y > 27; d1 -= SCREEN_WIDTH, d2 -= SCREEN_WIDTH)
+					*d1 = *d2 = c;
 				break;
 		}
+	}
+	else
+	{
+		// Clear text zone
+		d1 = d + config.mix_x_max - 1 + (config.mix_y_max - 1) * SCREEN_WIDTH;
+		scrntype_t c = palette_pc[vdc1 & 0xf];
+		uint16_t ys = SCREEN_WIDTH + config.mix_x_min - config.mix_x_max;
+		for(int16_t x, y = config.mix_y_max; --y >= config.mix_y_min; )
+		{
+			for (x = config.mix_x_max; --x >= config.mix_x_min; )
+				*d1-- = c;
+			d1 -= ys;
+		}
+
+		draw_screen(d);
+	}
+}
+
+inline void VDP::draw_screen(scrntype_t *d)
+{
+	// draw text screen
+	draw_text_screen(d);
+
+	// draw sprite screen
+	memset(sprite, 0, sizeof(sprite));
+	if(vdc0 & 0x10)
+		draw_sprite_screen(d);
+
+	// Reset scanline
+	if(resetting)
+	{
+		scrntype_t c = palette_pc[0x1];
+		uint16_t ymin = resetscanband;
+		uint16_t ymax = resetscanband + 30;
+		if(ymin < 0)
+			ymin = 0;
+		if(ymax > SCREEN_HEIGHT)
+			ymax = SCREEN_HEIGHT;
+		if(ymin < ymax)
+		{
+			scrntype_t *p = d + ymax * SCREEN_WIDTH;
+			for(int16_t x, y = ymax ; --y >= ymin; )
+				for (x = SCREEN_WIDTH; --x >= 0; )
+					*p-- = c;
+		}
+		resetscanband -= 3;
+		if(resetscanband + 30 < 0)
+			resetscanband = SCREEN_HEIGHT + 30;
+		resetting = false;
 	}
 }
 
@@ -233,9 +231,10 @@ inline void VDP::draw_text_screen(scrntype_t *d)
 		int32_t y32 = y << 5;
 		for(int16_t x = config.text_x_max; --x >= config.text_x_min; )
 		{
-			if (t && (xs <= x && x < xe)) draw_text(d, x, y, vram1[y32 + x] & 0x7f, ct, cb); // draw text
-			else if ((vdc0 & 3) == 1) draw_graph(d, x, y, vram1[y32 + x], cg); // semi graph
-			else if ((vdc0 & 3) == 3) draw_block(d, x, y, vram1[y32 + x]); // block
+			uint32_t data = vram1[y32 + x];
+			if (t && (xs <= x && x < xe)) draw_text(d, x, y, data & 0x7f, ct, cb); // draw text
+			else if ((vdc0 & 3) == 1) draw_graph(d, x, y, data, cg); // semi graph
+			else if ((vdc0 & 3) == 3) draw_block(d, x, y, data); // block
 		}
 	}
 }
@@ -266,8 +265,6 @@ inline void VDP::draw_text(scrntype_t *d, int32_t dx, int32_t dy, uint8_t data, 
 	for(int32_t l = (data ? 8 : 16); --l >= 0; p2 += 320 >> 2)
 		p2[0] = p2[1] = c;
 */
-
-
 	int32_t dx8 = (dx << 3) + 6;
 	int32_t dy16 = dy << 4;
 	uint32_t *p = d + dx8 + (dy16 + 15) * SCREEN_WIDTH;
@@ -428,7 +425,7 @@ inline void VDP::draw_graph(scrntype_t *d, int32_t dx, int32_t dy, uint8_t data,
 	}
 }
 
-inline void VDP::draw_sprite_screen()
+inline void VDP::draw_sprite_screen(scrntype_t *d)
 {
 	// Patch for Kung-Fu Road
 	int32_t nbsprite = ((vdc0 & 0xf7) == 0x17 && (vdc2 & 0xef) == 0x4f) ? 64 : 128;
@@ -483,7 +480,7 @@ inline void VDP::draw_sprite_screen()
 /*
 // R&D
 		int no1 = atb3;
-		draw_sprite(dx, dy, sx, ex, sy, ey, no1, col1);
+		draw_sprite(d, dx, dy, sx, ex, sy, ey, no1, col1);
 		if(conx && cony)
 		{
 			int no3 = atb3 | 9;
@@ -491,7 +488,7 @@ inline void VDP::draw_sprite_screen()
 			if(no3 != no3x)
 				int i = 0;
 //			int col2 = ((vdc0 & 0x20) ? color_pair_xy[col1] : col1);
-//			draw_sprite(dx + 16, dy+16, 0, 4, sy, ey, no3, col1);
+//			draw_sprite(d, dx + 16, dy+16, 0, 4, sy, ey, no3, col1);
 		}
 		else if(cony)
 		{
@@ -507,7 +504,7 @@ inline void VDP::draw_sprite_screen()
 			if(no3 != no3x)
 				int i = 0;
 //			int col2 = ((vdc0 & 0x20) ? color_pair_x[col1] : col1);
-//			draw_sprite(dx + 16, dy, 0, 4, sy, ey, no3, col1);
+//			draw_sprite(d, dx + 16, dy, 0, 4, sy, ey, no3, col1);
 		}
 */
 
@@ -556,8 +553,8 @@ if(!col2)	// New color pair?
 	col2 = 0xF;
 }
 
-				draw_sprite(dx, dy, sx, ex, sy, ey, no1, col1);
-				draw_sprite(dx, dy, sx, ex, sy, ey, no2, col2);
+				draw_sprite(d, dx, dy, sx, ex, sy, ey, no1, col1);
+				draw_sprite(d, dx, dy, sx, ex, sy, ey, no2, col2);
 			}
 			else if(vdc0 == 0x78 && vdc2 == 0x32 && no1 == 0)	// Inverted 2 colors sprite	// Patch for Boulder Dash only?
 			{
@@ -586,12 +583,12 @@ if(!col2)	// // New color pair?
 	col2 = 0x8;
 }
 
-				draw_sprite(dx, dy, sx, ex, sy, ey, no1, col2);
-				draw_sprite(dx, dy, sx, ex, sy, ey, no2, col1);
+				draw_sprite(d, dx, dy, sx, ex, sy, ey, no1, col2);
+				draw_sprite(d, dx, dy, sx, ex, sy, ey, no2, col1);
 			}
 			else	// Simple 2 colors sprite
 			{
-				draw_sprite(dx, dy, sx, ex, sy, ey, no1, col1);
+				draw_sprite(d, dx, dy, sx, ex, sy, ey, no1, col1);
 			}
  		}
  		else
@@ -599,21 +596,21 @@ if(!col2)	// // New color pair?
 			// mono color sprite
 			int32_t no1 = atb3;
 
-			draw_sprite(dx, dy, sx, ex, sy, ey, no1, col1);
+			draw_sprite(d, dx, dy, sx, ex, sy, ey, no1, col1);
 			if(cony)
 			{
 				int32_t no2 = atb3 | 1;
-				draw_sprite(dx, dy + 16, sx, ex, sy - 8, 8, no2, col1);
+				draw_sprite(d, dx, dy + 16, sx, ex, sy - 8, 8, no2, col1);
 			}
 			if(conx)
 			{
 				int32_t no3 = atb3 | 8;
-				draw_sprite(dx + 16, dy, 0, 4, sy, ey, no3, col1);
+				draw_sprite(d, dx + 16, dy, 0, 4, sy, ey, no3, col1);
 			}
 			if(conx && cony)
 			{
 				int32_t no4 = atb3 | 9;
-				draw_sprite(dx + 16, dy + 16, 0, 4, sy - 8, 8, no4, col1);
+				draw_sprite(d, dx + 16, dy + 16, 0, 4, sy - 8, 8, no4, col1);
 			}
 /*
 if(index == 0)
@@ -626,7 +623,7 @@ if(index == 0)
 		cc= 0xF;
 		if(nn == 43)
 			cc = 0x8;
-		draw_sprite(xx, yy, 0, 4, 0, 8, nn, cc);
+		draw_sprite(d, xx, yy, 0, 4, 0, 8, nn, cc);
 		nn++;
 		cc++;
 		if(cc >= 0xF)
@@ -639,8 +636,9 @@ if(index == 0)
 	}
 }
 
-inline void VDP::draw_sprite(int32_t dx, int32_t dy, int32_t sx, int32_t ex, int32_t sy, int32_t ey, int32_t no, uint8_t col)
+inline void VDP::draw_sprite(scrntype_t *d, int32_t dx, int32_t dy, int32_t sx, int32_t ex, int32_t sy, int32_t ey, int32_t no, uint8_t col)
 {
+/*
 //	// color #0 is transparent
 //	if(!col)
 //		return;
@@ -687,6 +685,7 @@ inline void VDP::draw_sprite(int32_t dx, int32_t dy, int32_t sx, int32_t ex, int
 				dl[3] = col;
 		}
  	}
+*/
 /*
 	// R&D
 	// Try to patch for Lupin III
@@ -697,6 +696,49 @@ inline void VDP::draw_sprite(int32_t dx, int32_t dy, int32_t sx, int32_t ex, int
 		draw_sprite(dx, dy, sx, ex, sy, ey, no, col);
 	}
 */
+
+
+
+
+
+	if(dx < config.sprite_x_min || dx > config.sprite_x_max || dy < config.sprite_y_min || dy > config.sprite_y_max)
+		return;
+
+	if(sy < 0)
+		sy = 0;
+
+	int32_t no32 = no << 5;
+	uint32_t c = palette_pc[col];
+ 	for(int32_t y = ey; --y >= sy; )
+	 {
+		int32_t y2u = ((y << 1) + dy + 2) * SCREEN_WIDTH;
+		int32_t y2l = ((y << 1) + dy + 3) * SCREEN_WIDTH;
+		int32_t y4 = (y << 2) + no32;
+		for(int32_t x = ex; --x >= sx; )
+		{
+			uint32_t x4 = (dx + (x << 2)) & 0xFF;
+			uint32_t *du = d + x4 + y2u;
+			uint32_t *dl = d + x4 + y2l;
+			uint8_t p = vram0[y4 + x];
+
+			if(p & 0x80)
+				du[0] = c;
+			if(p & 0x40)
+				du[1] = c;
+			if(p & 0x20)
+				du[2] = c;
+			if(p & 0x10)
+				du[3] = c;
+			if(p & 0x08)
+				dl[0] = c;
+			if(p & 0x04)
+				dl[1] = c;
+			if(p & 0x02)
+				dl[2] = c;
+			if(p & 0x01)
+				dl[3] = c;
+		}
+ 	}
 }
 
 #define VDP_STATE_ID	901

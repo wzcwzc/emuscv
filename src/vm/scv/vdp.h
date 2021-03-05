@@ -36,15 +36,13 @@ private:
 	bool resetting;
 	int resetscanband;
 
+	inline void draw_screen(scrntype_t *d);
 	inline void draw_text_screen(scrntype_t *d);
 	inline void draw_text(scrntype_t *d, int dx, int dy, uint8_t data, uint8_t tcol, uint8_t bcol);
-//	inline void draw_block(int dx, int dy, uint8_t data);
 	inline void draw_block(scrntype_t *d, int dx, int dy, uint8_t data);
-//	inline void draw_graph(int dx, int dy, uint8_t data, uint8_t col);
 	inline void draw_graph(scrntype_t *d, int dx, int dy, uint8_t data, uint8_t col);
-
-	inline void draw_sprite_screen();
-	inline void draw_sprite(int dx, int dy, int sx, int ex, int sy, int ey, int no, uint8_t col);
+	inline void draw_sprite_screen(scrntype_t *d);
+	inline void draw_sprite(scrntype_t *d, int dx, int dy, int sx, int ex, int sy, int ey, int no, uint8_t col);
 
 public:
 	VDP(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
