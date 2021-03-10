@@ -33,7 +33,7 @@
 class EMU;
 
 #define EMUSCV_NAME					"Libretro-EmuSCV"
-#define EMUSCV_DESCRIPTION			"EmuSCV is an open source emulator of EPOCH/YENO Super Cassette Vision under General Public Licence (GPL), based on SCV and MESS/MAME"
+#define EMUSCV_DESCRIPTION			"EmuSCV is an open source emulator of EPOCH/YENO Super Cassette Vision under General Public Licence (GPL)."
 #ifndef EMUSCV_VERSION_MAJOR
     #define EMUSCV_VERSION_MAJOR	"0"
 #endif
@@ -79,9 +79,12 @@ class EMU;
 #define EMUSCV_CONTROLS_ALPHA			127
 
 #define EMUSCV_KEYBOARD_ALPHA			200
-#define EMUSCV_KEYBOARD_DELAY			40
+#define EMUSCV_KEYBOARD_DELAY			100
 #define EMUSCV_KEYBOARD_ALPHAKEYUP		80
 #define EMUSCV_KEYBOARD_ALPHAKEYDOWN	160
+
+#define EMUSCV_LOGO_ALPHA				180
+#define EMUSCV_LOGO_DURATION			900
 
 
 // /!\ Must be static
@@ -150,6 +153,10 @@ class cEmuSCV
 		SDL_Renderer *noise_renderer;		// SDL2 TV static noise renderer
 		SDL_Surface *keyboard_surface;		// SDL2 quick keyboard surface
 		SDL_Renderer *keyboard_renderer;	// SDL2 quick keyboard renderer
+		SDL_Surface *logo_surface;			// SDL2 EmuSCV logo surface
+		SDL_Renderer *logo_renderer;		// SDL2 EmuSCV logo renderer
+		SDL_Surface *recalbox_surface;		// SDL2 Recalbox logo surface
+		SDL_Renderer *recalbox_renderer;	// SDL2 Recalbox logo renderer
 		
 		// To drive eSCV
 		int run_frames_last;
@@ -197,6 +204,10 @@ class cEmuSCV
 
 		bool CreateKeyboardSurface();
 		bool DestroyKeyboardSurface();
+		bool CreateLogoSurface();
+		bool DestroyLogoSurface();
+		bool CreateRecalboxSurface();
+		bool DestroyRecalboxSurface();
 		
 		STATE state;
 

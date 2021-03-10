@@ -1139,24 +1139,26 @@ int UPD7801::run(int clock)
 
 void UPD7801::run_one_opecode()
 {
-	if(!(MC & 0x40) && (IN8(P_C) & 0x80)) {
-		if(!HLDA) {
+	if(!(MC & 0x40) && (IN8(P_C) & 0x80))
+	{
+		if(!HLDA)
+		{
 			HLDA = 0x40;
 			UPDATE_PORTC(0);
 		}
-	} else {
-		if(HLDA) {
-			HLDA = 0;
-			UPDATE_PORTC(0);
-		}
 	}
-	if(HLDA || wait) {
+	else if(HLDA)
+	{
+		HLDA = 0;
+		UPDATE_PORTC(0);
+	}
+	if(HLDA || wait)
 		period = 1;
-	} else {
+	else
+	{
 		// interrupt is enabled after next opecode of ei
-		if(IFF & 2) {
+		if(IFF & 2)
 			IFF--;
-		}
 
 		// run 1 opecode
 #ifdef USE_DEBUGGER
@@ -1172,16 +1174,21 @@ void UPD7801::run_one_opecode()
 	count -= period;
 
 	// update serial count
-	if(scount) {
+	if(scount)
+	{
 		scount -= period;
-		while(scount <= 0) {
-			if(!SIO_DISABLED && !SIO_EXTCLOCK) {
+		while(scount <= 0)
+		{
+			if(!SIO_DISABLED && !SIO_EXTCLOCK)
+			{
 				write_signals(&outputs_so, (SR & 0x80) ? 0xffffffff : 0);
 				SR <<= 1;
 				if(SI) SR |= 1;
-				if(++sio_count == 8) {
+				if(++sio_count == 8)
+				{
 					IRR |= INTFS;
-					if(SAK) {
+					if(SAK)
+					{
 						SAK = 0;
 						UPDATE_PORTC(0);
 					}
@@ -1194,21 +1201,28 @@ void UPD7801::run_one_opecode()
 	}
 
 	// update timer
-	if(tcount && (tcount -= period) <= 0) {
+	if(tcount && (tcount -= period) <= 0)
+	{
 		tcount += (((TM0 | (TM1 << 8)) & 0xfff) + 1) * PRESCALER;
 		IRR |= INTFT;
-		if(TO) {
+		if(TO)
+		{
 			TO = 0;
 			UPDATE_PORTC(0);
 		}
 	}
 
 	// check interrupt
-	if(IFF == 1 && !SIRQ) {
-		for(int i = 0; i < 5; i++) {
-			uint8_t bit = irq_bits[i];
-			if((IRR & bit) && !(MK & bit)) {
-				if(HALT) {
+	if(IFF == 1 && !SIRQ)
+	{
+		uint8_t bit;
+		for(int8_t i = -1; ++i < 5; )
+		{
+			bit = irq_bits[i];
+			if((IRR & bit) && !(MK & bit))
+			{
+				if(HALT)
+				{
 					HALT = 0;
 					PC++;
 				}
@@ -1389,7 +1403,8 @@ uint8_t getwa()
 
 int UPD7801::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-	for(int i = 0; i < 4; i++) {
+	for(int i = -1; ++i < 4; )
+	{
 		int wait;
 		upd7801_dasm_ops[i] = d_mem_stored->read_data8w(pc + i, &wait);
 	}

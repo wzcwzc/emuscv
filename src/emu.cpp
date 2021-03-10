@@ -116,13 +116,14 @@ EMU::EMU()
 	initialize_media();
 	vm->initialize_sound(sound_rate);//, sound_samples);
 #ifdef USE_SOUND_VOLUME
-	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+	for(int i = -1; ++i < USE_SOUND_VOLUME; )
 		vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
-	}
 #endif
 #ifdef USE_HARD_DISK
-	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		if(config.last_hard_disk_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[drv])) {
+	for(int drv = -1; ++drv < USE_HARD_DISK; )
+	{
+		if(config.last_hard_disk_path[drv][0] != _T('\0') && FILEIO::IsFileExisting(config.last_hard_disk_path[drv]))
+		{
 			vm->open_hard_disk(drv, config.last_hard_disk_path[drv]);
 			my_tcscpy_s(hard_disk_status[drv].path, _MAX_PATH, config.last_hard_disk_path[drv]);
 		}
@@ -264,7 +265,8 @@ void EMU::reset()
 	reinitialize |= (printer_type != config.printer_type);
 	printer_type = config.printer_type;
 #endif
-	if(reinitialize) {
+	if(reinitialize)
+	{
 		// stop sound
 //		osd->stop_sound();
 		// reinitialize virtual machine
@@ -276,14 +278,15 @@ void EMU::reset()
 #endif
 		vm->initialize_sound(sound_rate);//, sound_samples);
 #ifdef USE_SOUND_VOLUME
-		for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+		for(int i = -1; ++i < USE_SOUND_VOLUME; )
 			vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
-		}
 #endif
 		restore_media();
 		vm->reset();
 		osd->unlock_vm();
-	} else {
+	}
+	else
+	{
 		// reset virtual machine
 		osd->lock_vm();
 		vm->reset();
@@ -1136,59 +1139,56 @@ void EMU::set_auto_key_list(char *buf, int size)
 #endif
 	auto_key_buffer->clear();
 
-	for(int i = 0; i < size; i++) {
+	for(int i = -1; ++i < size; )
+	{
 		int code = buf[i] & 0xff;
-		if((0x81 <= code && code <= 0x9f) || 0xe0 <= code) {
+		if((0x81 <= code && code <= 0x9f) || 0xe0 <= code)
+		{
 			i++;	// kanji ?
 			continue;
-		} else if(code == 0x0a) {
-			continue;	// cr-lf
 		}
-		if((code = get_auto_key_code(code)) != 0) {
+		else if(code == 0x0a)
+			continue;	// cr-lf
+		if((code = get_auto_key_code(code)) != 0)
+		{
 			// kana lock
 			bool kana = ((code & 0x200) != 0);
-			if(prev_kana != kana) {
+			if(prev_kana != kana)
 				auto_key_buffer->write(0xf2);
-			}
 			prev_kana = kana;
 #if defined(USE_AUTO_KEY_CAPS_LOCK)
 			// use caps lock key to switch uppercase/lowercase of alphabet
 			// USE_AUTO_KEY_CAPS_LOCK shows the caps lock key code
 			bool caps = ((code & 0x400) != 0);
-			if(prev_caps != caps) {
+			if(prev_caps != caps)
 				auto_key_buffer->write(USE_AUTO_KEY_CAPS_LOCK);
-			}
 			prev_caps = caps;
 #endif
 #if defined(USE_AUTO_KEY_CAPS_LOCK) || defined(USE_AUTO_KEY_NO_CAPS)
 			code &= ~(0x400 | 0x800); // don't press shift key for both alphabet and ALPHABET
 #elif defined(USE_KEY_LOCKED)
-			if(get_caps_locked()) {
+			if(get_caps_locked())
 				code &= ~0x400; // don't press shift key for ALPHABET
-			} else {
+			else
 				code &= ~0x800; // don't press shift key for alphabet
-			}
 #elif defined(USE_AUTO_KEY_CAPS)
 			code &= ~0x400; // don't press shift key for ALPHABET
 #else
 			code &= ~0x800; // don't press shift key for alphabet
 #endif
-			if(code & (0x100 | 0x400 | 0x800)) {
+			if(code & (0x100 | 0x400 | 0x800))
 				auto_key_buffer->write((code & 0xff) | 0x100);
-			} else {
+			else
 				auto_key_buffer->write(code & 0xff);
-			}
 		}
 	}
 	// release kana lock
-	if(prev_kana) {
+	if(prev_kana)
 		auto_key_buffer->write(0xf2);
-	}
 #if defined(USE_AUTO_KEY_CAPS_LOCK)
 	// release caps lock
-	if(prev_caps) {
+	if(prev_caps)
 		auto_key_buffer->write(USE_AUTO_KEY_CAPS_LOCK);
-	}
 #endif
 }
 
@@ -1275,10 +1275,10 @@ void EMU::set_auto_key_char(char code)
 				comp = strcmp(romaji_table[i].romaji, &codes[0]);
 			}
 			if(comp == 0) {
-				for(int j = 0; j < 4; j++) {
-					if(!romaji_table[i].kana[j]) {
+				for(int j = -1; ++j < 4; )
+				{
+					if(!romaji_table[i].kana[j])
 						break;
-					}
 					set_auto_key_code(romaji_table[i].kana[j]);
 				}
 				memset(codes, 0, sizeof(codes));
@@ -1370,19 +1370,23 @@ void EMU::update_joystick()
 
 	memset(joy_status, 0, sizeof(joy_status));
 
-	for(int i = 0; i < 4; i++) {
-		for(int j = 0; j < 16; j++) {
-			if(config.joy_buttons[i][j] < 0) {
-				int code = -config.joy_buttons[i][j];
-				if(code < 256 && key_buffer[code]) {
+	int code, stick, button, i, j;
+	for(i = -1; ++i < 4; )
+	{
+		for(j = -1; ++j < 16; )
+		{
+			if(config.joy_buttons[i][j] < 0)
+			{
+				code = -config.joy_buttons[i][j];
+				if(code < 256 && key_buffer[code])
 					joy_status[i] |= (1 << j);
-				}
-			} else {
-				int stick = config.joy_buttons[i][j] >> 5;
-				int button = config.joy_buttons[i][j] & 0x1f;
-				if(stick < 4 && (joy_buffer[stick & 3] & (1 << button))) {
+			}
+			else
+			{
+				stick = config.joy_buttons[i][j] >> 5;
+				button = config.joy_buttons[i][j] & 0x1f;
+				if(stick < 4 && (joy_buffer[stick & 3] & (1 << button)))
 					joy_status[i] |= (1 << j);
-				}
 			}
 		}
 	}
@@ -1505,9 +1509,12 @@ void EMU::screen_skip_line(bool skip_line)
 void EMU::get_invalidated_rect(int *left, int *top, int *right, int *bottom)
 {
 #ifdef MAX_DRAW_RANGES
-	for(int i = 0; i < MAX_DRAW_RANGES; i++) {
+	for(int i = -1; ++i < MAX_DRAW_RANGES; )
+	{
 #else
-	for(int i = 0; i < vm->max_draw_ranges(); i++) { // for TK-80BS
+	// for TK-80BS
+	for(int i = -1; ++i < vm->max_draw_ranges(); )
+	{
 #endif
 		int x1 = vm_ranges[i].x;
 		int y1 = vm_ranges[i].y;
@@ -1970,11 +1977,12 @@ static bool hex2bin(const _TCHAR* file_path, const _TCHAR* dest_path)
 			uint8_t record_type = hex2uint8(line + 7);
 			if(record_type == 0x01) break;
 			if(record_type != 0x00) continue;
-			for(int i = 0; i < bytes; i++) {
-				if((offset + i) < (int)sizeof(buffer)) {
-					if(length < (offset + i)) {
+			for(int i = -1; ++i < bytes; )
+			{
+				if((offset + i) < (int)sizeof(buffer))
+				{
+					if(length < (offset + i))
 						length = offset + i;
-					}
 					buffer[offset + i] = hex2uint8(line + 9 + 2 * i);
 				}
 			}
@@ -2025,8 +2033,10 @@ void EMU::initialize_media()
 void EMU::update_media()
 {
 #ifdef USE_FLOPPY_DISK
-	for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
-		if(floppy_disk_status[drv].wait_count != 0 && --floppy_disk_status[drv].wait_count == 0) {
+	for(int drv = -1; ++drv < USE_FLOPPY_DISK; )
+	{
+		if(floppy_disk_status[drv].wait_count != 0 && --floppy_disk_status[drv].wait_count == 0)
+		{
 			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank);
 #if USE_FLOPPY_DISK > 1
 			out_message(_T("FD%d: %s"), drv + BASE_FLOPPY_DISK_NUM, floppy_disk_status[drv].path);
@@ -2037,8 +2047,10 @@ void EMU::update_media()
 	}
 #endif
 #ifdef USE_QUICK_DISK
-	for(int drv = 0; drv < USE_QUICK_DISK; drv++) {
-		if(quick_disk_status[drv].wait_count != 0 && --quick_disk_status[drv].wait_count == 0) {
+	for(int drv = -1; ++drv < USE_QUICK_DISK; )
+	{
+		if(quick_disk_status[drv].wait_count != 0 && --quick_disk_status[drv].wait_count == 0)
+		{
 			vm->open_quick_disk(drv, quick_disk_status[drv].path);
 #if USE_QUICK_DISK > 1
 			out_message(_T("QD%d: %s"), drv + BASE_QUICK_DISK_NUM, quick_disk_status[drv].path);
@@ -2049,8 +2061,10 @@ void EMU::update_media()
 	}
 #endif
 #ifdef USE_HARD_DISK
-	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		if(hard_disk_status[drv].wait_count != 0 && --hard_disk_status[drv].wait_count == 0) {
+	for(int drv = -1; ++drv < USE_HARD_DISK; )
+	{
+		if(hard_disk_status[drv].wait_count != 0 && --hard_disk_status[drv].wait_count == 0)
+		{
 			vm->open_hard_disk(drv, hard_disk_status[drv].path);
 #if USE_HARD_DISK > 1
 			out_message(_T("HD%d: %s"), drv + BASE_HARD_DISK_NUM, hard_disk_status[drv].path);
@@ -2061,13 +2075,14 @@ void EMU::update_media()
 	}
 #endif
 #ifdef USE_TAPE
-	for(int drv = 0; drv < USE_TAPE; drv++) {
-		if(tape_status[drv].wait_count != 0 && --tape_status[drv].wait_count == 0) {
-			if(tape_status[drv].play) {
+	for(int drv = -1; ++drv < USE_TAPE; )
+	{
+		if(tape_status[drv].wait_count != 0 && --tape_status[drv].wait_count == 0)
+		{
+			if(tape_status[drv].play)
 				vm->play_tape(drv, tape_status[drv].path);
-			} else {
+			else
 				vm->rec_tape(drv, tape_status[drv].path);
-			}
 #if USE_TAPE > 1
 			out_message(_T("CMT%d: %s"), drv + BASE_TAPE_NUM, tape_status[drv].path);
 #else
@@ -2077,8 +2092,10 @@ void EMU::update_media()
 	}
 #endif
 #ifdef USE_COMPACT_DISC
-	for(int drv = 0; drv < USE_COMPACT_DISC; drv++) {
-		if(compact_disc_status[drv].wait_count != 0 && --compact_disc_status[drv].wait_count == 0) {
+	for(int drv = -1; ++drv < USE_COMPACT_DISC; )
+	{
+		if(compact_disc_status[drv].wait_count != 0 && --compact_disc_status[drv].wait_count == 0)
+		{
 			vm->open_compact_disc(drv, compact_disc_status[drv].path);
 #if USE_COMPACT_DISC > 1
 			out_message(_T("CD%d: %s"), drv + BASE_COMPACT_DISC_NUM, compact_disc_status[drv].path);
@@ -2089,8 +2106,10 @@ void EMU::update_media()
 	}
 #endif
 #ifdef USE_LASER_DISC
-	for(int drv = 0; drv < USE_LASER_DISC; drv++) {
-		if(laser_disc_status[drv].wait_count != 0 && --laser_disc_status[drv].wait_count == 0) {
+	for(int drv = -1; ++drv < USE_LASER_DISC; )
+	{
+		if(laser_disc_status[drv].wait_count != 0 && --laser_disc_status[drv].wait_count == 0)
+		{
 			vm->open_laser_disc(drv, laser_disc_status[drv].path);
 #if USE_LASER_DISC > 1
 			out_message(_T("LD%d: %s"), drv + BASE_LASER_DISC_NUM, laser_disc_status[drv].path);
@@ -2101,8 +2120,10 @@ void EMU::update_media()
 	}
 #endif
 #ifdef USE_BUBBLE
-	for(int drv = 0; drv < USE_BUBBLE; drv++) {
-		if(bubble_casette_status[drv].wait_count != 0 && --bubble_casette_status[drv].wait_count == 0) {
+	for(int drv = -1; ++drv < USE_BUBBLE; )
+	{
+		if(bubble_casette_status[drv].wait_count != 0 && --bubble_casette_status[drv].wait_count == 0)
+		{
 			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
 #if USE_BUBBLE > 1
 			out_message(_T("Bubble%d: %s"), drv + BASE_BUBBLE_NUM, bubble_casette_status[drv].path);
@@ -2117,68 +2138,72 @@ void EMU::update_media()
 void EMU::restore_media()
 {
 #ifdef USE_CART
-	for(int drv = 0; drv < USE_CART; drv++) {
-		if(cart_status[drv].path[0] != _T('\0')) {
-			if(check_file_extension(cart_status[drv].path, _T(".hex")) && hex2bin(cart_status[drv].path, create_local_path(_T("hex2bin.$$$")))) {
+	for(int drv = -1; ++drv < USE_CART; )
+	{
+		if(cart_status[drv].path[0] != _T('\0'))
+		{
+			if(check_file_extension(cart_status[drv].path, _T(".hex")) && hex2bin(cart_status[drv].path, create_local_path(_T("hex2bin.$$$"))))
+			{
 				vm->open_cart(drv, create_local_path(_T("hex2bin.$$$")));
 				FILEIO::RemoveFile(create_local_path(_T("hex2bin.$$$")));
-			} else {
-				vm->open_cart(drv, cart_status[drv].path);
 			}
+			else
+				vm->open_cart(drv, cart_status[drv].path);
 		}
 	}
 #endif
 #ifdef USE_FLOPPY_DISK
-	for(int drv = 0; drv < USE_FLOPPY_DISK; drv++) {
-		if(floppy_disk_status[drv].path[0] != _T('\0')) {
+	for(int drv = -1; ++drv < USE_FLOPPY_DISK; )
+	{
+		if(floppy_disk_status[drv].path[0] != _T('\0'))
 			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank);
-		}
 	}
 #endif
 #ifdef USE_QUICK_DISK
-	for(int drv = 0; drv < USE_QUICK_DISK; drv++) {
-		if(quick_disk_status[drv].path[0] != _T('\0')) {
+	for(int drv = -1; ++drv < USE_QUICK_DISK; )
+	{
+		if(quick_disk_status[drv].path[0] != _T('\0'))
 			vm->open_quick_disk(drv, quick_disk_status[drv].path);
-		}
 	}
 #endif
 #ifdef USE_HARD_DISK
-	for(int drv = 0; drv < USE_HARD_DISK; drv++) {
-		if(hard_disk_status[drv].path[0] != _T('\0')) {
+	for(int drv = -1; ++drv < USE_HARD_DISK; )
+	{
+		if(hard_disk_status[drv].path[0] != _T('\0'))
 			vm->open_hard_disk(drv, hard_disk_status[drv].path);
-		}
 	}
 #endif
 #ifdef USE_TAPE
-	for(int drv = 0; drv < USE_TAPE; drv++) {
-		if(tape_status[drv].path[0] != _T('\0')) {
-			if(tape_status[drv].play) {
+	for(int drv = -1; ++drv < USE_TAPE; )
+	{
+		if(tape_status[drv].path[0] != _T('\0'))
+		{
+			if(tape_status[drv].play)
 				vm->play_tape(drv, tape_status[drv].path);
-			} else {
+			else
 				tape_status[drv].path[0] = _T('\0');
-			}
 		}
 	}
 #endif
 #ifdef USE_COMPACT_DISC
-	for(int drv = 0; drv < USE_COMPACT_DISC; drv++) {
-		if(compact_disc_status[drv].path[0] != _T('\0')) {
+	for(int drv = -1; ++drv < USE_COMPACT_DISC; )
+	{
+		if(compact_disc_status[drv].path[0] != _T('\0'))
 			vm->open_compact_disc(drv, compact_disc_status[drv].path);
-		}
 	}
 #endif
 #ifdef USE_LASER_DISC
-	for(int drv = 0; drv < USE_LASER_DISC; drv++) {
-		if(laser_disc_status[drv].path[0] != _T('\0')) {
+	for(int drv = -1; ++drv < USE_LASER_DISC; )
+	{
+		if(laser_disc_status[drv].path[0] != _T('\0'))
 			vm->open_laser_disc(drv, laser_disc_status[drv].path);
-		}
 	}
 #endif
 #ifdef USE_BUBBLE
-	for(int drv = 0; drv < USE_BUBBLE; drv++) {
-		if(bubble_casette_status[drv].path[0] != _T('\0')) {
+	for(int drv = -1; ++drv < USE_BUBBLE; )
+	{
+		if(bubble_casette_status[drv].path[0] != _T('\0'))
 			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
-		}
 	}
 #endif
 }
@@ -2186,13 +2211,9 @@ void EMU::restore_media()
 #ifdef USE_CART
 void EMU::open_cart(int drv, const _TCHAR* file_path)
 {
-	if(drv < USE_CART) {
-//		if(check_file_extension(file_path, _T(".hex")) && hex2bin(file_path, create_local_path(_T("hex2bin.$$$")))) {
-//			vm->open_cart(drv, create_local_path(_T("hex2bin.$$$")));
-//			FILEIO::RemoveFile(create_local_path(_T("hex2bin.$$$")));
-//		} else {
-			vm->open_cart(drv, file_path);
-//		}
+	if(drv < USE_CART)
+	{
+		vm->open_cart(drv, file_path);
 		my_tcscpy_s(cart_status[drv].path, _MAX_PATH, file_path);
 #if USE_CART > 1
 		out_message(_T("Cart%d: %s"), drv + BASE_CART_NUM, file_path);
@@ -2215,7 +2236,8 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 
 void EMU::close_cart(int drv)
 {
-	if(drv < USE_CART) {
+	if(drv < USE_CART)
+	{
 		vm->close_cart(drv);
 		clear_media_status(&cart_status[drv]);
 #if USE_CART > 1
@@ -2235,11 +2257,9 @@ void EMU::close_cart(int drv)
 
 bool EMU::is_cart_inserted(int drv)
 {
-	if(drv < USE_CART) {
+	if(drv < USE_CART)
 		return vm->is_cart_inserted(drv);
-	} else {
-		return false;
-	}
+	return false;
 }
 #endif
 
@@ -2331,27 +2351,22 @@ void EMU::close_floppy_disk(int drv)
 
 bool EMU::is_floppy_disk_inserted(int drv)
 {
-	if(drv < USE_FLOPPY_DISK) {
+	if(drv < USE_FLOPPY_DISK)
 		return vm->is_floppy_disk_inserted(drv);
-	} else {
-		return false;
-	}
+	return false;
 }
 
 void EMU::is_floppy_disk_protected(int drv, bool value)
 {
-	if(drv < USE_FLOPPY_DISK) {
+	if(drv < USE_FLOPPY_DISK)
 		vm->is_floppy_disk_protected(drv, value);
-	}
 }
 
 bool EMU::is_floppy_disk_protected(int drv)
 {
-	if(drv < USE_FLOPPY_DISK) {
+	if(drv < USE_FLOPPY_DISK)
 		return vm->is_floppy_disk_protected(drv);
-	} else {
-		return false;
-	}
+	return false;
 }
 
 uint32_t EMU::is_floppy_disk_accessed()
@@ -2363,8 +2378,10 @@ uint32_t EMU::is_floppy_disk_accessed()
 #ifdef USE_QUICK_DISK
 void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
 {
-	if(drv < USE_QUICK_DISK) {
-		if(vm->is_quick_disk_inserted(drv)) {
+	if(drv < USE_QUICK_DISK)
+	{
+		if(vm->is_quick_disk_inserted(drv))
+		{
 			vm->close_quick_disk(drv);
 			// wait 0.5sec
 			quick_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
@@ -2373,7 +2390,9 @@ void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("QD: Ejected"));
 #endif
-		} else if(quick_disk_status[drv].wait_count == 0) {
+		}
+		else if(quick_disk_status[drv].wait_count == 0)
+		{
 			vm->open_quick_disk(drv, file_path);
 #if USE_QUICK_DISK > 1
 			out_message(_T("QD%d: %s"), drv + BASE_QUICK_DISK_NUM, file_path);
@@ -2387,7 +2406,8 @@ void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
 
 void EMU::close_quick_disk(int drv)
 {
-	if(drv < USE_QUICK_DISK) {
+	if(drv < USE_QUICK_DISK)
+	{
 		vm->close_quick_disk(drv);
 		clear_media_status(&quick_disk_status[drv]);
 #if USE_QUICK_DISK > 1
@@ -2400,11 +2420,9 @@ void EMU::close_quick_disk(int drv)
 
 bool EMU::is_quick_disk_inserted(int drv)
 {
-	if(drv < USE_QUICK_DISK) {
+	if(drv < USE_QUICK_DISK)
 		return vm->is_quick_disk_inserted(drv);
-	} else {
-		return false;
-	}
+	return false;
 }
 
 uint32_t EMU::is_quick_disk_accessed()
@@ -2416,8 +2434,10 @@ uint32_t EMU::is_quick_disk_accessed()
 #ifdef USE_HARD_DISK
 void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 {
-	if(drv < USE_HARD_DISK) {
-		if(vm->is_hard_disk_inserted(drv)) {
+	if(drv < USE_HARD_DISK)
+	{
+		if(vm->is_hard_disk_inserted(drv))
+		{
 			vm->close_hard_disk(drv);
 			// wait 0.5sec
 			hard_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
@@ -2426,7 +2446,9 @@ void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 #else
 			out_message(_T("HD: Unmounted"));
 #endif
-		} else if(hard_disk_status[drv].wait_count == 0) {
+		}
+		else if(hard_disk_status[drv].wait_count == 0)
+		{
 			vm->open_hard_disk(drv, file_path);
 #if USE_HARD_DISK > 1
 			out_message(_T("HD%d: %s"), drv + BASE_HARD_DISK_NUM, file_path);
@@ -2441,7 +2463,8 @@ void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 
 void EMU::close_hard_disk(int drv)
 {
-	if(drv < USE_HARD_DISK) {
+	if(drv < USE_HARD_DISK)
+	{
 		vm->close_hard_disk(drv);
 		clear_media_status(&hard_disk_status[drv]);
 #if USE_HARD_DISK > 1
@@ -2858,7 +2881,7 @@ void EMU::save_state(STATE* state, bool max_size)
 	// save inserted medias
 #ifdef USE_CART
 	size_t len;
-	for(int x = 0; x < USE_CART; x++)
+	for(int x = -1; ++x < USE_CART; )
 	{
 		state->SetValue(cart_status[x].bank);
 		if(max_size)
@@ -2887,7 +2910,7 @@ bool EMU::load_state(STATE* state)
 #ifdef USE_CART
 
 	size_t len;
-	for(int x = 0; x < USE_CART; x++)
+	for(int x = -1; ++x < USE_CART; )
 	{
 		state->GetValue(cart_status[x].bank);
 		state->GetValue(len);

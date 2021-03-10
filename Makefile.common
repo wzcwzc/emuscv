@@ -89,7 +89,10 @@ SOURCES_BIN	:=	$(RESOURCES_DIR)/emuscv32x32xrgba8888.data \
 				$(RESOURCES_DIR)/keyboardlady460x312xrgba8888.data \
 				$(RESOURCES_DIR)/keyboardyeno115x78xrgba8888.data \
 				$(RESOURCES_DIR)/keyboardyeno230x156xrgba8888.data \
-				$(RESOURCES_DIR)/keyboardyeno460x312xrgba8888.data
+				$(RESOURCES_DIR)/keyboardyeno460x312xrgba8888.data \
+				$(RESOURCES_DIR)/recalbox624x160xrgba8888.data \
+				$(RESOURCES_DIR)/recalbox312x80xrgba8888.data \
+				$(RESOURCES_DIR)/recalbox156x40xrgba8888.data
 
 ifeq ($(STATIC_LINKING),1)
 else

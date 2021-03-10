@@ -90,7 +90,7 @@ void OSD::lock_vm()
 
 void OSD::unlock_vm()
 {
-	if(--lock_count <= 0)
+	if(--lock_count < 0)
 		force_unlock_vm();
 }
 

@@ -87,7 +87,7 @@ void EVENT::release()
 void EVENT::reset()
 {
 	// clear events except loop event
-	for(int i = 0; i < MAX_EVENT; i++)
+	for(int i = -1; ++i < MAX_EVENT; )
 	{
 		if(event[i].active && event[i].loop_clock == 0)
 			cancel_event(NULL, i);
@@ -116,7 +116,7 @@ void EVENT::drive()
 	next_frames_per_sec = config.window_fps;
 
 	// raise pre frame events to update timing settings
-	for(int i = 0; i < frame_event_count; i++)
+	for(int i = -1; ++i < frame_event_count; )
 		frame_event[i]->event_pre_frame();
 	
 	// generate clocks per line
@@ -128,36 +128,37 @@ void EVENT::drive()
 		int sum = (int)((double)d_cpu[0].cpu_clocks / frames_per_sec + 0.5);
 		int remain = sum;
 		
-		for(int i = 0; i < lines_per_frame; i++)
+		for(int i = -1; ++i < lines_per_frame; )
 		{
 			assert(i < MAX_LINES);
 			vclocks[i] = (int)(sum / lines_per_frame);
 			remain -= vclocks[i];
 		}
-		for(int i = 0; i < remain; i++)
+		for(int i = -1; ++i < remain; )
 		{
 			int index = (int)((double)lines_per_frame * (double)i / (double)remain);
 			assert(index < MAX_LINES);
 			vclocks[index]++;
 		}
-		for(int i = 1; i < dcount_cpu; i++)
+		for(int i = -1; ++i < dcount_cpu; )
 			d_cpu[i].update_clocks = (int)(1024.0 * (double)d_cpu[i].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
-		for(DEVICE* device = vm->first_device; device; device = device->next_device)
+		for(DEVICE* device = vm->first_device; device; )
 		{
 			if(device->get_event_manager_id() == this_device_id)
 				device->update_timing(d_cpu[0].cpu_clocks, frames_per_sec, lines_per_frame);
+			device = device->next_device;
 		}
 	}
 	
 	// run virtual machine for 1 frame period
-	for(int i = 0; i < frame_event_count; i++)
+	for(int i = -1; ++i < frame_event_count; )
 		frame_event[i]->event_frame();
-	for(cur_vline = 0; cur_vline < lines_per_frame; cur_vline++)
+	for(cur_vline = -1; ++cur_vline < lines_per_frame; )
 	{
 		vline_start_clock = get_current_clock();
 		
 		// run virtual machine per line
-		for(int i = 0; i < vline_event_count; i++)
+		for(int i = -1; ++i < vline_event_count; )
 			vline_event[i]->event_vline(cur_vline, vclocks[cur_vline]);
 		
 		if(event_remain < 0)
@@ -194,7 +195,7 @@ void EVENT::drive()
 					cpu_done_tmp = (event_extra > 0 || cpu_done < 4) ? cpu_done : 4;
 					cpu_done -= cpu_done_tmp;
 					
-					for(int i = 1; i < dcount_cpu; i++)
+					for(int i = 0; ++i < dcount_cpu; )
 					{
 						// run sub cpus
 						d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_done_tmp;
@@ -394,7 +395,7 @@ void EVENT::insert_event(event_t *event_handle)
 	}
 	else
 	{
-		for(event_t *insert_pos = first_fire_event; insert_pos != NULL; insert_pos = insert_pos->next)
+		for(event_t *insert_pos = first_fire_event; insert_pos; )
 		{
 			if(insert_pos->expired_clock > event_handle->expired_clock)
 			{
@@ -425,6 +426,7 @@ void EVENT::insert_event(event_t *event_handle)
 				event_handle->next = NULL;
 				break;
 			}
+			insert_pos = insert_pos->next;
 		}
 	}
 }
@@ -459,7 +461,7 @@ void EVENT::register_frame_event(DEVICE* device)
 {
 	if(frame_event_count < MAX_EVENT)
 	{
-		for(int i = 0; i < frame_event_count; i++)
+		for(int i = -1; ++i < frame_event_count; )
 		{
 			if(frame_event[i] == device)
 			{
@@ -483,7 +485,7 @@ void EVENT::register_vline_event(DEVICE* device)
 {
 	if(vline_event_count < MAX_EVENT)
 	{
-		for(int i = 0; i < vline_event_count; i++)
+		for(int i = -1; ++i < vline_event_count; )
 		{
 			if(vline_event[i] == device)
 			{
@@ -604,7 +606,7 @@ void EVENT::save_state(STATE* state, bool max_size)
 	state->SetValue((uint16_t)DEVICE_STATE_ID);
 	state->SetValue(this_device_id);
 	state->SetValue(dcount_cpu);
-	for(int i = 0; i < dcount_cpu; i++)
+	for(int i = -1; ++i < dcount_cpu; )
 	{
 		state->SetValue(d_cpu[i].cpu_clocks);
 		state->SetValue(d_cpu[i].update_clocks);
@@ -617,7 +619,7 @@ void EVENT::save_state(STATE* state, bool max_size)
 	state->SetValue(cpu_accum);
 	state->SetValue(cpu_done);
 	state->SetValue(event_clocks);
-	for(int i = 0; i < MAX_EVENT; i++)
+	for(int i = -1; ++i < MAX_EVENT; )
 	{
 		state->SetInt32_LE(event[i].device != NULL ? event[i].device->this_device_id : -1);
 		state->SetValue(event[i].event_id);
@@ -659,7 +661,7 @@ bool EVENT::load_state(STATE* state)
 	state->GetValue(cpu_accum);
 	state->GetValue(cpu_done);
 	state->GetValue(event_clocks);
-	for(int i = 0; i < MAX_EVENT; i++)
+	for(int i = -1; ++i < MAX_EVENT; )
 	{
 		event[i].device = vm->get_device(state->GetInt32_LE());
 		state->GetValue(event[i].event_id);

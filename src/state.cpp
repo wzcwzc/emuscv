@@ -360,23 +360,29 @@ void STATE::SetDouble_LE(double val)
 
 _TCHAR STATE::GetTCHAR_LE()
 {
-	switch(sizeof(_TCHAR)) {
-	case 1: return (_TCHAR)GetUint8();
-	case 2: return (_TCHAR)GetUint16_LE();
-	case 4: return (_TCHAR)GetUint32_LE();
-	case 8: return (_TCHAR)GetUint64_LE();
+/*
+	switch(sizeof(_TCHAR))
+	{
+		case 1: return (_TCHAR)GetUint8();
+		case 2: return (_TCHAR)GetUint16_LE();
+		case 4: return (_TCHAR)GetUint32_LE();
+		case 8: return (_TCHAR)GetUint64_LE();
 	}
+*/
 	return (_TCHAR)GetUint8();
 }
 
 void STATE::SetTCHAR_LE(_TCHAR val)
 {
-	switch(sizeof(_TCHAR)) {
-	case 1: SetUint8((uint8_t )val); return;
-	case 2: SetUint16_LE((uint16_t)val); return;
-	case 4: SetUint32_LE((uint32_t)val); return;
-	case 8: SetUint32_LE((uint64_t)val); return;
+/*
+	switch(sizeof(_TCHAR))
+	{
+		case 1: SetUint8((uint8_t )val); return;
+		case 2: SetUint16_LE((uint16_t)val); return;
+		case 4: SetUint32_LE((uint32_t)val); return;
+		case 8: SetUint32_LE((uint64_t)val); return;
 	}
+*/
 	SetUint8((uint8_t )val);
 }
 
@@ -508,7 +514,8 @@ void STATE::GetValue(double &val)
 
 void STATE::SetValue(_TCHAR val)
 {
-	SetTCHAR_LE(val);
+//	SetTCHAR_LE(val);
+	SetUint8((uint8_t )val);
 }
 void STATE::GetValue(_TCHAR &val)
 {
@@ -517,203 +524,240 @@ void STATE::GetValue(_TCHAR &val)
 
 void STATE::SetArray(bool *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetBool(buffer[i]);
 }
 void STATE::GetArray(bool *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i] = GetBool();
 }
 
 void STATE::SetArray(uint8_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetUint8(buffer[i]);
 }
 void STATE::GetArray(uint8_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i] = GetUint8();
 }
 
 void STATE::SetArray(uint16_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetUint16(buffer[i]);
 }
 void STATE::GetArray(uint16_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i] = GetUint16();
 }
 
 void STATE::SetArray(uint32_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetUint32(buffer[i]);
 }
 void STATE::GetArray(uint32_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i] = GetUint32();
 }
 
 void STATE::SetArray(uint64_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetUint64(buffer[i]);
 }
 void STATE::GetArray(uint64_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i] = GetUint64();
 }
 
 void STATE::SetArray(int8_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetInt8(buffer[i]);
 }
 void STATE::GetArray(int8_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i] = GetInt8();
 }
 
 void STATE::SetArray(int16_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetInt16(buffer[i]);
 }
 void STATE::GetArray(int16_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i] = GetInt16();
 }
 
 void STATE::SetArray(int32_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetInt32(buffer[i]);
 }
 void STATE::GetArray(int32_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i] = GetInt32();
 }
 
 void STATE::SetArray(int64_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetInt64(buffer[i]);
 }
 void STATE::GetArray(int64_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i] = GetInt64();
 }
 
 void STATE::SetArray(pair16_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetUint16_LE(buffer[i].w);
 }
 void STATE::GetArray(pair16_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i].w = GetUint16_LE();
 }
 
 void STATE::SetArray(pair32_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetUint32_LE(buffer[i].d);
 }
 void STATE::GetArray(pair32_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i].d = GetUint32_LE();
 }
 
 void STATE::SetArray(pair64_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetUint64_LE(buffer[i].q);
 }
 void STATE::GetArray(pair64_t *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i].q = GetUint64_LE();
 }
 
 void STATE::SetArray(float *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetFloat(buffer[i]);
 }
 void STATE::GetArray(float *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i] = GetFloat();
 }
 
 void STATE::SetArray(double *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		SetDouble_LE(buffer[i]);
 }
 void STATE::GetArray(double *buffer, size_t size, size_t count)
 {
-	for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+	int32_t s = size / sizeof(buffer[0]) * count;
+	for(int32_t i = -1; ++i < s; )
 		buffer[i] = GetDouble_LE();
 }
 
 void STATE::SetArray(_TCHAR *buffer, size_t size, size_t count)
 {
+	int32_t s = size / sizeof(buffer[0]) * count;
+/*
 	switch(sizeof(_TCHAR))
 	{
 		case 8:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+			for(int32_t i = -1; ++i < s; )
 				SetUint32_LE((uint64_t)buffer[i]);
 			break;
 		case 4:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+			for(int32_t i = -1; ++i < s; )
 				SetUint32_LE((uint32_t)buffer[i]);
 			break;
 		case 2:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+			for(int32_t i = -1; ++i < s; )
 				SetUint16_LE((uint16_t)buffer[i]);
 			break;
 		case 1:
 		default:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+*/
+			for(int32_t i = -1; ++i < s; )
 				SetUint8((uint8_t )buffer[i]);
+/*
 			break;
 	}
+*/
 }
 void STATE::GetArray(_TCHAR *buffer, size_t size, size_t count)
 {
+	int32_t s = size / sizeof(buffer[0]) * count;
+/*
 	switch(sizeof(_TCHAR))
 	{
 		case 8:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+			for(int32_t i = -1; ++i < s; )
 				buffer[i] = (_TCHAR)GetUint64_LE();
 			break;
 		case 4:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+			for(int32_t i = -1; ++i < s; )
 				buffer[i] = (_TCHAR)GetUint32_LE();
 			break;
 		case 2:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+			for(int32_t i = -1; ++i < s; )
 				buffer[i] = (_TCHAR)GetUint16_LE();
 			break;
-		case 1:
 		default:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+*/
+			for(int32_t i = -1; ++i < s; )
 				buffer[i] = (_TCHAR)GetUint8();
+/*
 			break;
 	}
+*/
 }
 
 bool STATE::CheckValue(bool val)
@@ -763,31 +807,33 @@ bool STATE::CheckValue(int64_t val)
 
 bool STATE::CheckArray(const _TCHAR *buffer, size_t size, size_t count)
 {
+	int32_t s = size / sizeof(buffer[0]) * count;
+/*
 	switch(sizeof(_TCHAR))
 	{
 		case 8:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+			for(int32_t i = -1; ++i < s; )
 				if(buffer[i] != (_TCHAR)GetUint64_LE())
 					return false;
 			break;
 		case 4:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+			for(int32_t i = -1; ++i < s; )
 				if(buffer[i] != (_TCHAR)GetUint32_LE())
 					return false;
 			break;
 		case 2:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
+			for(int32_t i = -1; ++i < s; )
 				if(buffer[i] != (_TCHAR)GetUint16_LE())
 					return false;
 			break;
-		case 1:
 		default:
-			for(unsigned int i = 0; i < size / sizeof(buffer[0]) * count; i++)
-			{
+*/
+			for(int32_t i = -1; ++i < s; )
 				if(buffer[i] != (_TCHAR)GetUint8())
 					return false;
-			}
+/*
 			break;
 	}
+*/
 	return true;
 }
