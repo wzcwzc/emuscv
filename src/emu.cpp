@@ -2234,6 +2234,12 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 	}
 }
 
+void EMU::save_cart(int drv)
+{
+	if(drv < USE_CART)
+		vm->save_cart(drv);
+}
+
 void EMU::close_cart(int drv)
 {
 	if(drv < USE_CART)

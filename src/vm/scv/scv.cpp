@@ -181,6 +181,12 @@ void VM::open_cart(int drv, const _TCHAR* file_path)
 	}
 }
 
+void VM::save_cart(int drv)
+{
+	if(drv == 0)
+		memory->save_cart();
+}
+
 void VM::close_cart(int drv)
 {
 	if(drv == 0)

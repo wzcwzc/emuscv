@@ -99,23 +99,24 @@ class cEmuSCV
 		void RetroSetAudioSampleBatch(retro_audio_sample_batch_t cb);		// Libretro: set the audio batch callback
 		void RetroSetInputPoll(retro_input_poll_t cb);						// Libretro: set the input poll callback
 		void RetroSetInputState(retro_input_state_t cb);					// Libretro: set the input state callback
-		unsigned RetroGetApiVersion(void);									// Libretro: return the version used by the core for compatibility check with the frontend
-		unsigned RetroGetVideoRegion(void);									// Libretro: return the video standard used
+		unsigned RetroGetApiVersion();										// Libretro: return the version used by the core for compatibility check with the frontend
+		unsigned RetroGetVideoRegion();										// Libretro: return the video standard used
 		void RetroGetSystemInfo(struct retro_system_info *info);			// Libretro: get the system infos
 		void RetroGetAudioVideoInfo(struct retro_system_av_info *info);		// Libretro: get the audio/video infos
-		void RetroInit(retro_audio_callback_t retro_audio_cb, retro_audio_set_state_callback_t retro_audio_set_state_cb, retro_frame_time_callback_t retro_frame_time_cb);												// Libretro: initialize the core
-		void RetroDeinit(void);												// Libretro: deinitialize the core
+		void RetroInit(retro_audio_callback_t retro_audio_cb, retro_audio_set_state_callback_t retro_audio_set_state_cb, retro_frame_time_callback_t retro_frame_time_cb);
+																			// Libretro: initialize the core
+		void RetroDeinit();													// Libretro: deinitialize the core
 		void RetroSetControllerPortDevice(unsigned port, unsigned device);	// Libretro: set controller port device
 		void RetroAudioSetStateCb(bool enable);								// Libretro: audio set state enable/disable callback
 		void RetroFrameTimeCb(retro_usec_t usec);							// Libretro: retro frame time callback
 		bool RetroLoadGame(const struct retro_game_info *info);				// Libretro: load game
-		void RetroUnloadGame(void);											// Libretro: unload game
-		void RetroRun(void);												// Libretro: run for only one frame
-		void RetroReset(void);												// Libretro: reset the Libretro core
-		void RetroLoadSettings(void);										// Libretro: load core settings
-		void RetroSaveSettings(void);										// Libretro: save core settings
-		size_t RetroSaveStateSize(void);									// Libretro: return save state size
-		void *RetroSaveStateData(void);										// Libretro: return save state data pointer
+		void RetroUnloadGame();												// Libretro: unload game
+		void RetroRun();													// Libretro: run for only one frame
+		void RetroReset(bool save_cart);									// Libretro: reset the Libretro core
+		void RetroLoadSettings();											// Libretro: load core settings
+		void RetroSaveSettings();											// Libretro: save core settings
+		size_t RetroSaveStateSize();										// Libretro: return save state size
+		void *RetroSaveStateData();											// Libretro: return save state data pointer
 		bool RetroSaveState(void *data, size_t size);
 		bool RetroLoadState(void *data, size_t size);
 

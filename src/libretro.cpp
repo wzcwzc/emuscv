@@ -190,7 +190,7 @@ void retro_run(void)
 // 
 void retro_reset(void)
 {
-	oEmuSCV.RetroReset();
+	oEmuSCV.RetroReset(true);
 }
 
 // 

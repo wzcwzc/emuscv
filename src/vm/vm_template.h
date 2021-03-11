@@ -114,6 +114,8 @@ public:
 	virtual void load_binary(int drv, const _TCHAR *file_path) { }
 	virtual void save_binary(int drv, const _TCHAR *file_path) { }
 
+	virtual void save_cart(int drv) { }
+
 	virtual void close_floppy_disk(int drv) { }
 	virtual void close_quick_disk(int drv) { }
 	virtual void close_hard_disk(int drv) { }

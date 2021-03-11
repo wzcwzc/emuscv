@@ -1243,12 +1243,14 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	// Try to load SRAM/VRAM save
 	if(ram_used)
 	{
-		memset(sram, 0, sizeof(ram_size));
+		memset(sram, 0, ram_size);
 		if(ram_save)
 		{
 			FILEIO* fioram = new FILEIO();
 
 			// Init RAM
+			if(ram_size == 0)
+				goto lbl_ram_delete;	// Fatal error
 			memset(data, 0, ram_size);
 			if(ram_size > 0)
 				memset(data+ram_size, 0xFF, sizeof(data)-ram_size);
@@ -1305,7 +1307,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 			// Init RAM
 			memset(data, 0x00, ram_size);
-			if(ram_size > 0)
+			if(ram_size < sizeof(data))
 				memset(data+ram_size, 0xFF, sizeof(data)-ram_size);
 
 			// Read backup
@@ -1332,7 +1334,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 				goto lbl_ram_delete;
 
 			// Put data in RAM
-			memcpy(data, sram, ram_size);
+			memcpy(sram, data, ram_size);
 
 			goto lbl_ram_close;
 
@@ -1399,9 +1401,8 @@ lbl_rom_end:
 	delete fiocart;
 }
 
-void MEMORY::close_cart()
+void MEMORY::save_cart()
 {
-	// save backuped sram
 	if(cart_inserted && ram_used && ram_save)
 	{
 		ram_crc32 = get_crc32(sram, ram_size);
@@ -1415,6 +1416,12 @@ void MEMORY::close_cart()
 		}
 		delete fiorw;
 	}
+}
+
+void MEMORY::close_cart()
+{
+	// save backuped sram
+	save_cart();
 
 	// reinit
 	cart_found		= false;

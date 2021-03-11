@@ -423,6 +423,7 @@ public:
 	// user interface
 #ifdef USE_CART
 	void open_cart(int drv, const _TCHAR* file_path);
+	void save_cart(int drv);
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
 #endif

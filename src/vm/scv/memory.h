@@ -157,6 +157,7 @@ public:
 
 	// unique functions
 	void open_cart(const _TCHAR *file_path);
+	void save_cart();
 	void close_cart();
 	void set_context_sound(DEVICE* device) { d_sound = device; }
 	uint8_t *get_font() { return bios + 0x200; }

@@ -1440,7 +1440,9 @@ void cEmuSCV::RetroRun(void)
 			{
 				is_power_on = !is_power_on;
 				if(is_power_on)
-					RetroReset();
+					RetroReset(false);
+				else if(escv_emu)
+					escv_emu->save_cart(0);
 			}
 			key_pressed_power = true;
 			keyboard_x = 0;
@@ -1477,7 +1479,7 @@ void cEmuSCV::RetroRun(void)
 		|| (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_B)) || (ret1 & (1 << RETRO_DEVICE_ID_JOYPAD_L))
 	)))
 	{
-		RetroReset();
+		RetroReset(true);
 		key_pressed_reset = true;
 		keyboard_x = 0;
 		if(keyboard_y < 2)
@@ -3517,13 +3519,17 @@ void cEmuSCV::RetroSaveSettings(void)
 //
 // Libretro: reset the Libretro core
 //
-void cEmuSCV::RetroReset(void)
+void cEmuSCV::RetroReset(bool save_cart)
 {
 	// Log
 //	RetroLogPrintf(RETRO_LOG_DEBUG, "[%s] ================================================================================\n", EMUSCV_NAME);
 //	RetroLogPrintf(RETRO_LOG_INFO, "[%s] cEmuSCV::RetroReset()\n", EMUSCV_NAME);
 	if(escv_emu)
+	{
+		if(save_cart)
+			escv_emu->save_cart(0);
 		escv_emu->reset();
+	}
 }
 
 // 

@@ -292,6 +292,7 @@ public:
 
 	// user interface
 	void open_cart(int drv, const _TCHAR* file_path);
+	void save_cart(int drv);
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
 
