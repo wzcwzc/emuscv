@@ -339,6 +339,7 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 			while(pcm.count <= 0)
 			{
 				pcm.count += pcm.period;
+/*
 				for(int i = PCM_TABLE_DATA_SIZE - 1; i >= 0; i--)
 				{
 					if(pcm.ptr + i < pcm_len)
@@ -347,6 +348,8 @@ void SOUND::mix(int16_t* buffer, uint32_t cnt)
 						pcm_table_data[i] = 0;
 				}
 				pcm.output =  (pcm_table_data[0] + pcm_table_data[1] << 1 + pcm_table_data[2] + pcm_table_data[2] << 1 + pcm_table_data[3] << 2 + pcm_table_data[4] << 2 + pcm_table_data[5] + pcm_table_data[5] << 1 + pcm_table_data[6] << 1 + pcm_table_data[7]) >> 8;
+*/
+pcm.output = pcm_table[pcm.ptr];
 				if(++pcm.ptr >= pcm_len)
 				{
 					pcm.count = 0;

@@ -15,6 +15,11 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 ***********************************************************
 * Libretro-EmuSCV v0.09.20210311134500
 ***********************************************************
+- Corrected PCM channel sound
+
+***********************************************************
+* Libretro-EmuSCV v0.09.20210311134500
+***********************************************************
 - Optimized save states (PCM channel data not saved)
 - Optimized video
 - Optimized cpu loop

@@ -35,7 +35,7 @@
 #define NOISE_TABLE_SIZE   1024
 #define SQUARE_TABLE_SIZE   256
 #define PCM_TABLE_SIZE  0x40000
-#define PCM_TABLE_DATA_SIZE   8
+//#define PCM_TABLE_DATA_SIZE   8
 #define PCM_TABLE_SMOOTH_SIZE 8
 
 #define CMD_SILENCE	       0x00
@@ -72,7 +72,7 @@ private:
 	int16_t pcm_table[PCM_TABLE_SIZE+8];
 	uint32_t cmd_addr;
 	uint32_t pcm_len;
-	int16_t pcm_table_data[PCM_TABLE_DATA_SIZE];
+//	int16_t pcm_table_data[PCM_TABLE_DATA_SIZE];
 	int16_t pcm_table_smooth[PCM_TABLE_SMOOTH_SIZE];
 	int8_t pcm_table_smooth_index;
 
