@@ -13,6 +13,11 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 
 
 ***********************************************************
+* Libretro-EmuSCV v0.09.20211210001500
+***********************************************************
+- Corrected XCode include path
+
+***********************************************************
 * Libretro-EmuSCV v0.09.20211209231800
 ***********************************************************
 - Corrected setting to retrieve ROM path

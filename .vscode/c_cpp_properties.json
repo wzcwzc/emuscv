@@ -26,6 +26,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
+                "src/deps/libretro-common/include",
                 "/usr/include/SDL2"
             ],
             "defines": [],
