@@ -397,7 +397,7 @@ void cEmuSCV::RetroGetSystemInfo(struct retro_system_info *info)
 	info->library_name		= EMUSCV_NAME;
 	info->library_version	= EMUSCV_VERSION;
 	info->valid_extensions	= EMUSCV_EXTENSIONS;
-	info->need_fullpath		= false;
+	info->need_fullpath		= true;
 	info->block_extract		= false;
 }
 
