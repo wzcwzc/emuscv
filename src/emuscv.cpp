@@ -777,10 +777,10 @@ bool cEmuSCV::RetroLoadGame(const struct retro_game_info *info)
 
 	// Get game rom path
 	memset(retro_game_path, 0, sizeof(retro_game_path));
-    if (info && info->data)
+    if(info && strcmp(info->path, "") != 0)
 	{
 		snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
-		RetroLogPrintf(RETRO_LOG_INFO, "[%s] load game: %s\n", EMUSCV_NAME, retro_game_path);
+		RetroLogPrintf(RETRO_LOG_INFO, "[%s] Try to load game: %s\n", EMUSCV_NAME, retro_game_path);
 /*
 		unzFile zipfile = unzOpen(retro_game_path);
 		if (zipfile == NULL)

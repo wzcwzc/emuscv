@@ -5,6 +5,7 @@
     "version": "0.2.bin",
     "configurations": [
 
+
 // LINUX
         {
             "name": "(gdb) Launch (LNX) + no cart",
@@ -25,51 +26,6 @@
                 }
             ]
         },
-
-
-
-
-        {
-            "name": "(gdb) Launch (LNX) + cart ASTRO WARS 1 (ZIP)",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/SCREENSCRAPER/AstroWars.zip"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ]
-        },
-        {
-            "name": "(gdb) Launch (LNX) + cart ASTRO WARS 2 (ZIP)",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/SCREENSCRAPER/Astro Wars 2 - Battle In Galaxy.zip"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ]
-        },
-
-
-
         {
             "name": "(gdb) Launch (LNX) + cart ASTRO WARS 1",
             "type": "cppdbg",
