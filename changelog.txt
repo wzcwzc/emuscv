@@ -7,15 +7,34 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 * To do list
 ***********************************************************
 - In-game configuration menu
-- Native .zip ROMs support (actually supported via frontend's autoextract if supported)
 - In-game display of the resources contained in .zip ROMs
-- Enhance audio PCM 1-bitchannel quality
+  (cart pictures, manuals, keyboard grids, etc.)
+- To enhance audio PCM 1-bitchannel quality
+- To enhance audio channels mix
+- To enhance graphics issues
+  (Diamonds in Boulder Dash)
+  (last level bricks in Lupin III)
+  (limited number of sprites like in Kung-Fu Road)
+
+
 
 
 ***********************************************************
-* Libretro-EmuSCV v0.09.20211212231500
+* Libretro-EmuSCV v0.10.20220310130100
+***********************************************************
+- Corrected .zip ROMs support
+  (it didn't work for .0, .1, .2, .3 multiple files ROMs
+  stored in a .zip archive)
+
+***********************************************************
+* Libretro-EmuSCV v0.10.20211212231500
 ***********************************************************
 - Corrected game loading
+
+***********************************************************
+* Libretro-EmuSCV v0.10.20220310000000
+***********************************************************
+- Added native .zip ROMs support
 
 ***********************************************************
 * Libretro-EmuSCV v0.09.20211210001500

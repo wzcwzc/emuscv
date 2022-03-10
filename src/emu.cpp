@@ -2886,7 +2886,7 @@ void EMU::save_state(STATE* state, bool max_size)
 
 	// save inserted medias
 #ifdef USE_CART
-	size_t len;
+	uint64_t len;
 	for(int x = -1; ++x < USE_CART; )
 	{
 		state->SetValue(cart_status[x].bank);
@@ -2915,7 +2915,7 @@ bool EMU::load_state(STATE* state)
 	osd->lock_vm();
 #ifdef USE_CART
 
-	size_t len;
+	uint64_t len;
 	for(int x = -1; ++x < USE_CART; )
 	{
 		state->GetValue(cart_status[x].bank);

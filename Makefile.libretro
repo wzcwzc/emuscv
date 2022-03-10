@@ -1,9 +1,9 @@
 TARGET_NAME := emuscv
 
 EMUSCV_VERSION_MAJOR := 0
-EMUSCV_VERSION_MINOR := 09
+EMUSCV_VERSION_MINOR := 10
 #EMUSCV_VERSION_DATETIME := $(shell date -u +'%Y%m%d%H%M%S')
-EMUSCV_VERSION_DATETIME := '20211212231500'
+EMUSCV_VERSION_DATETIME := '20220310130100'
 EMUSCV_VERSION := $(EMUSCV_VERSION_MAJOR).$(EMUSCV_VERSION_MINOR).$(EMUSCV_VERSION_DATETIME)
 
 DEBUG = 1
@@ -99,15 +99,15 @@ ifneq (,$(findstring unix,$(platform)))
 			CFLAGS += -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
 		else ifneq (,$(findstring rpi3,$(platform)))
 			PLATFORM_DEFINES += -D_RASPBERRYPI3
-			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_LOW
+			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_MEDIUM
 			CFLAGS += -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
 		else ifneq (,$(findstring rpi4,$(platform)))
 			PLATFORM_DEFINES += -D_RASPBERRYPI4
-			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_LOW
+			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_HIGH
 			CFLAGS += -mcpu=cortex-a72 -mfpu=neon-fp-armv8 -mfloat-abi=hard
 		else
 			PLATFORM_DEFINES += -D_RASPBERRYPI
-			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_MEDIUM
+			PLATFORM_DEFINES += -D_RESOLUTION_AUTO_HIGH
 		endif
 	else
 		PLATFORM_DEFINES += -D_RESOLUTION_AUTO_HIGH

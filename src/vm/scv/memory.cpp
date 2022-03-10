@@ -86,7 +86,7 @@ void MEMORY::initialize()
 			// check bios MD5 hash
 			_TCHAR bios_md5[33];
 			memset(bios_md5, 0, sizeof(bios_md5));
-			strncpy(bios_md5, get_md5(bios, sizeof(bios)), sizeof(bios_md5));
+			memcpy(bios_md5, get_md5(bios, sizeof(bios)), sizeof(bios_md5)-1);
 			if(strcmp(bios_md5, _T("635a978fd40db9a18ee44eff449fc126")) == 0)
 			{
 				bios_ok = true;
@@ -119,7 +119,7 @@ void MEMORY::initialize()
 				// check bios MD5 hash
 				_TCHAR bios_md5[33];
 				memset(bios_md5, 0, sizeof(bios_md5));
-				strncpy(bios_md5, get_md5(bios, sizeof(bios)), sizeof(bios_md5));
+				memcpy(bios_md5, get_md5(bios, sizeof(bios)), sizeof(bios_md5)-1);
 				if(strcmp(bios_md5, _T("635a978fd40db9a18ee44eff449fc126")) == 0)
 				{
 					bios_ok = true;
@@ -153,7 +153,7 @@ void MEMORY::initialize()
 				// check bios MD5 hash
 				_TCHAR bios_md5[33];
 				memset(bios_md5, 0, sizeof(bios_md5));
-				strncpy(bios_md5, get_md5(bios, sizeof(bios)), sizeof(bios_md5));
+				memcpy(bios_md5, get_md5(bios, sizeof(bios)), sizeof(bios_md5)-1);
 				if(strcmp(bios_md5, _T("635a978fd40db9a18ee44eff449fc126")) == 0)
 				{
 					bios_ok = true;
@@ -188,7 +188,7 @@ void MEMORY::initialize()
 				// check bios MD5 hash
 				_TCHAR bios_md5[33];
 				memset(bios_md5, 0, sizeof(bios_md5));
-				strncpy(bios_md5, get_md5(bios, sizeof(bios)), sizeof(bios_md5));
+				memcpy(bios_md5, get_md5(bios, sizeof(bios)), sizeof(bios_md5)-1);
 				if(strcmp(bios_md5, _T("635a978fd40db9a18ee44eff449fc126")) == 0)
 				{
 					bios_ok = true;
@@ -222,7 +222,7 @@ void MEMORY::initialize()
 				// check bios MD5 hash
 				_TCHAR bios_md5[33];
 				memset(bios_md5, 0, sizeof(bios_md5));
-				strncpy(bios_md5, get_md5(bios, sizeof(bios)), sizeof(bios_md5));
+				memcpy(bios_md5, get_md5(bios, sizeof(bios)), sizeof(bios_md5)-1);
 				if(strcmp(bios_md5, _T("635a978fd40db9a18ee44eff449fc126")) == 0)
 				{
 					bios_ok = true;
@@ -337,6 +337,61 @@ void MEMORY::set_bank(uint8_t bank)
 //	}
 }
 
+// Extract current file in a zip archive
+static bool memory_zipfile_currentfile_extract(unzFile zipfile, const _TCHAR* file_path)
+{
+	unz_file_info zipfile_file_info;
+	if(unzOpenCurrentFile(zipfile) != UNZ_OK
+	|| unzGetCurrentFileInfo(zipfile, &zipfile_file_info, NULL, 0, NULL, 0, NULL, 0) != UNZ_OK
+	|| unzOpenCurrentFile(zipfile) != UNZ_OK)
+		return false;
+
+	FILEIO *fionewfile = new FILEIO();
+	if(!fionewfile || !fionewfile->Fopen(file_path, FILEIO_WRITE_BINARY))
+		return false;
+	
+	if(zipfile_file_info.uncompressed_size == 0)
+	{
+		fionewfile->Fclose();
+		unzCloseCurrentFile(zipfile);
+		return true;
+	}
+
+	uint8_t *buffer = (uint8_t*)malloc(zipfile_file_info.uncompressed_size);
+	if(!buffer)
+		return false;
+	memset(buffer, 0, zipfile_file_info.uncompressed_size);
+	unsigned int buffer_level = 0;
+	unsigned int bytes_to_read = zipfile_file_info.uncompressed_size;
+	int bytes_ridden = 0;
+	do
+	{
+		bytes_ridden = unzReadCurrentFile(zipfile, buffer+buffer_level, bytes_to_read);
+		if(bytes_ridden < 0)
+		{
+			// read error
+			if(buffer_level > 0)
+				fionewfile->Fwrite(buffer, buffer_level, 1);
+			fionewfile->Fclose();
+			unzCloseCurrentFile(zipfile);
+			return false;
+		}
+		else if(bytes_ridden > 0)
+		{
+			// Write data to file
+			bytes_to_read -= bytes_ridden;
+			buffer_level  += bytes_ridden;
+		}
+	} while(bytes_to_read > 0 && bytes_ridden > 0);
+
+	if(buffer_level > 0)
+		fionewfile->Fwrite(buffer, buffer_level, 1);
+	
+	fionewfile->Fclose();
+	unzCloseCurrentFile(zipfile);
+	return true;
+}
+
 void MEMORY::open_cart(const _TCHAR* file_path)
 {
 	uint8_t		  index			= 0;
@@ -345,7 +400,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	uint16_t	  bank			= 0;
 	uint16_t	  offset		= 0x0000;
 	uint32_t	  cart_crc32	= 0;
-	uint8_t		  len			= 0;
+	size_t		  len			= 0;
 	FILEIO		 *fiocart		= new FILEIO();
 	uint8_t		  data[0x8000];
 	_TCHAR		  newcart_path[_MAX_PATH];
@@ -355,6 +410,8 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	bool   cart_in_memory		= false;
 	uint32_t	  data_index	= 0;
 	uint8_t	      cart_data[0x20000];
+	uint8_t       zipfile_number = 0;
+	_TCHAR        zipfile_file_path[4][_MAX_PATH];
 
 
 	// Close cart and initialize memory
@@ -378,20 +435,159 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	memset(&ram_header, 0, sizeof(ram_header));
 	memset(cart, 0xFF, sizeof(cart));
 	memset(sram, 0xFF, sizeof(sram));
-	memset(rom_file_path, 0, _MAX_PATH);
-	strncpy(rom_file_path, file_path, strlen(file_path));
+	memset(rom_file_path, 0, sizeof(rom_file_path));
+	memcpy(rom_file_path, file_path, strlen(file_path));
 	memset(&newcart_path, 0, sizeof(newcart_path));
  #if defined(_LIBRETRO)
- 	strncpy(save_file_path, get_libretro_save_directory(), _MAX_PATH);
+ 	memcpy(save_file_path, get_libretro_save_directory(), sizeof(save_file_path)-1);
  #elif
-	strncpy(save_file_path, get_file_path_directory(rom_file_path), _MAX_PATH);
+	memcpy(save_file_path, get_file_path_directory(rom_file_path), sizeof(save_file_path)-1);
  #endif
 	memset(cart_data, 0xFF, sizeof(data));
 
 	// Check file path
-	len = _tcslen(rom_file_path);
+	len = strlen(rom_file_path);
 	if(len == 0)
 		goto lbl_rom_error;	// Fatal error
+
+	// Extract zip file
+	if(rom_file_path[len - 4] == _T('.')
+	&& (rom_file_path[len - 3] == _T('z') || rom_file_path[len - 3] == _T('Z'))
+	&& (rom_file_path[len - 2] == _T('i') || rom_file_path[len - 2] == _T('I'))
+	&& (rom_file_path[len - 1] == _T('p') || rom_file_path[len - 1] == _T('P')))
+	{
+		unzFile zipfile = unzOpen(rom_file_path);
+		if(zipfile == NULL)
+			goto lbl_rom_error;
+
+		unz_global_info zipfile_global_info;
+		// Get info about the zip file
+		if(unzGetGlobalInfo(zipfile, &zipfile_global_info) != UNZ_OK || zipfile_global_info.number_entry == 0)
+		{
+			unzClose(zipfile);
+			goto lbl_rom_error;
+		}
+		_TCHAR zipfile_file[4][_MAX_PATH];
+		memset(zipfile_file[0], 0, sizeof(zipfile_file[0]));
+		memset(zipfile_file[1], 0, sizeof(zipfile_file[1]));
+		memset(zipfile_file[2], 0, sizeof(zipfile_file[2]));
+		memset(zipfile_file[3], 0, sizeof(zipfile_file[3]));
+		memset(zipfile_file_path[0], 0, sizeof(zipfile_file_path[0]));
+		memset(zipfile_file_path[1], 0, sizeof(zipfile_file_path[1]));
+		memset(zipfile_file_path[2], 0, sizeof(zipfile_file_path[2]));
+		memset(zipfile_file_path[3], 0, sizeof(zipfile_file_path[3]));
+		zipfile_number = 0;
+		size_t filename_len = strlen(file_name);
+		memcpy(zipfile_file[zipfile_number], file_name, filename_len);
+
+		zipfile_file[zipfile_number][filename_len - 3] = _T('c');
+		zipfile_file[zipfile_number][filename_len - 2] = _T('a');
+		zipfile_file[zipfile_number][filename_len - 1] = _T('r');
+		zipfile_file[zipfile_number][filename_len]     = _T('t');
+		if(unzLocateFile(zipfile, zipfile_file[zipfile_number], 2) == UNZ_OK)	// .cart (1 file)
+		{
+			memset(zipfile_file_path[zipfile_number], 0, sizeof(zipfile_file_path[zipfile_number]));
+			memcpy(zipfile_file_path[zipfile_number], save_file_path, strlen(save_file_path));
+			memcpy(zipfile_file_path[zipfile_number]+strlen(save_file_path), zipfile_file[zipfile_number], strlen(zipfile_file[zipfile_number]));
+			memory_zipfile_currentfile_extract(zipfile, zipfile_file_path[zipfile_number]);
+			zipfile_number++;
+		}
+		else
+		{
+			zipfile_file[zipfile_number][filename_len - 3] = _T('b');
+			zipfile_file[zipfile_number][filename_len - 2] = _T('i');
+			zipfile_file[zipfile_number][filename_len - 1] = _T('n');
+			zipfile_file[zipfile_number][filename_len]     = 0;
+			if(unzLocateFile(zipfile, zipfile_file[zipfile_number], 2) == UNZ_OK)	// .bin (1 file)
+			{
+				memset(zipfile_file_path[zipfile_number], 0, sizeof(zipfile_file_path[zipfile_number]));
+				memcpy(zipfile_file_path[zipfile_number], save_file_path, strlen(save_file_path));
+				memcpy(zipfile_file_path[zipfile_number]+strlen(save_file_path), zipfile_file[zipfile_number], strlen(zipfile_file[zipfile_number]));
+				memory_zipfile_currentfile_extract(zipfile, zipfile_file_path[zipfile_number]);
+				zipfile_number++;
+			}
+			else
+			{
+				zipfile_file[zipfile_number][filename_len - 3] = _T('r');
+				zipfile_file[zipfile_number][filename_len - 2] = _T('o');
+				zipfile_file[zipfile_number][filename_len - 1] = _T('m');
+				if(unzLocateFile(zipfile, zipfile_file[zipfile_number], 2) == UNZ_OK)	// .rom (1 file)
+				{
+					memset(zipfile_file_path[zipfile_number], 0, sizeof(zipfile_file_path[zipfile_number]));
+					memcpy(zipfile_file_path[zipfile_number], save_file_path, strlen(save_file_path));
+					memcpy(zipfile_file_path[zipfile_number]+strlen(save_file_path), zipfile_file[zipfile_number], strlen(zipfile_file[zipfile_number]));
+					memory_zipfile_currentfile_extract(zipfile, zipfile_file_path[zipfile_number]);
+					zipfile_number++;
+				}
+				else
+				{
+					zipfile_file[zipfile_number][filename_len - 3] = _T('0');
+					zipfile_file[zipfile_number][filename_len - 2] = 0;
+					zipfile_file[zipfile_number][filename_len - 1] = 0;
+					if(unzLocateFile(zipfile, zipfile_file[zipfile_number], 2) == UNZ_OK)	// .0 (1, 2 or 4 files)
+					{
+						memset(zipfile_file_path[zipfile_number], 0, sizeof(zipfile_file_path[zipfile_number]));
+						memcpy(zipfile_file_path[zipfile_number], save_file_path, strlen(save_file_path));
+						memcpy(zipfile_file_path[zipfile_number]+strlen(save_file_path), zipfile_file[zipfile_number], strlen(zipfile_file[zipfile_number]));
+						memory_zipfile_currentfile_extract(zipfile, zipfile_file_path[zipfile_number]);
+						zipfile_number++;
+
+						memcpy(zipfile_file[zipfile_number], zipfile_file[zipfile_number-1], filename_len);
+						zipfile_file[zipfile_number][filename_len - 3] = _T('1');
+						if(unzLocateFile(zipfile, zipfile_file[zipfile_number], 2) == UNZ_OK)	// .1 (2 or 4 files)
+						{
+							memset(zipfile_file_path[zipfile_number], 0, sizeof(zipfile_file_path[zipfile_number]));
+							memcpy(zipfile_file_path[zipfile_number], save_file_path, strlen(save_file_path));
+							memcpy(zipfile_file_path[zipfile_number]+strlen(save_file_path), zipfile_file[zipfile_number], strlen(zipfile_file[zipfile_number]));
+							memory_zipfile_currentfile_extract(zipfile, zipfile_file_path[zipfile_number]);
+							zipfile_number++;
+
+							memcpy(zipfile_file[zipfile_number], zipfile_file[zipfile_number-1], filename_len);
+							zipfile_file[zipfile_number][filename_len - 3] = _T('2');
+							if(unzLocateFile(zipfile, zipfile_file[zipfile_number], 2) == UNZ_OK)	// .2 (3 or 4 files)
+							{
+								memset(zipfile_file_path[zipfile_number], 0, sizeof(zipfile_file_path[zipfile_number]));
+								memcpy(zipfile_file_path[zipfile_number], save_file_path, strlen(save_file_path));
+								memcpy(zipfile_file_path[zipfile_number]+strlen(save_file_path), zipfile_file[zipfile_number], strlen(zipfile_file[zipfile_number]));
+								memory_zipfile_currentfile_extract(zipfile, zipfile_file_path[zipfile_number]);
+								zipfile_number++;
+
+								memcpy(zipfile_file[zipfile_number], zipfile_file[zipfile_number-1], filename_len);
+								zipfile_file[zipfile_number][filename_len - 3] = _T('3');
+								if(unzLocateFile(zipfile, zipfile_file[zipfile_number], 2) == UNZ_OK)	// .3 (4 files)
+								{
+									memset(zipfile_file_path[zipfile_number], 0, sizeof(zipfile_file_path[zipfile_number]));
+									memcpy(zipfile_file_path[zipfile_number], save_file_path, strlen(save_file_path));
+									memcpy(zipfile_file_path[zipfile_number]+strlen(save_file_path), zipfile_file[zipfile_number], strlen(zipfile_file[zipfile_number]));
+									memory_zipfile_currentfile_extract(zipfile, zipfile_file_path[zipfile_number]);
+									zipfile_number++;
+								}
+								else
+								{
+									// Missing file 4
+									unzClose(zipfile);
+									goto lbl_rom_error;
+								}
+							}
+						}
+					}
+					else
+					{
+						// Missing file 1
+						unzClose(zipfile);
+						goto lbl_rom_error;
+					}
+				}
+			}
+		}
+		unzClose(zipfile);
+		if(zipfile_number > 0)
+		{
+			memset(rom_file_path, 0, sizeof(rom_file_path));
+			len = strlen(zipfile_file_path[0]);
+			memcpy(rom_file_path, zipfile_file_path[0], len);
+		}
+	}
 
 	if(rom_file_path[len - 5] != _T('.')
 	|| (rom_file_path[len - 4] != _T('c') && rom_file_path[len - 4] != _T('C'))
@@ -406,10 +602,10 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 		size_t        file_size;
 		size_t        read_size;
 
-		memset(newcart_path, 0, _tcslen(save_file_path));
-		strncpy(newcart_path, save_file_path, _MAX_PATH);
-		strncpy(newcart_path+strlen(save_file_path), file_name, strlen(file_name));
-		uint8_t newcart_path_len = _tcslen(newcart_path);
+		memset(newcart_path, 0, sizeof(newcart_path));
+		memcpy(newcart_path, save_file_path, strlen(save_file_path));
+		memcpy(newcart_path+strlen(save_file_path), file_name, strlen(file_name));
+		uint8_t newcart_path_len = strlen(newcart_path);
 
 		if(newcart_path_len+4 > _MAX_PATH-1)
 		{
@@ -466,7 +662,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 		// Get MD5
 		memset(raw_md5, 0, sizeof(raw_md5));
-		strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+		memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 		// Different type of cart
 		// 
@@ -584,7 +780,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 			// 
 			_TCHAR next_rom_file_path[_MAX_PATH];
 			memset(&next_rom_file_path, 0, sizeof(next_rom_file_path));
-			my_tcscpy_s(next_rom_file_path, _MAX_PATH, rom_file_path);
+			memcpy(next_rom_file_path, rom_file_path, strlen(rom_file_path));
 			fiocart->Fclose();
 			next_rom_file_path[len - 1] = _T('1');			
 			if(!fiocart->Fopen(next_rom_file_path, FILEIO_READ_BINARY))
@@ -609,7 +805,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("4b2f0e32943ed64561a03e267d6f3fd9")) != 0)	// File 1 of 8KB
 					goto lbl_rom_error;	// Fatal error
@@ -631,7 +827,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("19c339d88cef61bde7048409828a42e7")) != 0)	// File 1 of 8KB
 					goto lbl_rom_error;	// Fatal error
@@ -653,7 +849,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("3ac9c39b019a81fabb1e26f75292827c")) != 0)	// File 1 of 32KB
 					goto lbl_rom_error;	// Fatal error
@@ -675,7 +871,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("a6f81f3b8351771ed7ba3b2f7e987d65")) != 0)	// File 1 of 32KB
 					goto lbl_rom_error;	// Fatal error
@@ -698,7 +894,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("61a6f0c4ef26db9d073b71b21ef957ea")) != 0)	// File 1 of 32KB (same data as file 0)
 					goto lbl_rom_error;	// Fatal error
@@ -722,7 +918,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("122398143f8e538b26b0bd1356431022")) != 0)	// File 2 of 32KB
 					goto lbl_rom_error;	// Fatal error
@@ -746,7 +942,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("087179b0a06f30fe5b35a82dc45a6df9")) != 0)	// File 3 of 32sKB
 					goto lbl_rom_error;	// Fatal error
@@ -770,7 +966,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("8d1269381114d330757f91fb07e2d76d")) != 0)	// File 1 of 32KB
 					goto lbl_rom_error;	// Fatal error
@@ -794,7 +990,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("f8328107cb60e3341e9c25c14af239a4")) != 0)	// File 2 of 32KB
 					goto lbl_rom_error;	// Fatal error
@@ -818,7 +1014,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("a3556d2c9ec743085590645b9bbbe885")) != 0)	// File 3 of 32sKB
 					goto lbl_rom_error;	// Fatal error
@@ -842,7 +1038,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("bfe6c003f5652ebe344139e3c2ed8052")) != 0)	// File 1 of 32KB
 					goto lbl_rom_error;	// Fatal error
@@ -866,7 +1062,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("533e823555bc42d1c0547068a03f845e")) != 0)	// File 2 of 32KB
 					goto lbl_rom_error;	// Fatal error
@@ -890,7 +1086,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("465f41fc3d3b3a689856b108dbf229a7")) != 0)	// File 3 of 32sKB
 					goto lbl_rom_error;	// Fatal error
@@ -915,7 +1111,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("4a6d816aa720a8d921b0e38116d205e7")) != 0)	// File 1 of 32KB
 					goto lbl_rom_error;	// Fatal error
@@ -939,7 +1135,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("b1c2355e6c5f5eb48ee0d446223149e1")) != 0)	// File 2 of 32KB
 					goto lbl_rom_error;	// Fatal error
@@ -963,7 +1159,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 				// Get MD5
 				memset(raw_md5, 0, sizeof(raw_md5));
-				strncpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5));
+				memcpy(raw_md5, get_md5(raw, file_size), sizeof(raw_md5)-1);
 
 				if(strcmp(raw_md5, _T("7c3cb94c676502b8b149afdbf6fbd3f0")) != 0)	// File 3 of 32KB
 					goto lbl_rom_error;	// Fatal error
@@ -1015,13 +1211,15 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 			cart_in_memory = false;
 		}
 
-		strncpy(rom_file_path, newcart_path, _MAX_PATH);
-		len = _tcslen(rom_file_path);
+		memset(rom_file_path, 0, sizeof(rom_file_path));
+		len = strlen(newcart_path);
+		memcpy(rom_file_path, newcart_path, len);
 	}
 
 	// Get save file path
-	strncpy(ram_path, save_file_path, _MAX_PATH);
-	strncpy(ram_path+strlen(save_file_path), file_name, strlen(file_name));
+	memset(ram_path, 0, sizeof(ram_path));
+	memcpy(ram_path, save_file_path, strlen(save_file_path));
+	memcpy(ram_path+strlen(save_file_path), file_name, strlen(file_name));
 	ram_path[len - 4] = (rom_file_path[len - 4] == _T('c') ? _T('s') : _T('S'));
 	ram_path[len - 3] = (rom_file_path[len - 3] == _T('a') ? _T('a') : _T('A'));
 	ram_path[len - 2] = (rom_file_path[len - 2] == _T('r') ? _T('v') : _T('V'));
@@ -1398,6 +1596,12 @@ lbl_rom_error:
 lbl_rom_close:
 	fiocart->Fclose();
 lbl_rom_end:
+
+	// Delete files extracted from a zip archive
+	if(zipfile_number > 0)
+		for(int8_t i = zipfile_number; i-- >= 0; )
+			fiocart->RemoveFile(zipfile_file_path[i]);
+
 	delete fiocart;
 }
 

@@ -8,11 +8,30 @@
 
 // LINUX
         {
+            "name": "=== LINUX ==============================",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "(gdb) Launch (LNX) + no cart",
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -31,7 +50,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/astrwrs.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/astrwrs.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -50,7 +69,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/astrwrs2.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/astrwrs2.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -69,7 +88,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/basic.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/basic.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -88,7 +107,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/bdash.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/bdash.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -107,7 +126,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/bdasha.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/bdasha.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -126,7 +145,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/comicirc.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/comicirc.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -145,7 +164,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/doraemon.0"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/doraemon.0"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -164,7 +183,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/dball.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/dball.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -183,7 +202,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/dslayer.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/dslayer.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -202,7 +221,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/elevfght.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/elevfght.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -221,7 +240,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/kungfurd.0"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/kungfurd.0"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -240,7 +259,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/lupin3.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/lupin3.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -259,7 +278,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/mappy.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/mappy.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -278,7 +297,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/milkyprn.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/milkyprn.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -297,7 +316,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/mine2049.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/mine2049.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -316,7 +335,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/nebula.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/nebula.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -335,7 +354,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/nebulaa.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/nebulaa.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -354,7 +373,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/polepos2.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/polepos2.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -373,7 +392,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/popchips.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/popchips.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -392,7 +411,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/prowrest.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/prowrest.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -411,7 +430,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/punchboy.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/punchboy.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -430,7 +449,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/rgmahjon.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/rgmahjon.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -449,7 +468,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/shogi.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/shogi.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -468,7 +487,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/skykid.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/skykid.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -487,7 +506,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/starspdr.0"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/starspdr.0"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -506,7 +525,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/baseball.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/baseball.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -525,7 +544,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/sansupyu.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/sansupyu.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -544,7 +563,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/soccer.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/soccer.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -563,7 +582,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/soccera.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/soccera.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -582,7 +601,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/suprgolf.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/suprgolf.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -601,7 +620,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/ttball.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/ttball.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -620,7 +639,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/wheelrcr.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/wheelrcr.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -639,7 +658,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/NO_INTRO/y2mnstld.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/NO_INTRO/y2mnstld.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -653,13 +672,13 @@
                 }
             ]
         },
-/*
+
         {
-            "name": "(gdb) Launch (LNX) + cart RAW",
+            "name": "=====",
             "type": "cppdbg",
             "request": "launch",
             "program": "/usr/bin/retroarch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.so","~/dev/libretro-emuscv/roms/bdasha.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -673,18 +692,284 @@
                 }
             ]
         },
-*/
+        {
+            "name": "(gdb) Launch (LNX) + .CART",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/CART/astrwrs.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + .BIN",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/BIN/astrwrs.bin"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + .ROM",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/ROM/astrwrs.rom"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + .0",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/0/astrwrs.0"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + .0.1",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/0/doraemon.0"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + .0.1.2.3",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/0/dball.0"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+
+        {
+            "name": "=====",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + ZIP .CART",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/CART/astrwrs.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + ZIP .BIN",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/BIN/astrwrs.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + ZIP .ROM",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/ROM/astrwrs.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + ZIP .0",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/0/astrwrs.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + ZIP .0.1",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/0/doraemon.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (LNX) + ZIP .0.1.2.3",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/retroarch",
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.so", "~/dev/libretro-emuscv-repo/libretro-emuscv/roms/0/dball.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
 
 
 
 
 // WINDOWS
         {
+            "name": "=== WINDOWS ============================",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "(gdb) Launch (WIN) + no cart",
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -704,7 +989,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\astrwrs.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\astrwrs.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -723,7 +1008,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\astrwrs2.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\astrwrs2.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -742,7 +1027,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\basic.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\basic.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -761,7 +1046,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\bdash.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\bdash.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -780,7 +1065,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\bdasha.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\bdasha.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -799,7 +1084,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\comicirc.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\comicirc.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -818,7 +1103,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\doraemon.0"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\doraemon.0"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -837,7 +1122,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\dball.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\dball.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -856,7 +1141,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\dslayer.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\dslayer.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -875,7 +1160,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\elevfght.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\elevfght.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -894,7 +1179,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\kungfurd.0"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\kungfurd.0"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -913,7 +1198,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\lupin3.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\lupin3.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -932,7 +1217,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\mappy.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\mappy.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -951,7 +1236,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\milkyprn.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\milkyprn.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -970,7 +1255,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\mine2049.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\mine2049.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -989,7 +1274,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\nebula.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\nebula.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1008,7 +1293,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\nebulaa.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\nebulaa.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1027,7 +1312,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\polepos2.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\polepos2.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1046,7 +1331,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\popchips.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\popchips.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1065,7 +1350,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\prowrest.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\prowrest.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1084,7 +1369,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\punchboy.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\punchboy.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1103,7 +1388,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\rgmahjon.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\rgmahjon.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1122,7 +1407,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\shogi.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\shogi.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1141,7 +1426,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\skykid.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\skykid.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1160,7 +1445,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\starspdr.0"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\starspdr.0"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1179,7 +1464,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\baseball.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\baseball.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1198,7 +1483,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\sansupyu.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\sansupyu.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1217,7 +1502,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\soccer.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\soccer.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1236,7 +1521,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\soccera.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\soccera.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1255,7 +1540,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\suprgolf.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\suprgolf.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1274,7 +1559,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\ttball.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\ttball.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1293,7 +1578,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\wheelrcr.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\wheelrcr.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1312,7 +1597,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\NO_INTRO\\y2mnstld.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\NO_INTRO\\y2mnstld.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1325,14 +1610,14 @@
                     "ignoreFailures": true
                 }
             ]
-        }
-/*
+        },
+
         {
-            "name": "(gdb) Launch (WIN) + cart RAW",
+            "name": "=====",
             "type": "cppdbg",
             "request": "launch",
             "program": "C:\\retroarch\\retroarch.exe",
-            "args": ["-v", "-L","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\emuscv_libretro.dll","C:\\msys64\\home\\Maxime\\dev\\libretro-emuscv\\roms\\polepos2.bin"],
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1345,10 +1630,257 @@
                     "ignoreFailures": true
                 }
             ]
-        }
- */
- 
- 
+        },
+        {
+            "name": "(gdb) Launch (WIN) + .CART",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\CART\\astrwrs.cart"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + .BIN",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\BIN\\astrwrs.bin"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + .ROM",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\ROM\\astrwrs.rom"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + .0",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\0\\astrwrs.0"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + .0.1",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\0\\doraemon.0"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + .0.1.2.3",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\0\\dball.0"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+
+        {
+            "name": "=====",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + ZIP .CART",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\CART\\astrwrs.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + ZIP .BIN",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\BIN\\astrwrs.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + ZIP .ROM",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\ROM\\astrwrs.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + ZIP .0",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\0\\astrwrs.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + ZIP .0.1",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\0\\doraemon.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch (WIN) + ZIP .0.1.2.3",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\retroarch\\retroarch.exe",
+            "args": ["-v", "-L", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\emuscv_libretro.dll", "C:\\users\\Maxime\\dev\\libretro-emuscv-repo\\libretro-emuscv\\roms\\0\\dball.zip"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+
+
  
 /*
         {
@@ -1356,7 +1888,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/Applications/RetroArch.app/Contents/MacOS/RetroArch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.dylib"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.dylib"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -1375,7 +1907,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/Applications/RetroArch.app/Contents/MacOS/RetroArch",
-            "args": ["-v", "-L","~/dev/libretro-emuscv/emuscv_libretro.dylib","~/Dev/libretro-emuscv/roms/astrwrs.bin"],
+            "args": ["-v", "-L", "~/dev/libretro-emuscv-repo/libretro-emuscv/emuscv_libretro.dylib","~/dev/libretro-emuscv-repo/libretro-emuscv/roms/astrwrs.bin"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

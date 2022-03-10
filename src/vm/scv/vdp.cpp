@@ -448,8 +448,8 @@ inline void VDP::draw_sprite_screen(scrntype_t *d)
 			no1 = atb3;
 			if(conx || cony)	// Normal 2 colors sprite
 			{
-				no2;
-				col2;
+				//no2;
+				//col2;
 				if(conx && cony)
 				{
 					no2 = atb3 ^ 9;

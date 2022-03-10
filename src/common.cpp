@@ -411,9 +411,9 @@ int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TC
 void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 {
 	size_t len1;
-	register size_t len2;
-	register uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
-	register uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
+	size_t len2;
+	uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
+	uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
 	int i;
 	
 	if(len == 0) return dst;
@@ -428,8 +428,8 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 	case 0: // Align 256
 		{
 			uint64_t b64[4];
-			register uint64_t *s64 = (uint64_t *)src;
-			register uint64_t *d64 = (uint64_t *)dst;
+			uint64_t *s64 = (uint64_t *)src;
+			uint64_t *d64 = (uint64_t *)dst;
 			switch(d_align) {
 			case 0: // 256 vs 256
 				{
@@ -487,8 +487,8 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 			case 0x1c: // 256 vs 32
 				{
 					uint32_t b32[8];
-					register uint32_t *s32 = (uint32_t *)src;
-					register uint32_t *d32 = (uint32_t *)dst;
+					uint32_t *s32 = (uint32_t *)src;
+					uint32_t *d32 = (uint32_t *)dst;
 					len2 = len1 >> 5;
 					while(len2 > 0) {
 						for(i = 0; i < 8; ++i) b32[i] = s32[i];
@@ -525,8 +525,8 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 	case 0x10: // Src alignn to 16.
 		{
 			uint32_t b32[4];
-			register uint32_t *s32 = (uint32_t *)src;
-			register uint32_t *d32 = (uint32_t *)dst;
+			uint32_t *s32 = (uint32_t *)src;
+			uint32_t *d32 = (uint32_t *)dst;
 			switch(d_align) {
 			case 0: // 128 vs 256/128
 			case 0x10:
@@ -599,10 +599,10 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 	case 0x08:
 	case 0x18: // Src alignn to 64.
 		{
-			register uint32_t *s32 = (uint32_t *)src;
-			register uint32_t *d32 = (uint32_t *)dst;
-			register uint64_t *s64 = (uint64_t *)src;
-			register uint64_t *d64 = (uint64_t *)dst;
+			uint32_t *s32 = (uint32_t *)src;
+			uint32_t *d32 = (uint32_t *)dst;
+			uint64_t *s64 = (uint64_t *)src;
+			uint64_t *d64 = (uint64_t *)dst;
 			switch(d_align) {
 			case 0:
 			case 0x10: // 64 vs 128
@@ -668,9 +668,9 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 	case 0x14:
 	case 0x1c:  // Src align 32
 		{
-			register uint32_t *s32 = (uint32_t *)src;
-			register uint32_t *d32 = (uint32_t *)dst;
-			register uint64_t *d64 = (uint64_t *)dst;
+			uint32_t *s32 = (uint32_t *)src;
+			uint32_t *d32 = (uint32_t *)dst;
+			uint64_t *d64 = (uint64_t *)dst;
 			switch(d_align) {
 			case 0:
 			case 0x10: // 32 vs 128
@@ -744,8 +744,8 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 	}
 #else
 	// Using SIMD *with* un-aligned instructions.
-	register uint32_t *s32 = (uint32_t *)src;
-	register uint32_t *d32 = (uint32_t *)dst;
+	uint32_t *s32 = (uint32_t *)src;
+	uint32_t *d32 = (uint32_t *)dst;
 	if(((s_align & 0x07) != 0x0) && ((d_align & 0x07) != 0x0)) { // None align.
 		return memcpy(dst, src, len);
 	}
@@ -1033,7 +1033,7 @@ static void _my_mkdir(std::string t_dir)
 void DLL_PREFIX set_libretro_system_directory(const _TCHAR *system_directory)
 {
 	memset(libretro_system_directory, 0, sizeof(libretro_system_directory));
-	strncpy(libretro_system_directory, system_directory, _MAX_PATH - 1);
+	memcpy(libretro_system_directory, system_directory, strlen(system_directory));
 	int len = strlen(libretro_system_directory);
 	if(libretro_system_directory[len - 1] != '\\' && libretro_system_directory[len - 1] != '/')
 	{
@@ -1049,7 +1049,7 @@ void DLL_PREFIX set_libretro_system_directory(const _TCHAR *system_directory)
 void DLL_PREFIX set_libretro_save_directory(const _TCHAR *save_directory)
 {
 	memset(libretro_save_directory, 0, sizeof(libretro_save_directory));
-	strncpy(libretro_save_directory, save_directory, _MAX_PATH - 1);
+	memcpy(libretro_save_directory, save_directory, strlen(save_directory));
 	int len = strlen(libretro_save_directory);
 	if(libretro_save_directory[len - 1] != '\\' && libretro_save_directory[len - 1] != '/')
 	{
@@ -1083,7 +1083,7 @@ const _TCHAR *DLL_PREFIX get_application_path()
 	if(!initialized)
 	{
 #if defined(_LIBRETRO)
-		strncpy(app_path, libretro_system_directory, _MAX_PATH);
+		memcpy(app_path, libretro_system_directory, strlen(libretro_system_directory));
 #elif defined(_WIN32) && !defined(_USE_QT)
 		_TCHAR tmp_path[_MAX_PATH], *ptr = NULL;
 		if(GetModuleFileName(NULL, tmp_path, _MAX_PATH) != 0 && GetFullPathName(tmp_path, _MAX_PATH, app_path, &ptr) != 0 && ptr != NULL)

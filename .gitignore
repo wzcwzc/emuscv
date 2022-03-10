@@ -1,10 +1,11 @@
+.gitignore
 bios
 roms
 save
 savestates
 tmp
-.gitignore.txt
 emuscv_libretro.dll
 emuscv_libretro.dylib
 emuscv_libretro.so
 git.txt
+*.o
