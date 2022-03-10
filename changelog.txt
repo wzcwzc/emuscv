@@ -17,8 +17,6 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
   (limited number of sprites like in Kung-Fu Road)
 
 
-
-
 ***********************************************************
 * Libretro-EmuSCV v0.10.20220310130100
 ***********************************************************
