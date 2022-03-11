@@ -15,13 +15,6 @@ It is written by MARCONATO Maxime (aka MaaaX) and based on eSCV, an "EPOCH Super
 Cassette Vision Emulator for Win32" written by TAKEDA toshiya.
 
 
--------
-install
--------
-
-To do....
-
-
 ---------------
 For developpers
 ---------------
@@ -40,24 +33,3 @@ Libretro-EmuSCV:
 
 eSCV:
 - TAKEDA toshiya | takeda@m1.interq.or.jp | http://takeda-toshiya.my.coocan.jp/
-
-
-
-
-
---- Internal ROM image
-
-	BIOS.ROM	$0000-$0FFF
-
---- Cart ROM images
-
-	Cart ROM image header:
-
-		db id[4]	'SCV^Z' (53h,43h,56h,1ah)
-		db ctype	0 = 16KB, 32KB, 32KB + 8KB
-				    1 = 32KB + 8KB SRAM
-			    	2 = 32KB + 32KB, 32KB + 32KB + 32KB + 32KB
-		db reserver[11]
-
-		(note: if no header, it is recognized that ctype must be 0)
-
