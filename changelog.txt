@@ -18,6 +18,12 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 
 
 ***********************************************************
+* Libretro-EmuSCV v0.11.20220320092000
+***********************************************************
+- Added MD5 for lupin3a.bin ROM
+- Corrected write of CRC32 for empty CRC32 in .cart files
+
+***********************************************************
 * Libretro-EmuSCV v0.10.20220310130100
 ***********************************************************
 - Corrected .zip ROMs support

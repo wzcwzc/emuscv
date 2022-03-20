@@ -677,18 +677,19 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 			memcpy(cart_data, raw, cart_size);
 		}
 		else if(strcmp(raw_md5, _T("c800d70c4a1f9600407d8392b9455015")) == 0	// SUPER BASEBALL (1 file of 16KB)
-		|| strcmp(raw_md5, _T("4471a0938102c21a49635d3e4efb61bc")) == 0			// BOULDER DASH (Japan) (1 file of 16KB)
-		|| strcmp(raw_md5, _T("21b1f2432b4ea67dc7162630100b2cd5")) == 0			// BOULDER DASH (Europe) (1 file of 16KB)
+		|| strcmp(raw_md5, _T("4471a0938102c21a49635d3e4efb61bc")) == 0			// BOULDER DASH (1 file of 16KB)
+		|| strcmp(raw_md5, _T("21b1f2432b4ea67dc7162630100b2cd5")) == 0			// BOULDER DASH (alternate) (1 file of 16KB)
 		|| strcmp(raw_md5, _T("ec261a6208094fceb7a4f8cc60db24b4")) == 0			// COMIC CIRCUS (1 file of 16KB)
 		|| strcmp(raw_md5, _T("3ac6b89ba13e57100d522921abb7319c")) == 0			// ELEVATOR FIGHT (1 file of 16KB)
 		|| strcmp(raw_md5, _T("e1547118cf5a9e88825408f12550b890")) == 0			// LUPIN III (1 file of 16KB)
+		|| strcmp(raw_md5, _T("07e8dc7cbaacedbbcb483a4e7e6b18f3")) == 0			// LUPIN III (alternate) (1 file of 16KB)
 		|| strcmp(raw_md5, _T("f4a3f4f5a08a15ec62a32e959a528eac")) == 0			// MINER 2049ER (1 file of 16KB)
-		|| strcmp(raw_md5, _T("e86aab083fc9722f8a44b356139522c2")) == 0			// NEBULA (Japan) (1 file of 16KB)
-		|| strcmp(raw_md5, _T("ac629947980bbd14478c29c1645efa41")) == 0			// NEBULA (Europe) (1 file of 16KB)
+		|| strcmp(raw_md5, _T("e86aab083fc9722f8a44b356139522c2")) == 0			// NEBULA (1 file of 16KB)
+		|| strcmp(raw_md5, _T("ac629947980bbd14478c29c1645efa41")) == 0			// NEBULA (alternate) (1 file of 16KB)
 		|| strcmp(raw_md5, _T("7c10f8df512ce0bbfad7505ccca88827")) == 0			// PUNCH BOY (1 file of 16KB)
 		|| strcmp(raw_md5, _T("c9e1042402b5a0ff6f75b737fec8a08a")) == 0			// REAL MAHJONG (1 file of 16KB)
-		|| strcmp(raw_md5, _T("5cd60ad0a9bfb818db9c4e5accc05537")) == 0			// SUPER SOCCER (Japan) (1 file of 16KB)
-		|| strcmp(raw_md5, _T("dd60e91b361fdc8bc8ead3d76c45897c")) == 0			// SUPER SOCCER (Europe) (1 file of 16KB)
+		|| strcmp(raw_md5, _T("5cd60ad0a9bfb818db9c4e5accc05537")) == 0			// SUPER SOCCER (1 file of 16KB)
+		|| strcmp(raw_md5, _T("dd60e91b361fdc8bc8ead3d76c45897c")) == 0			// SUPER SOCCER (alternate) (1 file of 16KB)
 		|| strcmp(raw_md5, _T("734091f00d410fc4251f0aae7d47e4c1")) == 0			// SUPER GOLF (1 file of 16KB)
 		|| strcmp(raw_md5, _T("622cbb0451fbf82b9b7834c5ca589443")) == 0			// TON TON BALL (1 file of 16KB)
 		|| strcmp(raw_md5, _T("ef4ab0300b9e056d1ba9873b63a1b6cf")) == 0)		// WHEELY RACER (1 file of 16KB)
@@ -1425,7 +1426,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 
 		// Write cart CRC32
 		FILEIO* fiorw = new FILEIO();
-		if(fiorw->Fopen(rom_file_path, FILEIO_WRITE_BINARY))
+		if(fiorw->Fopen(rom_file_path, FILEIO_READ_WRITE_BINARY))
 		{
 			fiorw->Fseek(sizeof(cart_header)-sizeof(cart_header.crc32), FILEIO_SEEK_SET);
 			fiorw->Fwrite(&cart_header.crc32, sizeof(cart_header.crc32), 1);
