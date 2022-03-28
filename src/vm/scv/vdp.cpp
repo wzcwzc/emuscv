@@ -175,6 +175,24 @@ void VDP::draw_screen()
 		}
 
 		draw_screen(d);
+
+		scrntype_t *d2;
+		if(config.screen_display == SETTING_DISPLAY_YENO_VAL)
+		{
+			// YENO
+			// Screen border BLACK
+			d1 = d + 215 + 255 * SCREEN_WIDTH;
+			c = palette_pc[0x1];
+			for(int16_t y = 256; --y >= 0; d1 -= SCREEN_WIDTH)
+				d1[0] = d1[1] = d1[2] = c;
+			d1 = d + 217 + 263 * SCREEN_WIDTH;
+			for(int16_t x, y = 264; --y > 255; )
+			{
+				for(x = 218; --x >= 31; )
+					*d1-- = c;
+				d1 -= SCREEN_WIDTH - 187;
+			}
+		}
 	}
 }
 
@@ -475,17 +493,17 @@ inline void VDP::draw_sprite_screen(scrntype_t *d)
 					col2 = color_pair_x[col1];
 				}
 // R&D
-if(!col2)	// New color pair?
-{
-//	dx = 20;
-//	dy = 20;
-//	sx = 0;
-//	sy = 0;
-//	ex = 8;
-//	ey = 8;
-//	col1 = 0xF;
-	col2 = 0xF;
-}
+// if(!col2)	// New color pair?
+// {
+// //	dx = 20;
+// //	dy = 20;
+// //	sx = 0;
+// //	sy = 0;
+// //	ex = 8;
+// //	ey = 8;
+// //	col1 = 0xF;
+// 	col2 = 0xF;
+// }
 
 				draw_sprite(d, dx, dy, sx, ex, sy, ey, no1, col1);
 				draw_sprite(d, dx, dy, sx, ex, sy, ey, no2, col2);
@@ -504,18 +522,18 @@ if(!col2)	// New color pair?
 				no2 = 11;// or 9... but why?
 				col2 = color_pair_xy[col1];
 
-// R&D
-if(!col2)	// // New color pair?
-{
-//	dx = 20;
-//	dy = 20;
-//	sx = 0;
-//	sy = 0;
-//	ex = 8;
-//	ey = 8;
-//	col2 = 0x4;
-	col2 = 0x8;
-}
+// // R&D
+// if(!col2)	// // New color pair?
+// {
+// //	dx = 20;
+// //	dy = 20;
+// //	sx = 0;
+// //	sy = 0;
+// //	ex = 8;
+// //	ey = 8;
+// //	col2 = 0x4;
+// 	col2 = 0x8;
+// }
 
 				draw_sprite(d, dx, dy, sx, ex, sy, ey, no1, col2);
 				draw_sprite(d, dx, dy, sx, ex, sy, ey, no2, col1);
@@ -565,7 +583,6 @@ if(index == 0)
 	}
 }
 */
-
 		}
 	}
 }
