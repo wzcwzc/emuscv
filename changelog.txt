@@ -18,6 +18,12 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 
 
 ***********************************************************
+* Libretro-EmuSCV v0.11.20220328135000
+***********************************************************
+- Corrected black bands on right and bottom of the screen
+  with options CONSOLE = YENO and DISPLAYFULL = OFF
+
+***********************************************************
 * Libretro-EmuSCV v0.11.20220320092000
 ***********************************************************
 - Added MD5 for lupin3a.bin ROM
