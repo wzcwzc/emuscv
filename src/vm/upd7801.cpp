@@ -2501,8 +2501,7 @@ void UPD7801::OP()
 	case 0x67:	// nei a,byte
 		NEI(_A); break;
 	case 0x68:	// mvi v,byte
-		_V = FETCH8();
-		break;
+		_V = FETCH8(); break;
 	case 0x69:	// mvi a,byte
 		if(PSW & F_L1) {
 			PC++;

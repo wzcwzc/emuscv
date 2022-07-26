@@ -13,9 +13,14 @@ Libretro-EmuSCV (EPOCH/YENO Super Cassette Vision Emulator)
 - To enhance audio channels mix
 - To enhance graphics issues
   (Diamonds in Boulder Dash)
-  (last level bricks in Lupin III)
   (limited number of sprites like in Kung-Fu Road)
 
+
+***********************************************************
+* Libretro-EmuSCV v0.12.20220729135800
+***********************************************************
+- Corrected DASM7801 (dissembler for NEC uPD7801) to match
+  with the new RAM7801 project (assembler for NEC uPD7801)
 
 ***********************************************************
 * Libretro-EmuSCV v0.11.20220328135000
